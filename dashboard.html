@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dashboard">
+<meta name="theme-color" content="#111111">
+<meta name="robots" content="noindex, nofollow">
+<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+<title>Prinz Rudolf · Dashboard Chef</title>
+<style>
+  :root{--bordeaux:#1c1c1c;--bordeaux-d:#000;--cream:#faf8f2;--paper:#fff;--ink:#1a1a1a;--muted:#8a8378;--line:#ececec;--gold:#c9a227;--yellow:#f5c518;--ok:#2e7d5b;--warn:#c0392b}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--cream);color:var(--ink);line-height:1.45;padding-bottom:env(safe-area-inset-bottom)}
+  #lock{position:fixed;inset:0;z-index:50;background:linear-gradient(160deg,var(--bordeaux),var(--bordeaux-d));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;color:#fff;text-align:center}
+  #lock .mark{width:64px;height:64px;border-radius:16px;border:2px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;letter-spacing:1px;margin-bottom:18px}
+  #lock h1{font-size:22px;margin:0 0 4px;font-weight:600}
+  #lock p{opacity:.85;font-size:13px;margin:0 0 24px;letter-spacing:.5px}
+  #lock .box{width:100%;max-width:300px}
+  #lock input{width:100%;border:none;border-radius:12px;padding:14px 16px;font-size:17px;text-align:center;color:var(--ink);margin-bottom:12px}
+  #lock button{width:100%;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--yellow),var(--gold));color:#1a1400;cursor:pointer}
+  #lock .err{color:#ffd2d2;font-size:13px;height:18px;margin-top:10px}
+  #lock label{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;opacity:.9;margin-top:14px;cursor:pointer}
+  #lock label input{width:auto;margin:0}
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(160deg,var(--bordeaux),var(--bordeaux-d));color:#fff;padding:calc(env(safe-area-inset-top) + 14px) 16px 12px;box-shadow:0 2px 14px rgba(0,0,0,.18)}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .mark{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gold);font-size:14px;flex:none}
+  .brand h1{font-size:16px;margin:0;font-weight:600}
+  .brand small{display:block;font-size:10px;opacity:.8;letter-spacing:1.5px;text-transform:uppercase}
+  .ctrl{margin-top:11px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .ctrl input[type=date]{border:none;border-radius:8px;padding:7px 10px;font-size:14px}
+  .ctrl button{border:1.5px solid var(--gold);background:transparent;color:var(--gold);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer}
+  main{max-width:860px;margin:0 auto;padding:16px}
+  #status{font-size:12px;color:var(--muted);margin-bottom:10px;text-align:center}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:14px;margin-bottom:13px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .card-h{padding:13px 16px;display:flex;align-items:center;gap:10px;background:#fbf8f2}
+  .card-h .t{flex:1;font-size:16px;font-weight:700}
+  .card-h .sub{font-size:11px;color:var(--muted);font-weight:600}
+  .card-b{padding:10px 16px 14px}
+  .bar{height:9px;border-radius:6px;background:#eee;overflow:hidden;margin:4px 0 10px}
+  .bar>i{display:block;height:100%;background:var(--ok)}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .row:last-child{border-bottom:none}
+  .muted{color:var(--muted);font-size:12px;white-space:nowrap}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;color:#fff}
+  .pill.ok{background:var(--ok)} .pill.no{background:var(--warn)} .pill.mid{background:var(--gold);color:#1a1400}
+  .missrow{color:var(--warn);font-weight:600}
+  .it{display:flex;align-items:flex-start;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .it:last-child{border-bottom:none}
+  .chk{width:26px;height:26px;border:2px solid var(--gold);border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:#fff;background:#fff;margin-top:1px}
+  .chk.on{background:var(--ok);border-color:var(--ok)}
+  .lab{flex:1;font-size:14.5px}
+  .sig{font-size:11px;color:var(--ok);font-weight:600;margin-top:3px;display:block}
+  .ctrlbtn{border:1.5px solid var(--gold);background:#fff;color:var(--bordeaux);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer}
+  .pendrow{color:var(--muted)}
+  .donerow{color:var(--ink)}
+  .subh{display:flex;justify-content:space-between;align-items:center;margin:12px 0 2px;font-weight:700;font-size:14px}
+  .subh:first-child{margin-top:2px}
+  .card.fold .card-h{cursor:pointer}
+  .card.fold .card-b{display:none}
+  .card.fold.open .card-b{display:block}
+  .card.fold .tog{color:var(--gold);font-weight:800;font-size:18px;transition:transform .2s;margin-left:2px}
+  .card.fold.open .tog{transform:rotate(90deg)}
+  #rep{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:60;align-items:center;justify-content:center;padding:18px}
+  .repbox{background:#fff;border-radius:16px;padding:18px;max-width:520px;width:100%}
+  .repbox h3{margin:0 0 4px} .repbox p{margin:0 0 10px;font-size:13px;color:var(--muted)}
+  .repbox textarea{width:100%;height:300px;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12.5px;font-family:ui-monospace,Menlo,monospace}
+  .reprow{display:flex;gap:9px;margin-top:10px}.reprow button{flex:1;border:none;border-radius:10px;padding:12px;font-weight:700;cursor:pointer}
+  .reprow .copy{background:linear-gradient(135deg,var(--yellow),var(--gold));color:#1a1400}.reprow .close{background:#eee}
+  footer{text-align:center;font-size:11px;color:var(--muted);padding:18px}
+</style>
+</head>
+<body>
+<div id="lock">
+  <div class="mark">PR</div><h1>Prinz Rudolf</h1><p>DASHBOARD CHEF · RISERVATA</p>
+  <div class="box">
+    <input id="pw" type="password" placeholder="Password" autocomplete="current-password" enterkeyhint="go">
+    <button id="enter">Entra</button>
+    <div class="err" id="err"></div>
+    <label><input type="checkbox" id="remember" checked> Ricorda su questo dispositivo</label>
+  </div>
+</div>
+<div id="app" style="display:none">
+<header>
+  <div class="brand"><div class="mark">PR</div><div><small>Prinz Rudolf · Cucina</small><h1>Dashboard Chef</h1></div></div>
+  <div class="ctrl">
+    <button onclick="shiftDay(-1)">‹ Giorno prima</button>
+    <input type="date" id="datePick" onchange="loadAll()">
+    <button onclick="shiftDay(1)">Giorno dopo ›</button>
+    <button onclick="goToday()">Oggi</button>
+    <button onclick="loadAll()">↻ Aggiorna</button>
+    <button onclick="exportReport()">📄 Report</button>
+  </div>
+</header>
+<main><div id="status">Caricamento…</div><div id="noteBox"></div><div id="view"></div></main>
+<footer>Prinz Rudolf · Dashboard Chef · si aggiorna da sola ogni 30s</footer>
+</div>
+<div id="rep"><div class="repbox"><h3>Report del giorno</h3><p>Copialo e conservalo o mandalo alla direzione.</p><textarea id="reptxt" readonly></textarea><div class="reprow"><button class="copy" onclick="copyRep()">Copia</button><button class="close" onclick="document.getElementById('rep').style.display='none'">Chiudi</button></div></div></div>
+<script>
+const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
+const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
+const APP_PW="Rachi020817";
+const TEAM=[["Gigio","Chef di cucina"],["Gianluca","Sous chef"],["Alex","Secondi"],["Mattia","Primi"],["Ubaldo","Pizzeria"],["Erjola","Pasticceria"],["Badr","Tournant + Panificazione"]];
+const APERTURA=["Accendere le attrezzature del mattino","Controllare le PRESENZE settimanali","Ricevere e sistemare la merce (FIFO)","Controllo mise en place e scorte","Taglieri e contenitori al loro posto","Pasto del personale fuori per le 11:30","Controllare gli avanzi e stoccarli","Stracci puliti, postazioni in ordine"];
+const PULIZIA=["Piano di lavoro pulito e sanificato","Attrezzatura della partita (bilance, bimby/pacojet, sottovuoto, friggitrice, microonde)","Banco frigo: riordino, controllo date, FIFO","Coperchi puliti e in ordine","Fornelli / piastra / griglia della propria zona","Forno: parte superiore e frontale","Salamandra: passata","Abbattitore davanti: pulito","Pulizia del pass (dietro, sopra, decorazioni)","Controllo sporcizia vicino ai piatti","Cambio acqua roner (carni ogni giorno)"];
+const CHIUSURA=["Tutto spento (attrezzature)","Pulizia serale adeguata di tutto","Celle chiuse e in ordine, prodotti etichettati","Scarico/filtraggio friggitrici se necessario","Microonde e pelapatate puliti","Taglieri e contenitori a posto (plastica/organico)"];
+const PULIZIA_SETT=["Interno banco frigo / cassetti (anche guarnizioni)","Forno e piastra a fondo","Pulizia della cella di competenza (a fondo) + controllo scadenze","Pulizia scaffali (compresi quelli bassi)","Piccoli elettrodomestici della partita","Pulizia roner (acqua e aceto a 90°C per 1 ora)","Scongelamento congelatori piccoli (ogni 2 settimane)","Filtri cappe: smontare e dare ai lavapiatti (ogni 2 settimane)"];
+const ITEMS={apertura:APERTURA,chiusura:CHIUSURA};
+const LABEL={apertura:'Apertura (entro 14:00)',chiusura:'Chiusura (entro 22:00)'};
+const CAPI=["Alex","Mattia","Ubaldo","Erjola","Badr","Gianluca"];
+const CHIUSI=["Gianluca"]; // partite chiuse: pulizie sospese, solo produzione
+const CHEF=["Briefing di 5 minuti con la brigata (coperti, coperture, impiattamenti)","Verifica linea pronta entro le 18:00","Decorazioni pronte entro le 18:30","Pane pronto entro le 18:20","Controllo pulizia di fine servizio (ognuno la sua partita)"];
+const PANE=[
+ {id:"vegipan",nm:"Vegipan",unit:"pz",soglia:10},
+ {id:"panini_latte",nm:"Panini al latte",unit:"GN",soglia:2},
+ {id:"pan_gocciole",nm:"Pan gocciole al cioccolato",unit:"placca",soglia:1},
+ {id:"baguette_int",nm:"Baguette integrale",unit:"pz",soglia:10},
+ {id:"pane_paarl",nm:"Pane Paarl",unit:"casse",soglia:2},
+ {id:"pane_olive",nm:"Pane alle olive",unit:"placca",soglia:1},
+ {id:"pane_erbe",nm:"Pane alle erbe",unit:"placca",soglia:1},
+ {id:"pane_pizza",nm:"Pane alla pizza",unit:"GN",soglia:1},
+ {id:"pane_noci",nm:"Pane alle noci",unit:"GN",soglia:1},
+ {id:"pane_parmigiano",nm:"Pane al parmigiano",unit:"GN",soglia:1},
+ {id:"pane_cipolla",nm:"Pane alla cipolla",unit:"GN",soglia:1},
+ {id:"pane_naan",nm:"Pane naan",unit:"pz",soglia:null}
+];
+const PEOPLE={
+ "Erjola":{noResp:true,
+   pulizia:["Attrezzature: bilance, pacojet, forno pasticceria, frighi pasticceria, bimby e microonde","Banco frigo: riordino, controllo date, FIFO","Coperchi puliti e in ordine","Abbattitore davanti: pulito","Controllo sporcizia vicino ai piatti"],
+   puliziaSett:["Lavoro interno frigo pasticceria","Pulizia scaffali pasticceria","Frighi pasticceria (dentro e fuori)","Piccoli elettrodomestici della pasticceria","Riordino e pulizia scaffali con mise en place","Planetarie piccole e suo abbattitore","Planetarie grandi: se le usi, pulire subito dopo l\'uso"]},
+ "Ubaldo":{pulizia:["Piano di lavoro pulito e sanificato","Attrezzatura partita: affettatrice, cassetti pizzeria, coltelli, lavandino, vetrina pizzeria","Banco frigo: riordino, controllo date, FIFO","Coperchi puliti e in ordine","Pulizia forno pizzeria (passata)","Frigo e fermalievita sempre puliti","Controllo sporcizia cassetti pizzeria","Pulizia planetaria a braccia tuffanti (ogni giorno dopo l'impasto)"],puliziaSett:["Interno banco frigo / cassetti (anche guarnizioni)","Pulizia interno del forno pizzeria","Pulizia cella di competenza (a fondo) + controllo scadenze","Pulizia pizzeria zona bassa","Vetrina pizzeria","Zona cartoni pizzeria","Frighi della pizzeria e cassetti dell'impasto","Piccoli elettrodomestici della pizzeria","Attrezzatura condivisa: planetarie grandi (pulizia profonda)","Abbattitore davanti: pulizia dentro e fuori"]},
+ "Badr":{tournant:true,pulizia:["Aiutare le partite in difficoltà","Aiutare nella pulizia delle partite","Controllo produzione pane per il servizio","Controllo scorte pane e impasti","Rifornire pane e lievitati del giorno","Pulizia zona panificazione a fine servizio"]},
+ "Gianluca":{pulizia:["Controllare richieste fingerfood/aperitivi e organizzarle","Piano di lavoro pulito e sanificato","Attrezzature: planetaria piccola, microonde, bimby, lavandino, coltelli","Banco frigo: riordino, controllo date, FIFO","Coperchi puliti e in ordine","Fornelli / piastra","Forno","Abbattitore davanti: pulito","Pass centrale gourmet","Lampade gourmet","Controllo sporcizia vicino ai piatti","Cambio acqua roner (ogni giorno di servizio)"],puliziaSett:["Interno banco frigo / cassetti (anche guarnizioni)","Pulizia scaffali","Congelatore gourmet","Piccoli elettrodomestici della partita","Filtri cappa (ogni 2 settimane)"]}
+};
+function puliziaFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].pulizia)||PULIZIA;}
+function puliziaSettFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].puliziaSett)||PULIZIA_SETT;}
+function weekStart(ds){var d=new Date(ds+'T00:00:00');var k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return d.toISOString().slice(0,10);}
+
+const DL={apertura:14*60,pulizia:22*60,chiusura:22*60};
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function tloc(iso){try{return new Date(iso).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}catch(e){return''}}
+function todayStr(){return new Date().toISOString().slice(0,10)}
+function overdue(grp,day){const t=DL[grp]||(22*60);if(day<todayStr())return true;if(day>todayStr())return false;const n=new Date();return (n.getHours()*60+n.getMinutes())>=t;}
+async function sb(path,opts){opts=opts||{};var h={apikey:SB_KEY};if(opts.body)h['Content-Type']='application/json';if(opts.headers)Object.assign(h,opts.headers);const r=await fetch(SB_URL+'/rest/v1/'+path,{method:opts.method||'GET',headers:h,body:opts.body});if(!r.ok)throw new Error('HTTP '+r.status);const t=await r.text();return t?JSON.parse(t):[];}
+function ctrlLine(sid){var st=(window.CTRL||{})[sid];if(st&&st.stato==='ok')return '<div class="row"><span class="donerow">✔ Controllato dallo chef'+(st.chef?(' — '+esc(st.chef)):'')+'</span><span class="muted">'+(st.at?tloc(st.at):'')+'</span></div>';if(st&&st.stato==='richiesto')return '<div class="row"><span class="missrow">⏳ controllo richiesto'+(st.by?(' da '+esc(st.by)):'')+'</span><button class="ctrlbtn" onclick="setControl(\''+sid+'\')">Segna controllato</button></div>';return '';}
+async function setControl(sid){var m=(window.CTRL||{})[sid]||{};m.stato='ok';m.chef='Chef';m.at=new Date().toISOString();window.CTRL[sid]=m;try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'ctrl|'+sid,v:m})});loadAll();}catch(e){alert('Errore nel salvataggio');console.error(e);}}
+
+const pw=document.getElementById('pw'),err=document.getElementById('err');
+function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{if(document.getElementById('datePick').value===todayStr())loadAll(true)},30000);}
+document.getElementById('enter').onclick=()=>unlock(pw.value,false);
+pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
+(function(){let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
+function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
+function shiftDay(n){var d=new Date(document.getElementById('datePick').value+'T00:00:00');d.setDate(d.getDate()+n);document.getElementById('datePick').value=d.toISOString().slice(0,10);loadAll();}
+window.FOLD=window.FOLD||{};
+function toggleFold(id){window.FOLD[id]=!window.FOLD[id];var e=document.getElementById('fold'+id);if(e)e.classList.toggle('open',window.FOLD[id]);}
+
+async function loadAll(silent){
+  const day=document.getElementById('datePick').value;
+  if(!silent)document.getElementById('status').textContent='Caricamento…';
+  try{
+    const[ck,ckw,ent,meta,presa,ctrl,note,timb,pane]=await Promise.all([
+      sb('kitchen_checks?day=eq.'+day+'&select=*&order=at'),
+      sb('kitchen_checks?day=eq.'+weekStart(day)+'&grp=like.pulizias%23*&select=*&order=at'),
+      sb('kitchen_entries?day=eq.'+day+'&select=*&order=at'),
+      sb('kitchen_meta?k=eq.responsabile&select=*'),
+      sb('kitchen_presa?select=*&order=cook'),
+      sb('kitchen_meta?k=like.ctrl|*&select=*'),
+      sb('kitchen_meta?k=eq.notechef|'+day+'&select=*'),
+      sb('kitchen_meta?k=like.timbra|'+day+'*&select=*'),
+      sb('kitchen_meta?k=like.pane|*&select=*')
+    ]);
+    window.CTRL={};(ctrl||[]).forEach(r=>{window.CTRL[r.k.slice(5)]=r.v;});
+    window.NOTE=(note&&note[0]&&note[0].v)?(note[0].v.text||''):'';
+    window.NOTE_AT=(note&&note[0]&&note[0].v)?(note[0].v.at||null):null;
+    window.TIMB={};(timb||[]).forEach(function(r){var p=r.k.split('|');window.TIMB[p[2]]=r.v;});
+    window.PANESC={};(pane||[]).forEach(function(r){var id=r.k.slice(5);window.PANESC[id]=(r.v&&typeof r.v.scorta==='number')?r.v.scorta:0;});
+    render(day,ck,ckw,ent,(meta&&meta[0])?meta[0].v:null,presa);
+    renderNote();
+    document.getElementById('status').textContent='✓ Aggiornato alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){document.getElementById('status').textContent='⚠️ Problema di collegamento.';console.error(e);}
+}
+function shared(grp,ck,day,resp){
+  const items=ITEMS[grp];const dmap={};ck.filter(r=>r.grp===grp).forEach(r=>dmap[r.idx]=r);
+  const done=Object.keys(dmap).length;const tot=items.length;const ov=overdue(grp,day);const p=Math.round(done/tot*100);
+  let rows=items.map((it,i)=>{const r=dmap[i];
+    if(r)return '<div class="row"><span class="donerow">✓ '+esc(it)+' <span class="muted">— '+esc(r.cook)+'</span></span><span class="muted">'+tloc(r.at)+'</span></div>';
+    if(ov)return '<div class="row"><span class="missrow">✗ '+esc(it)+'</span><span class="muted">NON SVOLTO</span></div>';
+    return '<div class="row"><span class="pendrow">◦ '+esc(it)+'</span><span class="muted">in attesa</span></div>';}).join('');
+  const pill=done===tot?'ok':(ov?'no':'mid');
+  const sub=resp?('Responsabile: '+esc(resp)):'';
+  return '<div class="card"><div class="card-h"><div class="t">'+LABEL[grp]+'<div class="sub">'+sub+'</div></div><span class="pill '+pill+'">'+done+'/'+tot+'</span></div><div class="card-b"><div class="bar"><i style="width:'+p+'%"></i></div>'+rows+ctrlLine(grp+'@'+day)+'</div></div>';
+}
+function puliziaCard(ck,day){
+  const ov=overdue('pulizia',day);
+  const byCook={};ck.filter(r=>r.grp.indexOf('pulizia#')===0).forEach(r=>{const c=r.grp.slice(8);(byCook[c]=byCook[c]||{})[r.idx]=r;});
+  const cooks=[];CAPI.forEach(c=>cooks.push(c));Object.keys(byCook).forEach(c=>{if(cooks.indexOf(c)<0)cooks.push(c);});
+  let body='';let totMiss=0;let anyReq=false;
+  cooks.forEach(c=>{
+    if(CHIUSI.indexOf(c)>=0){body+='<div class="card" style="margin:8px 0 0;box-shadow:none;border-radius:10px;background:#faf8f2"><div class="card-h" style="padding:11px 12px;background:#faf8f2"><div class="t" style="font-size:14.5px">'+esc(c)+' — 🔒 bloccato</div><span class="muted">gourmet chiuso</span></div></div>';return;}
+    const dm=byCook[c]||{};const items=puliziaFor(c);const done=Object.keys(dm).length;const tot=items.length;const pill=done===tot?'ok':(ov?'no':'mid');
+    var req=(window.CTRL||{})['pulizia#'+c+'@'+day];var isReq=req&&req.stato==='richiesto';if(isReq)anyReq=true;
+    var rows='';
+    items.forEach((it,i)=>{var r=dm[i];
+      if(r){rows+='<div class="row"><span class="donerow">✓ '+esc(it)+'</span><span class="muted">'+tloc(r.at)+'</span></div>';}
+      else{totMiss++;rows+='<div class="row">'+(ov?'<span class="missrow">✗ '+esc(it)+'</span><span class="muted">NON SVOLTO</span>':'<span class="pendrow">◦ '+esc(it)+'</span><span class="muted">in attesa</span>')+'</div>';}
+    });
+    var bellC=isReq?' <span style="color:var(--warn);font-weight:800">🔔</span>':'';
+    var cid='pul_'+c;var open=(window.FOLD&&window.FOLD[cid])||isReq;
+    body+='<div class="card fold'+(open?' open':'')+'" id="fold'+cid+'" style="margin:8px 0 0;box-shadow:none;border-radius:10px">'
+      +'<div class="card-h" style="padding:11px 12px" onclick="toggleFold(\''+cid+'\')"><div class="t" style="font-size:14.5px">'+esc(c)+bellC+'</div><span class="pill '+pill+'">'+done+'/'+tot+'</span><span class="tog">›</span></div>'
+      +'<div class="card-b" style="padding:2px 12px 10px">'+rows+ctrlLine('pulizia#'+c+'@'+day)+'</div></div>';
+  });
+  const hpill=totMiss===0?'ok':(ov?'no':'mid');
+  var bell=anyReq?' <span style="color:var(--warn);font-weight:800">🔔 da controllare</span>':'';
+  return '<div class="card"><div class="card-h"><div class="t">Pulizia capi partita'+bell+'<div class="sub">entro 22:00 · tocca un nome per i dettagli</div></div><span class="pill '+hpill+'">'+(ov?(totMiss?totMiss+' mancano':'ok'):'in corso')+'</span></div><div class="card-b">'+body+'</div></div>';
+}
+function weeklyCard(ckw,day){
+  var cooks=CAPI.slice();
+  var byCook={};(ckw||[]).forEach(function(r){var c=r.grp.slice(9);(byCook[c]=byCook[c]||{})[r.idx]=r;});
+  Object.keys(byCook).forEach(function(c){if(cooks.indexOf(c)<0)cooks.push(c);});
+  if(!cooks.length)return '';
+  var body='';var totMiss=0;var anyReq=false;
+  cooks.forEach(function(c){
+    if(CHIUSI.indexOf(c)>=0){body+='<div class="card" style="margin:8px 0 0;box-shadow:none;border-radius:10px;background:#faf8f2"><div class="card-h" style="padding:11px 12px;background:#faf8f2"><div class="t" style="font-size:14.5px">'+esc(c)+' — 🔒 bloccato</div><span class="muted">gourmet chiuso</span></div></div>';return;}
+    var items=puliziaSettFor(c)||[];var dm=byCook[c]||{};var done=Object.keys(dm).length;var tot=items.length;var pill=done===tot?'ok':'mid';
+    var req=(window.CTRL||{})['pulizias#'+c+'@'+weekStart(day)];var isReq=req&&req.stato==='richiesto';if(isReq)anyReq=true;
+    var rows='';items.forEach(function(it,i){if(dm[i])rows+='<div class="row"><span class="donerow">✓ '+esc(it)+'</span><span class="muted">'+tloc(dm[i].at)+'</span></div>';else{totMiss++;rows+='<div class="row"><span class="pendrow">◦ '+esc(it)+'</span><span class="muted">da fare</span></div>';}});
+    var bellC=isReq?' <span style="color:var(--warn);font-weight:800">🔔</span>':'';
+    var cid='set_'+c;var open=(window.FOLD&&window.FOLD[cid])||isReq;
+    body+='<div class="card fold'+(open?' open':'')+'" id="fold'+cid+'" style="margin:8px 0 0;box-shadow:none;border-radius:10px">'
+      +'<div class="card-h" style="padding:11px 12px" onclick="toggleFold(\''+cid+'\')"><div class="t" style="font-size:14.5px">'+esc(c)+bellC+'</div><span class="pill '+pill+'">'+done+'/'+tot+'</span><span class="tog">›</span></div>'
+      +'<div class="card-b" style="padding:2px 12px 10px">'+rows+ctrlLine('pulizias#'+c+'@'+weekStart(day))+'</div></div>';
+  });
+  var bellW=anyReq?' <span style="color:var(--warn);font-weight:800">🔔 da controllare</span>':'';
+  return '<div class="card"><div class="card-h"><div class="t">Pulizia settimanale'+bellW+'<div class="sub">questa settimana · tocca un nome per i dettagli</div></div><span class="pill '+(totMiss?'mid':'ok')+'">'+(totMiss?totMiss+' da fare':'ok')+'</span></div><div class="card-b">'+body+'</div></div>';
+}
+function renderNote(){
+  var box=document.getElementById('noteBox');if(!box)return;
+  var ta=document.getElementById('noteTxt');
+  // non sovrascrivere quello che lo chef sta scrivendo o non ha ancora salvato
+  if(ta){ if(document.activeElement===ta) return; if(ta.value!==(window.NOTE||'')) return; }
+  var txt=(window.NOTE||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  var info=window.NOTE_AT?('Ultimo salvataggio: '+tloc(window.NOTE_AT)):'Non ancora salvate per questo giorno';
+  var savedStyle='margin-top:10px;background:#fbf8f2;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:14px;white-space:pre-wrap';
+  var saved=(window.NOTE&&window.NOTE.trim())?('<div id="noteSaved" style="'+savedStyle+'"><b>📌 Note salvate:</b>\n'+txt+'</div>'):'<div id="noteSaved"></div>';
+  box.innerHTML='<div class="card" style="border-color:var(--gold)"><div class="card-h"><div class="t">📝 Note del giorno (problemi / servizio)</div></div><div class="card-b"><textarea id="noteTxt" placeholder="Scrivi qui problemi, ritardi, segnalazioni del servizio..." style="width:100%;min-height:90px;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:14px;font-family:inherit">'+txt+'</textarea><div style="display:flex;align-items:center;gap:12px;margin-top:8px"><button class="ctrlbtn" style="padding:9px 16px;margin:0" onclick="saveNote()">Salva note</button><span id="noteInfo" class="muted">'+info+'</span></div>'+saved+'</div></div>';
+}
+async function saveNote(){
+  var day=document.getElementById('datePick').value;var v=document.getElementById('noteTxt').value;
+  var info=document.getElementById('noteInfo');if(info)info.textContent='Salvataggio…';
+  try{
+    await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'notechef|'+day,v:{text:v,at:new Date().toISOString()}})});
+    window.NOTE=v;window.NOTE_AT=new Date().toISOString();
+    if(info)info.textContent='✓ Salvate alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){if(info)info.textContent='⚠️ Errore: non salvate, riprova';alert('Errore nel salvataggio note');console.error(e);}
+}
+function timbraCardDash(){
+  var T=window.TIMB||{};
+  var rows=TEAM.map(function(x){var c=x[0];var t=T[c];
+    if(!t||!t.in)return '<div class="row"><span>'+esc(c)+'</span><span class="muted">—</span></div>';
+    return '<div class="row"><span>'+esc(c)+'</span><span class="donerow" style="font-weight:700">'+tloc(t.in)+'</span></div>';
+  }).join('');
+  return '<div class="card"><div class="card-h"><div class="t">Orari di arrivo<div class="sub">segnato a cambio fatto e in cucina, non all\'ingresso struttura</div></div></div><div class="card-b">'+rows+'</div></div>';
+}
+function chefCard(ck,day){
+  var dm={};(ck||[]).filter(function(r){return r.grp==='chef';}).forEach(function(r){dm[r.idx]=r;});
+  var done=Object.keys(dm).length;var tot=CHEF.length;
+  var rows=CHEF.map(function(it,i){var on=dm[i];return '<div class="it"><div class="chk'+(on?' on':'')+'" onclick="chefToggle('+i+',this)">'+(on?'✓':'')+'</div><div class="lab">'+esc(it)+(on?'<span class="sig">✓ fatto '+(on.at?tloc(on.at):'')+'</span>':'')+'</div></div>';}).join('');
+  return '<div class="card" style="border-color:var(--gold)"><div class="card-h"><div class="t">I miei compiti (Chef) — prima del servizio</div><span class="pill '+(done===tot?'ok':done?'mid':'no')+'">'+done+'/'+tot+'</span></div><div class="card-b">'+rows+'</div></div>';
+}
+async function chefToggle(i,el){
+  var on=!el.classList.contains('on');el.classList.toggle('on',on);el.textContent=on?'✓':'';
+  var day=document.getElementById('datePick').value;
+  try{
+    if(on)await sb('kitchen_checks?on_conflict=day,grp,idx',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({day:day,grp:'chef',idx:i,label:CHEF[i],cook:'Chef'})});
+    else await sb('kitchen_checks?day=eq.'+day+'&grp=eq.chef&idx=eq.'+i,{method:'DELETE',headers:{Prefer:'return=minimal'}});
+  }catch(e){el.classList.toggle('on',!on);el.textContent=on?'':'✓';alert('Errore salvataggio');console.error(e);}
+}
+function paneCard(){
+  var SC=window.PANESC||{};
+  function sc(p){return SC[p.id]||0;}
+  function due(p){return p.soglia!=null&&sc(p)<=p.soglia;}
+  var prod=PANE.filter(due);
+  var isOpen=(window.FOLD&&window.FOLD.pane)?' open':'';
+  var head='<div class="card-h" onclick="toggleFold(\'pane\')"><div class="t">Panificazione<div class="sub">tocca per controllare</div></div><span class="pill '+(prod.length?'no':'ok')+'">'+(prod.length?prod.length+' da produrre':'scorte ok')+'</span><span class="tog">›</span></div>';
+  var top=prod.length?'<div class="row missrow"><span><b>▶ DA PRODURRE</b></span><span>'+prod.map(function(p){return esc(p.nm);}).join(' · ')+'</span></div>':'';
+  var rows=PANE.map(function(p){
+    var s=sc(p),d=due(p);
+    var st=p.soglia==null?'<span class="muted">a richiesta</span>':(d?'<span class="pill no">produrre</span>':'<span class="pill ok">ok</span>');
+    return '<div class="row"><span>'+esc(p.nm)+'</span><span class="muted">'+s+' '+esc(p.unit)+'</span> '+st+'</div>';
+  }).join('');
+  return '<div class="card fold'+isOpen+'" id="foldpane">'+head+'<div class="card-b">'+top+rows+'</div></div>';
+}
+const MENU_INFO='Pranzo ~30 pax · Cena ~25 pax · quantità accanto a ogni piatto';
+const MENU_PRANZO=[
+ ['Lun','Pasta al pomodoro e basilico (~1,2 kg)','Collo di maiale CBT in salsa (~1,6 kg)','Pollo alla cacciatora (~0,7 kg)','Parmigiana di verdure (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg'],
+ ['Mar','Pasta al ragù di manzo (~1,2 kg)','Pollo al curry (~1,8 kg)','—','Curry di verdure e ceci (~0,9 kg)','Patate ~1,5 kg + verdure surg. ~2 kg'],
+ ['Mer','Pasta al forno (~1,2 kg)','Brasato di manzo CBT (~1,6 kg)','Bocconcini di pollo (~0,7 kg)','Sformato di verdure (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg'],
+ ['Gio','Riso / risotto (~1,5 kg)','Spezzatino di tacchino (~1,8 kg)','—','Pasta al forno veg (~1 kg)','Patate al forno ~1,8 kg + verdure surg. ~2 kg'],
+ ['Ven','Pasta al tonno (~1,2 kg)','Pesce fritto (~1,8 kg)','Pollo in umido (~0,7 kg)','Couscous con verdure (~0,9 kg)','Patate prezzemolate ~1,8 kg + verdure ~2 kg'],
+ ['Sab','Pasta all\'arrabbiata (~1,2 kg)','Collo di maiale CBT, salsa funghi (~1,6 kg)','Pollo in umido (~0,7 kg)','Verdure gratinate (~0,8 kg)','Polenta/patate ~1,8 kg + verdure surg. ~2 kg'],
+ ['Dom','Riso ai funghi (~1,5 kg)','Arrosto di manzo in salsa (~1,6 kg)','Pollo arrosto (~0,8 kg)','Verdure gratinate (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg']
+];
+const MENU_PRANZO_NOTE='Sempre presenti: riso bianco bollito (1 kg) · insalata del giorno (~1 kg) · freddo extra: tonno (~0,8 kg) o 12 uova sode · formaggio grattugiato. Placche sotto il pass: 6 calde (sopra: primo · secondo · alternativa/veg — sotto: riso bianco · verdure · patate/purè) + banco freddo a parte (insalata · freddo extra).';
+const MENU_CENA=[
+ ['Lun','Insalata di pasta ~1,5 kg (tonno, mais, mozzarella)','Insalata verde + pane','Senza tonno, con formaggio'],
+ ['Mar','Hamburger nel pane (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Burger di verdure'],
+ ['Mer','Wrap / kebab di pollo (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Wrap di verdure e formaggio'],
+ ['Gio','Pizza in teglia (~2,5 kg impasto)','Insalata','Pizza di verdure'],
+ ['Ven','Pasta al forno (~1,5 kg)','Insalata + pane','Pasta al forno vegetariana'],
+ ['Sab','Pita / focaccia farcita (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Versione vegetariana'],
+ ['Dom','Insalata di riso ~1,5 kg (tonno, uova, mais)','Insalata + pane','Versione veg con ceci/formaggio']
+];
+const MENU_CENA_NOTE='Piatti composti (hamburger, wrap, pita): ~2 a testa per metà dei coperti (~38 pz su 25 pax). Cena: maiale ok, niente manzo (tranne hamburger del martedì). Insalata e riso bianco sempre presenti.';
+function menuCard(){
+  var p=MENU_PRANZO.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — <b>Primo:</b> '+esc(d[1])+' · <b>Secondo:</b> '+esc(d[2])+(d[3]&&d[3]!=='—'?' · <b>Alt. carne:</b> '+esc(d[3]):'')+' · <b>Veg:</b> '+esc(d[4])+' · <b>Contorni:</b> '+esc(d[5])+'</div>';}).join('');
+  var c=MENU_CENA.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — '+esc(d[1])+' · <b>Contorno:</b> '+esc(d[2])+' · <b>Veg:</b> '+esc(d[3])+'</div>';}).join('');
+  var isOpen=(window.FOLD&&window.FOLD.menu)?' open':'';
+  return '<div class="card fold'+isOpen+'" id="foldmenu"><div class="card-h" onclick="toggleFold(\'menu\')"><div class="t">📋 Menu del personale (Sett. 1)<div class="sub">tocca per leggere e controllare</div></div><span class="tog">›</span></div><div class="card-b"><div class="muted" style="margin-bottom:6px">'+MENU_INFO+'</div><div class="subh">PRANZO (~30 pax)</div>'+p+'<div class="muted" style="margin-top:8px;font-size:12px">'+MENU_PRANZO_NOTE+'</div><div class="subh" style="margin-top:14px">CENA (~25 pax)</div>'+c+'<div class="muted" style="margin-top:8px;font-size:12px">'+MENU_CENA_NOTE+'</div></div></div>';
+}
+function riepilogoCard(){
+  var D=window.LAST;if(!D)return '';
+  var ck=D.ck||[],ckw=D.ckw||[];
+  function ic(dn,tot){return (tot>0&&dn>=tot)?'✅':(dn>0?'⚠️':'❌');}
+  function cnt(grp){var m={};ck.filter(function(r){return r.grp===grp;}).forEach(function(r){m[r.idx]=1;});return Object.keys(m).length;}
+  var apD=cnt('apertura'),chD=cnt('chiusura');
+  var activeCAPI=CAPI.filter(function(c){return CHIUSI.indexOf(c)<0;});
+  var capOk=0;activeCAPI.forEach(function(c){var items=puliziaFor(c);var m={};ck.filter(function(r){return r.grp==='pulizia#'+c;}).forEach(function(r){m[r.idx]=1;});if(items.length&&Object.keys(m).length>=items.length)capOk++;});
+  var wOk=0;activeCAPI.forEach(function(c){var items=puliziaSettFor(c)||[];var m={};ckw.filter(function(r){return r.grp==='pulizias#'+c;}).forEach(function(r){m[r.idx]=1;});if(items.length&&Object.keys(m).length>=items.length)wOk++;});
+  var signed={};(D.presa||[]).forEach(function(p){signed[p.cook]=1;});var presaOk=TEAM.filter(function(x){return signed[x[0]];}).length;
+  var req=0,C=window.CTRL||{};Object.keys(C).forEach(function(k){if(C[k]&&C[k].stato==='richiesto')req++;});
+  var SC=window.PANESC||{};var dueP=PANE.filter(function(p){return p.soglia!=null&&(SC[p.id]||0)<=p.soglia;}).length;
+  var T=window.TIMB||{};var arr=TEAM.filter(function(x){return T[x[0]]&&T[x[0]].in;}).length;
+  var hasNote=!!(window.NOTE&&window.NOTE.trim());
+  function chip(lbl,icon){return '<span style="display:inline-block;background:#fbf8f2;border:1px solid var(--line);border-radius:20px;padding:4px 10px;margin:3px 4px 0 0;font-size:12.5px;font-weight:600">'+icon+' '+lbl+'</span>';}
+  var s=chip('Apertura',ic(apD,APERTURA.length))+chip('Pulizie',ic(capOk,activeCAPI.length))+chip('Settimanale',ic(wOk,activeCAPI.length))+chip('Chiusura',ic(chD,CHIUSURA.length))+chip('Mansionario',ic(presaOk,TEAM.length));
+  var a=chip(req+' da controllare',req?'🔔':'✅')+chip(dueP?(dueP+' pane da produrre'):'pane ok',dueP?'🥖':'✅')+chip(arr+'/'+TEAM.length+' arrivi','🕐')+chip(hasNote?'note presenti':'nessuna nota','📝');
+  return '<div class="card" style="border-color:var(--gold)"><div class="card-h"><div class="t">📋 Riepilogo del giorno<div class="sub">riletta veloce — controlla se manca qualcosa</div></div></div><div class="card-b"><div>'+s+'</div><div style="margin-top:5px">'+a+'</div></div></div>';
+}
+function render(day,ck,ckw,ent,meta,presa){
+  window.LAST={day:day,ck:ck,ckw:ckw,ent:ent,meta:meta,presa:presa};
+  const resp=(meta&&meta.name)?meta.name:'';
+  const scheda=ent.filter(e=>e.type==='scheda');const pass=ent.filter(e=>e.type==='passaggio');
+  let h=riepilogoCard()+chefCard(ck,day);
+  h+=timbraCardDash();
+  h+=paneCard();
+  h+='<div class="card"><div class="card-h"><div class="t">Responsabile della settimana</div></div><div class="card-b">'+(resp?'<div class="row"><span><b>'+esc(resp)+'</b></span><span class="muted">'+((meta.dal)||'?')+' → '+((meta.al)||'?')+'</span></div>':'<div class="muted">Non impostato.</div>')+'</div></div>';
+  h+=shared('apertura',ck,day,resp);
+  h+=puliziaCard(ck,day);
+  h+=weeklyCard(ckw,day);
+  h+=shared('chiusura',ck,day,resp);
+  h+='<div class="card"><div class="card-h"><div class="t">Scheda di servizio</div><span class="pill '+(scheda.length?'ok':'no')+'">'+scheda.length+' voci</span></div><div class="card-b">'+(scheda.length?scheda.map(e=>'<div class="row"><span>'+esc(e.data.cosa)+(e.data.entro?' <span class="muted">(entro '+esc(e.data.entro)+')</span>':'')+'</span><span class="muted">'+esc(e.cook)+' · '+tloc(e.at)+'</span></div>').join(''):'<div class="muted">Niente.</div>')+'</div></div>';
+  h+='<div class="card"><div class="card-h"><div class="t">Passaggi di consegne</div><span class="pill '+(pass.length?'ok':'no')+'">'+pass.length+'</span></div><div class="card-b">'+(pass.length?pass.map(p=>'<div class="row"><span><b>'+esc(p.data.partita||'?')+'</b>: '+esc(p.data.da||'?')+' → '+esc(p.data.a||'?')+(p.data.manca?'<div class="missrow" style="font-weight:400">Manca: '+esc(p.data.manca)+'</div>':'')+'</span><span class="muted">'+esc(p.cook)+' · '+tloc(p.at)+'</span></div>').join(''):'<div class="muted">Nessuno.</div>')+'</div></div>';
+  const signed={};(presa||[]).forEach(p=>signed[p.cook]=p.at);const ns=Object.keys(signed).length;
+  h+='<div class="card"><div class="card-h"><div class="t">Presa visione mansionario</div><span class="pill '+(ns>=TEAM.length?'ok':ns?'mid':'no')+'">'+ns+'/'+TEAM.length+'</span></div><div class="card-b">'+TEAM.map(t=>'<div class="row"><span>'+t[0]+' <span class="muted">· '+t[1]+'</span></span>'+(signed[t[0]]?'<span class="pill ok">✓</span>':'<span class="pill no">manca</span>')+'</div>').join('')+'</div></div>';
+  h+=menuCard();
+  document.getElementById('view').innerHTML=h;
+}
+function buildReport(){
+  var D=window.LAST;if(!D)return 'Nessun dato.';
+  var dd=D.day.split('-').reverse().join('/');
+  var resp=(D.meta&&D.meta.name)?D.meta.name:'—';
+  function ic(dn,tot){return (tot>0&&dn>=tot)?'✅':(dn>0?'⚠️':'❌');}
+  function mapg(grp){var m={};D.ck.filter(function(r){return r.grp===grp;}).forEach(function(r){m[r.idx]=r;});return m;}
+  var ap=mapg('apertura'),ch=mapg('chiusura');
+  var apD=Object.keys(ap).length,chD=Object.keys(ch).length;
+  var activeCAPI=CAPI.filter(function(c){return CHIUSI.indexOf(c)<0;});
+  var capDone=0,capMiss=[];
+  activeCAPI.forEach(function(c){var items=puliziaFor(c);var m={};D.ck.filter(function(r){return r.grp==='pulizia#'+c;}).forEach(function(r){m[r.idx]=r;});var dn=Object.keys(m).length;if(dn>=items.length){capDone++;}else{var miss=[];items.forEach(function(it,i){if(!m[i])miss.push(it);});capMiss.push(c+': '+miss.join('; '));}});
+  var wcooks=activeCAPI;
+  var bw={};(D.ckw||[]).forEach(function(r){var cc=r.grp.slice(9);(bw[cc]=bw[cc]||{})[r.idx]=r;});
+  var wDone=0,wMiss=[];wcooks.forEach(function(c){var items=puliziaSettFor(c)||[];var m=bw[c]||{};var dn=Object.keys(m).length;if(dn>=items.length){wDone++;}else{var miss=[];items.forEach(function(it,i){if(!m[i])miss.push(it);});wMiss.push(c+': '+miss.join('; '));}});
+  var apMiss=[];APERTURA.forEach(function(it,i){if(!ap[i])apMiss.push(it);});
+  var chMiss=[];CHIUSURA.forEach(function(it,i){if(!ch[i])chMiss.push(it);});
+  var sc=D.ent.filter(function(e){return e.type==='scheda';}).length;
+  var ps=D.ent.filter(function(e){return e.type==='passaggio';});
+  var signed={};(D.presa||[]).forEach(function(p){signed[p.cook]=1;});
+  var presaMiss=TEAM.filter(function(x){return !signed[x[0]];}).map(function(x){return x[0];});
+  var hasNote=!!(window.NOTE&&window.NOTE.trim());
+  var GG=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+  var data=GG[new Date(D.day+'T00:00:00').getDay()]+' '+dd;
+  var schede=D.ent.filter(function(e){return e.type==='scheda';});
+  var o='REPORT CUCINA · PRINZ RUDOLF\n'+data+'  ·  Resp.: '+resp+'\n';
+  var fatto=[];
+  if(apD>=APERTURA.length) fatto.push('Apertura completata');
+  if(capDone>0) fatto.push('Pulizia partite ok: '+capDone+'/'+activeCAPI.length+' cuochi');
+  if(wDone>0) fatto.push('Pulizia settimanale ok: '+wDone+'/'+wcooks.length);
+  if(chD>=CHIUSURA.length) fatto.push('Chiusura completata');
+  if(!presaMiss.length) fatto.push('Mansionario firmato da tutti');
+  o+='\n✅ FATTO\n'+(fatto.length?fatto.map(function(x){return '• '+x+'\n';}).join(''):'• —\n');
+  var ds='';
+  if(apMiss.length) ds+='• Apertura ('+resp+'): '+apMiss.join('; ')+'\n';
+  capMiss.forEach(function(x){ds+='• '+x+'\n';});
+  wMiss.forEach(function(x){ds+='• Settimanale '+x+'\n';});
+  if(chMiss.length) ds+='• Chiusura: '+chMiss.join('; ')+'\n';
+  if(presaMiss.length) ds+='• Manca firma mansionario: '+presaMiss.join(', ')+'\n';
+  o+='\n❌ DA SISTEMARE — chi manca cosa\n'+(ds||'• Niente, tutto a posto 👍\n');
+  var prod='';
+  schede.forEach(function(e){prod+='• '+(e.data.cosa||'')+(e.data.entro?(' (entro '+e.data.entro+')'):'')+' — '+e.cook+'\n';});
+  var SC=window.PANESC||{};var dueP=PANE.filter(function(p){return p.soglia!=null&&(SC[p.id]||0)<=p.soglia;});
+  if(dueP.length) prod+='• Pane da produrre: '+dueP.map(function(p){return p.nm+' ('+(SC[p.id]||0)+' '+p.unit+')';}).join(', ')+'\n';
+  if(prod) o+='\n🍞 PRODUZIONE / LAVORO SVOLTO\n'+prod;
+  if(ps.length){o+='\n🔁 PASSAGGI DI CONSEGNE\n';ps.forEach(function(p){o+='• '+(p.data.partita||'?')+': '+(p.data.da||'?')+' → '+(p.data.a||'?')+(p.data.manca?(' | manca: '+p.data.manca):'')+'\n';});}
+  var arr=[];TEAM.forEach(function(x){var c=x[0];var tt=(window.TIMB||{})[c];if(tt&&tt.in)arr.push(c+' '+tloc(tt.in));});
+  if(arr.length)o+='\n🕐 ARRIVI\n'+arr.join(' · ')+'\n';
+  if(hasNote)o+='\n📝 LE MIE NOTE\n'+window.NOTE.trim()+'\n';
+  return o;
+}
+function exportReport(){document.getElementById('reptxt').value=buildReport();document.getElementById('rep').style.display='flex';}
+function copyRep(){const t=document.getElementById('reptxt');t.select();t.setSelectionRange(0,99999);try{navigator.clipboard.writeText(t.value);}catch(e){try{document.execCommand('copy')}catch(_){}}alert('Report copiato!');}
+</script>
+</body>
+</html>

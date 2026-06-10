@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pane">
+<meta name="theme-color" content="#DA291C">
+<meta name="robots" content="noindex, nofollow">
+<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+<title>Prinz Rudolf · Panificazione</title>
+<style>
+  :root{--red:#DA291C;--red-d:#A81C13;--yellow:#FFC72C;--yellow-d:#E6A700;--dark:#292929;--bg:#fff7e8;--paper:#fff;--ink:#1d1d1d;--muted:#7a7268;--line:#f0e6d2;--ok:#2e9c5f;--ok-d:#1e7a47;--warn:#DA291C}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.4;padding-bottom:env(safe-area-inset-bottom)}
+  #lock{position:fixed;inset:0;z-index:50;background:linear-gradient(160deg,var(--red),var(--red-d));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;color:#fff;text-align:center}
+  #lock .mark{width:84px;height:84px;border-radius:24px;background:var(--yellow);color:var(--red);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:46px;margin-bottom:18px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  #lock h1{font-size:26px;margin:0 0 4px;font-weight:800}
+  #lock p{opacity:.92;font-size:13px;margin:0 0 24px;letter-spacing:1px;font-weight:600}
+  #lock .box{width:100%;max-width:320px}
+  #lock input{width:100%;border:none;border-radius:14px;padding:16px;font-size:18px;text-align:center;color:var(--ink);margin-bottom:12px}
+  #lock button{width:100%;border:none;border-radius:14px;padding:16px;font-size:18px;font-weight:800;background:var(--yellow);color:var(--red-d);cursor:pointer}
+  #lock .err{color:#ffe1de;font-size:13px;height:18px;margin-top:10px;font-weight:600}
+  #lock label{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;opacity:.95;margin-top:14px;cursor:pointer}
+  #lock label input{width:auto;margin:0}
+  header{position:sticky;top:0;z-index:20;background:var(--red);color:#fff;padding:calc(env(safe-area-inset-top) + 14px) 16px 0;box-shadow:0 3px 16px rgba(0,0,0,.2)}
+  .brand{display:flex;align-items:center;gap:12px;padding-bottom:12px}
+  .brand .mark{width:46px;height:46px;border-radius:14px;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--red);font-size:26px;flex:none}
+  .brand h1{font-size:20px;margin:0;font-weight:800}
+  .brand small{display:block;font-size:10px;opacity:.9;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding:0 0 12px;-webkit-overflow-scrolling:touch}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:none;border:none;background:rgba(255,255,255,.18);color:#fff;border-radius:30px;padding:9px 16px;font-size:14px;font-weight:800;cursor:pointer;white-space:nowrap}
+  .tab.on{background:var(--yellow);color:var(--red-d)}
+  main{max-width:820px;margin:0 auto;padding:16px}
+  #status{font-size:12px;color:var(--muted);margin-bottom:12px;text-align:center;font-weight:600}
+  .alert{border-radius:18px;padding:16px 18px;margin-bottom:16px;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+  .alert.due{background:linear-gradient(135deg,var(--red),var(--red-d))}
+  .alert.none{background:linear-gradient(135deg,var(--ok),var(--ok-d))}
+  .alert .t{font-weight:900;font-size:18px;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .alert .l{font-size:15px;font-weight:600;opacity:.97}
+  .sec{font-size:13px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:var(--red);margin:20px 4px 10px;display:flex;align-items:center;gap:8px}
+  .sec::after{content:"";flex:1;height:3px;border-radius:3px;background:var(--yellow)}
+  .card{background:var(--paper);border-radius:20px;margin-bottom:14px;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.07);border:3px solid transparent}
+  .card.prod{border-color:var(--red)}
+  .card.okc{border-color:#e7f3ec}
+  .card-h{padding:15px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;background:var(--dark)}
+  .card-h .info{flex:1;min-width:0}
+  .card-h .nm{font-size:18px;font-weight:800;line-height:1.2;color:#fff;text-transform:uppercase;letter-spacing:.6px}
+  .card-h .pz{font-size:12px;color:#c7c0b4;font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.3px}
+  .badge{font-size:13px;font-weight:900;padding:8px 14px;border-radius:30px;white-space:nowrap;text-align:center}
+  .badge.ok{background:#e7f3ec;color:var(--ok-d)}
+  .badge.prod{background:var(--red);color:#fff}
+  .badge.req{background:#fff3cf;color:#8a6d00}
+  .stock{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff7e8;margin:6px 0 0;border-radius:16px;padding:12px 14px}
+  .stock .lbl{font-size:13px;color:var(--muted);font-weight:700}
+  .stock .lbl b{display:block;color:var(--ink);font-size:15px}
+  .stepper{display:flex;align-items:center;gap:12px}
+  .stepper button{width:58px;height:58px;border:none;border-radius:50%;font-size:30px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 3px 8px rgba(0,0,0,.15)}
+  .stepper .minus{background:#fff;color:var(--red);border:2px solid var(--red)}
+  .stepper .plus{background:var(--yellow);color:var(--red-d)}
+  .stepper button:active{transform:scale(.92)}
+  .stepper .val{min-width:62px;text-align:center}
+  .stepper .val .n{font-size:30px;font-weight:900;line-height:1}
+  .stepper .val small{font-size:11px;color:var(--muted);font-weight:700;display:block}
+  .chev{font-size:20px;color:var(--yellow);transition:transform .2s;flex:none}
+  .card.open .chev{transform:rotate(90deg)}
+  .rec{display:none;padding:0 16px 16px;font-size:14px;text-transform:uppercase}
+  .card.open .rec{display:block}
+  .rec .k{font-weight:900;color:var(--red);margin-top:14px;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+  .rec .v{margin-top:3px;line-height:1.5}
+  .ingbox{margin-top:6px;background:#fff7e8;border-radius:12px;overflow:hidden}
+  .ing{padding:9px 13px;border-bottom:1px solid #f0e6d2;font-size:14.5px;font-weight:600}
+  .ing:last-child{border-bottom:none}
+  .ing:first-letter{text-transform:uppercase}
+  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--dark);color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;font-weight:700;opacity:0;transition:opacity .2s;z-index:80;pointer-events:none;max-width:90%}
+  #toast.show{opacity:.97}
+  footer{text-align:center;font-size:11px;color:var(--muted);padding:18px;font-weight:600}
+</style>
+</head>
+<body>
+<div id="lock">
+  <div class="mark">🥖</div><h1>Prinz Rudolf</h1><p>PANIFICAZIONE</p>
+  <div class="box">
+    <input id="pw" type="password" placeholder="Password" autocomplete="current-password" enterkeyhint="go">
+    <button id="enter">Entra</button>
+    <div class="err" id="err"></div>
+    <label><input type="checkbox" id="remember" checked> Ricorda su questo dispositivo</label>
+  </div>
+</div>
+<div id="app" style="display:none">
+<header>
+  <div class="brand"><div class="mark">🥖</div><div><small>Prinz Rudolf · Cucina</small><h1>Panificazione</h1></div></div>
+  <div class="tabs" id="tabs"></div>
+</header>
+<main><div id="status">Caricamento…</div><div id="view"></div></main>
+<footer>Prinz Rudolf · Panificazione · tutto si produce e si congela</footer>
+</div>
+<div id="toast"></div>
+<script>
+const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
+const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
+const APP_PW="lavoroprinz";
+
+/* prodotti dal foglio PANIFICAZIONE 2026 */
+const COTT="200°C · 70% fastdry · 8 min · pieno carico 4 placche distanziate";
+const PROD=[
+ {id:"vegipan",cat:"COLAZIONI — buffet",nm:"Vegipan",pz:"A stecca",unit:"pz",soglia:10,cott:COTT,
+  ric:"5 kg Vegipan + 5 l acqua. Impastare, formare le stecche, lievitare e cuocere; raffreddare e congelare impellicolati singolarmente."},
+ {id:"panini_latte",cat:"COLAZIONI — buffet",nm:"Panini al latte",pz:"Produzione settimanale",unit:"GN",soglia:2,sminTxt:"settimanale · quando restano 2 gastronorm acciaio, produrre l'altra ricetta",cott:COTT,
+  ric:"RICETTA ×4: 16 kg Manitoba + 400 g sale + 800 g zucchero + 10 l latte + 400 g lievito di birra + 2 l olio di semi + 160 g enzimatico (1% del peso della farina). Porzionare piccolo (~50 g), lievitare, cuocere; raffreddare e congelare."},
+ {id:"pan_gocciole",cat:"COLAZIONI — buffet",nm:"Pan gocciole al cioccolato",pz:"Pezzo (placca)",unit:"placca",soglia:1,cott:COTT,
+  ric:"3 kg farina Rieper blu + 700 g zucchero + 600 g uova + 1,5 l latte + 75 g lievito di birra (150 g se senza lievito madre) + 200 g lievito madre + 800 g gocce di cioccolato. Impastare, formare i pezzi, lievitare, cuocere; congelare."},
+ {id:"baguette_int",cat:"COLAZIONI — buffet",nm:"Baguette integrale",pz:"Filone",unit:"pz",soglia:10,cott:COTT,
+  ric:"3 kg Manitoba + 1 kg farina integrale + 500 g mix cereali Caputo + 100 g sale + 200 g zucchero + 2,8 l acqua + 500 ml olio di semi + 150 g lievito di birra. Formare i filoni, lievitare, cuocere; congelare."},
+ {id:"pane_paarl",cat:"COLAZIONI — buffet",nm:"Pane Paarl",pz:"A panino ~40 g",unit:"casse",soglia:2,sminTxt:"min: 2 casse acciaio piene",cott:"Preimpasto +1 h; usiamo per crostini · "+COTT,
+  ric:"PREIMPASTO: 400 g farina di segale + 400 ml acqua + 40 g lievito di birra → lievitare 1 h. IMPASTO (aggiungere al preimpasto): 1 kg farina di segale + 600 g farina 0 + 1,8 l acqua a 40°C + 40 g lievito di birra + 10 g cumino + 10 g finocchio + 10 g coriandolo + 20 g trigonella. Formare, lievitare, cuocere; congelare."},
+ {id:"pane_olive",cat:"PANE SERALE — bistro / ristorante",nm:"Pane alle olive",pz:"A stecca",unit:"placca",soglia:1,sminTxt:"min: 1 placca piena",cott:COTT,
+  ric:"8 kg farina Do gusto per pane 0 + 400 g zucchero + 200 g sale + 4 l acqua + 300 g lievito di birra + 800 g olive verdi + (800 ml olio di semi + 200 g acciughe + prezzemolo). Formare le stecche, lievitare, cuocere; congelare."},
+ {id:"pane_erbe",cat:"PANE SERALE — bistro / ristorante",nm:"Pane alle erbe",pz:"A stecca",unit:"placca",soglia:1,sminTxt:"min: 1 placca piena",cott:COTT,
+  ric:"8 kg farina Do gusto per pane 0 + 400 g zucchero + 200 g sale + 4 l acqua + 300 g lievito di birra + erbe aromatiche miste (prezzemolo, rosmarino, timo) q.b. Formare le stecche, lievitare, cuocere; congelare."},
+ {id:"pane_pizza",cat:"PANE SERALE — bistro / ristorante",nm:"Pane alla pizza",pz:"Filone",unit:"GN",soglia:1,sminTxt:"min: 1 gastronorm acciaio piena",cott:COTT,
+  ric:"8 kg farina Do gusto per pane 0 + 300 g lievito di birra + 400 g zucchero + 200 g sale + 2 l passata + 400 g concentrato + 700 g pomodori secchi+olio + aglio in polvere + 300 g basilico + 2,5 kg mozzarella pizzeria + 2,5 l acqua + 80 g enzimatico (1% del peso della farina). Formare a filoni come gli altri pani, lievitare, cuocere; congelare."},
+ {id:"pane_noci",cat:"PANE SERALE — bistro / ristorante",nm:"Pane alle noci",pz:"A stecca",unit:"GN",soglia:1,sminTxt:"min: 1 gastronorm acciaio piena",cott:COTT,
+  ric:"200 g lievito di birra + 700 g noci + 2 l latte + 80 g sale + 1,2 kg uova intere + 1 kg farina di kamut + 3,2 kg farina 0 Do gusto pane + 180 g zucchero + 500 g burro. Formare le stecche, lievitare, cuocere; congelare."},
+ {id:"pane_parmigiano",cat:"PANE SERALE — bistro / ristorante",nm:"Pane al parmigiano",pz:"A stecca",unit:"GN",soglia:1,sminTxt:"min: 1 gastronorm acciaio piena",cott:COTT,
+  ric:"200 g lievito di birra + 700 g parmigiano + 2 l latte + 80 g sale + 1,2 kg uova intere + 1 kg farina di kamut + 3,2 kg farina 0 Do gusto pane + 180 g zucchero + 500 g burro. Formare le stecche, lievitare, cuocere; congelare."},
+ {id:"pane_cipolla",cat:"PANE SERALE — bistro / ristorante",nm:"Pane alla cipolla",pz:"A stecca",unit:"GN",soglia:1,sminTxt:"min: 1 gastronorm acciaio piena",cott:COTT,
+  ric:"200 g lievito di birra + 700 g cipolle secche + 2 l latte + 80 g sale + 1,2 kg uova intere + 1 kg farina di kamut + 3,2 kg farina 0 Do gusto pane + 180 g zucchero + 500 g burro. Formare le stecche, lievitare, cuocere; congelare."},
+ {id:"pane_naan",cat:"DA PROVARE / EXTRA",nm:"Pane naan",pz:"A richiesta",unit:"pz",soglia:null,cott:"Poolish 6-8 h; lievita 3 h; piastra",
+  ric:"POOLISH: 250 g farina + 5 g lievito + 250 g acqua → fermentare 6-8 h. IMPASTO: 150 g poolish + 100 g semola + 200 g farina di farro + 100 g farina 00 + 10 g lievito di birra + 20 g olio evo + 200 ml acqua + 10 g sale. Formare 8 pagnotte, lievitare 3 h, stendere e cuocere in piastra."}
+];
+const CATS=["COLAZIONI — buffet","PANE SERALE — bistro / ristorante","DA PROVARE / EXTRA"];
+const CATSHORT={"COLAZIONI — buffet":"Colazioni","PANE SERALE — bistro / ristorante":"Pane serale","DA PROVARE / EXTRA":"Extra"};
+
+let SCORTA={},FILT="da";const OPEN=new Set();
+const esc=s=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),1800);}
+function sb(path,opt){opt=opt||{};const h=Object.assign({apikey:SB_KEY,'Content-Type':'application/json'},opt.headers||{});return fetch(SB_URL+'/rest/v1/'+path,Object.assign({},opt,{headers:h})).then(async r=>{if(!r.ok){const t=await r.text();throw new Error('HTTP '+r.status+' '+t);}const t=await r.text();return t?JSON.parse(t):[];});}
+
+function unlock(p,fromStore){
+  const err=document.getElementById('err');
+  if(p!==APP_PW){err.textContent='Password errata';document.getElementById('pw').value='';return;}
+  if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_panepw','1')}catch(e){}}
+  document.getElementById('lock').style.display='none';
+  document.getElementById('app').style.display='block';
+  loadAll();
+  if(!window._iv){window._iv=setInterval(loadAll,30000);}
+}
+document.getElementById('enter').onclick=()=>unlock(document.getElementById('pw').value,false);
+document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')unlock(e.target.value,false)});
+(function(){let s=null;try{s=localStorage.getItem('pr_panepw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>document.getElementById('pw').focus(),300);})();
+
+async function loadAll(){
+  document.getElementById('status').textContent='Caricamento dal cloud…';
+  try{
+    const rows=await sb('kitchen_meta?k=like.pane|*&select=*');
+    SCORTA={};(rows||[]).forEach(r=>{var id=r.k.slice(5);SCORTA[id]=(r.v&&typeof r.v.scorta==='number')?r.v.scorta:0;});
+    document.getElementById('status').textContent='✓ Collegato · aggiornato '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    render();
+  }catch(e){document.getElementById('status').textContent='⚠️ Problema di collegamento. Controlla internet e riapri.';console.error(e);}
+}
+function getScorta(id){return SCORTA[id]||0;}
+function daProdurre(p){if(p.soglia==null)return false;return getScorta(p.id)<=p.soglia;}
+
+async function setScorta(id,val){
+  if(val<0)val=0;SCORTA[id]=val;updateCardUI(id);
+  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pane|'+id,v:{scorta:val}})});}
+  catch(e){toast('⚠️ Non salvato');console.error(e);}
+}
+function badgeHTML(p,prod){return p.soglia==null?'<span class="badge req">A richiesta</span>':(prod?'<span class="badge prod">▶ PRODURRE</span>':'<span class="badge ok">OK</span>');}
+function updateCardUI(id){
+  const p=PROD.find(x=>x.id===id);if(!p)return;
+  const prod=daProdurre(p),sc=getScorta(id),c=document.getElementById('c_'+id);
+  if(c){
+    const n=c.querySelector('.val .n');if(n)n.textContent=sc;
+    c.classList.remove('prod','okc');if(prod)c.classList.add('prod');else if(p.soglia!=null)c.classList.add('okc');
+    const b=c.querySelector('.badge');if(b)b.outerHTML=badgeHTML(p,prod);
+  }
+  const al=document.getElementById('alertSlot');if(al)al.innerHTML=alertCard();
+  tabsBar();
+}
+function step(id,d){setScorta(id,getScorta(id)+d);}
+function toggleRec(id){const c=document.getElementById('c_'+id);if(!c)return;c.classList.toggle('open');if(c.classList.contains('open'))OPEN.add(id);else OPEN.delete(id);}
+function setFilt(f){FILT=f;render();}
+
+function tabsBar(){
+  const due=PROD.filter(daProdurre).length;
+  const T=[['da','▶ Da produrre'+(due?' ('+due+')':'')],['all','Tutti']].concat(CATS.map(c=>[c,CATSHORT[c]]));
+  document.getElementById('tabs').innerHTML=T.map(t=>'<button class="tab'+(FILT===t[0]?' on':'')+'" onclick="setFilt(\''+t[0].replace(/'/g,"\\'")+'\')">'+esc(t[1])+'</button>').join('');
+}
+function alertCard(){
+  const due=PROD.filter(daProdurre);
+  if(!due.length)return '<div class="alert none"><div class="t">✓ Scorte a posto</div><div class="l">Nessun pane sotto soglia. Aggiorna le scorte quando consumi.</div></div>';
+  return '<div class="alert due"><div class="t">▶ DA PRODURRE · '+due.length+'</div><div class="l">'+due.map(p=>esc(p.nm)).join(' · ')+'</div></div>';
+}
+function splitRic(ric){
+  var parts=ric.split(/\s\+\s/);
+  var last=parts[parts.length-1],proc='';
+  var m=last.search(/\.\s+[A-ZÀ]/);
+  if(m>-1){proc=last.slice(m+1).trim();parts[parts.length-1]=last.slice(0,m+1).trim();}
+  return {ingr:parts,proc:proc};
+}
+function prodCard(p){
+  const sc=getScorta(p.id),prod=daProdurre(p);
+  let badge=p.soglia==null?'<span class="badge req">A richiesta</span>':(prod?'<span class="badge prod">▶ PRODURRE</span>':'<span class="badge ok">OK</span>');
+  let sogliaTxt=p.sminTxt?p.sminTxt:(p.soglia==null?'A richiesta':('soglia: '+p.soglia+' '+p.unit));
+  const R=splitRic(p.ric);
+  const ingr=R.ingr.map(x=>'<div class="ing">'+esc(x)+'</div>').join('');
+  const procH=R.proc?'<div class="k">Procedimento</div><div class="v">'+esc(R.proc)+'</div>':'';
+  return '<div class="card'+(prod?' prod':(p.soglia==null?'':' okc'))+(OPEN.has(p.id)?' open':'')+'" id="c_'+p.id+'">'
+   +'<div class="card-h" onclick="toggleRec(\''+p.id+'\')"><div class="info"><div class="nm">'+esc(p.nm)+'</div><div class="pz">'+esc(p.pz)+' · '+esc(sogliaTxt)+'</div></div>'+badge+'<span class="chev">▸</span></div>'
+   +'<div class="rec">'
+     +'<div class="k">📖 Ricetta</div><div class="ingbox">'+ingr+'</div>'
+     +procH
+     +'<div class="k">Anticipo / cottura</div><div class="v">'+esc(p.cott)+'</div>'
+     +'<div class="k">Scorta attuale</div>'
+     +'<div class="stock"><div class="lbl">Aggiorna<b>la scorta</b></div><div class="stepper"><button class="minus" onclick="step(\''+p.id+'\',-1)">–</button><div class="val"><span class="n">'+sc+'</span><small>'+esc(p.unit)+'</small></div><button class="plus" onclick="step(\''+p.id+'\',1)">+</button></div></div>'
+   +'</div>'
+   +'</div>';
+}
+function render(){
+  tabsBar();
+  let h='';
+  if(FILT==='da'){
+    h+='<div id="alertSlot">'+alertCard()+'</div>';
+    const due=PROD.filter(daProdurre);
+    if(due.length)h+=due.map(prodCard).join('');
+  }else if(FILT==='all'){
+    h+='<div id="alertSlot">'+alertCard()+'</div>';
+    CATS.forEach(cat=>{const items=PROD.filter(p=>p.cat===cat);if(items.length)h+='<div class="sec">'+esc(CATSHORT[cat])+'</div>'+items.map(prodCard).join('');});
+  }else{
+    const items=PROD.filter(p=>p.cat===FILT);
+    h+='<div class="sec">'+esc(CATSHORT[FILT]||FILT)+'</div>'+items.map(prodCard).join('');
+  }
+  document.getElementById('view').innerHTML=h;
+}
+</script>
+</body>
+</html>
