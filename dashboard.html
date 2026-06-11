@@ -239,7 +239,7 @@ function weeklyCard(ckw,day){
       +'<div class="card-b" style="padding:2px 12px 10px">'+rows+ctrlLine('pulizias#'+c+'@'+weekStart(day))+'</div></div>';
   });
   var bellW=anyReq?' <span style="color:var(--warn);font-weight:800">🔔 da controllare</span>':'';
-  return '<div class="card"><div class="card-h"><div class="t">Pulizia settimanale'+bellW+'<div class="sub">questa settimana · tocca un nome per i dettagli</div></div><span class="pill '+(totMiss?'mid':'ok')+'">'+(totMiss?totMiss+' da fare':'ok')+'</span></div><div class="card-b">'+body+'</div></div>';
+  return '<div class="card"><div class="card-h"><div class="t">Pulizia settimanale'+bellW+'<div class="sub">lun→dom · ultimo giorno utile DOMENICA, dal lunedì riparte</div></div><span class="pill '+(totMiss?'mid':'ok')+'">'+(totMiss?totMiss+' da fare':'ok')+'</span></div><div class="card-b">'+body+'</div></div>';
 }
 function renderNote(){
   var box=document.getElementById('noteBox');if(!box)return;

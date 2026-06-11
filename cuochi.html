@@ -260,11 +260,11 @@ function puliziaSection(){
     var cov=getCover();if(!cov)cov=badrCovers();
     var opts='<option value="">— nessuna copertura —</option>'+COVER.map(function(x){return '<option value="'+x[0]+'" '+(x[0]===cov?'selected':'')+'>'+x[1]+' ('+x[0]+')</option>';}).join('');
     var sel='<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Oggi copri la partita di:</div></div><div class="card-b" style="display:block">'+(badrCovers()?'<div class="readbox" style="margin-bottom:8px">🔓 Oggi è libero <b>'+esc(badrCovers())+'</b>: copri la sua partita.</div>':'')+'<select class="txt" onchange="setCover(this.value)">'+opts+'</select></div></div>';
-    var mySett=checklistCard('cpulbs','La mia pulizia settimanale','pulizias#'+cook,puliziaSettFor(cook));
-    var covCards=cov?(checklistCard('cpul','Pulizia — '+esc(cov)+' (copri tu)','pulizia#'+cov,puliziaFor(cov))+(puliziaSettFor(cov)?checklistCard('cpuls','Pulizia settimanale — '+esc(cov),'pulizias#'+cov,puliziaSettFor(cov)):'')):'';
+    var mySett=checklistCard('cpulbs','La mia pulizia settimanale (entro DOMENICA)','pulizias#'+cook,puliziaSettFor(cook));
+    var covCards=cov?(checklistCard('cpul','Pulizia — '+esc(cov)+' (copri tu)','pulizia#'+cov,puliziaFor(cov))+(puliziaSettFor(cov)?checklistCard('cpuls','Pulizia settimanale (entro DOMENICA) — '+esc(cov),'pulizias#'+cov,puliziaSettFor(cov)):'')):'';
     return base+mySett+sel+covCards;
   }
-  return checklistCard('cpul','La mia pulizia (capo partita)','pulizia#'+(cook||'_'),puliziaFor(cook||'_'))+(puliziaSettFor(cook)?checklistCard('cpuls','Pulizia settimanale','pulizias#'+cook,puliziaSettFor(cook)):'');
+  return checklistCard('cpul','La mia pulizia (capo partita)','pulizia#'+(cook||'_'),puliziaFor(cook||'_'))+(puliziaSettFor(cook)?checklistCard('cpuls','Pulizia settimanale (entro DOMENICA)','pulizias#'+cook,puliziaSettFor(cook)):'');
 }
 function render(){
   whoBar();
