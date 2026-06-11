@@ -94,6 +94,9 @@ const CHIUSURA=["Tutto spento (attrezzature)","Pulizia serale adeguata di tutto"
 const PULIZIA_SETT=["Interno banco frigo / cassetti (anche guarnizioni)","Forno e piastra a fondo","Pulizia della cella di competenza (a fondo) + controllo scadenze","Pulizia scaffali (compresi quelli bassi)","Piccoli elettrodomestici della partita","Pulizia roner (acqua e aceto a 90°C per 1 ora)","Scongelamento congelatori piccoli (ogni 2 settimane)","Filtri cappe: smontare e dare ai lavapiatti (ogni 2 settimane)"];
 const RESP=[["Sett. 1","Ubaldo"],["Sett. 2","Mattia"],["Sett. 3","Badr"],["Sett. 4","Alex"],["Sett. 5","Gianluca"]];
 const CHIUSI=["Gianluca"]; // partite chiuse: pulizie sospese, solo produzione
+const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[6],Erjola:[2],Badr:[0]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
+function isOff(cook){var wd=new Date(today+"T00:00:00").getDay();return !!(RIPOSO[cook]&&RIPOSO[cook].indexOf(wd)>=0);}
+function badrCovers(){var L=["Alex","Mattia","Erjola"];for(var k=0;k<L.length;k++){if(isOff(L[k]))return L[k];}return "";}
 const GTOT={apertura:APERTURA.length,chiusura:CHIUSURA.length,pulizia:PULIZIA.length};
 const ITEMS={apertura:APERTURA,chiusura:CHIUSURA,pulizia:PULIZIA};
 const PEOPLE={
@@ -251,11 +254,12 @@ function setCover(st){localStorage.setItem('prcover_'+today,st);render();}
 function puliziaSection(){
   var cook=getCook();
   if(CHIUSI.indexOf(cook)>=0){return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Pulizia gourmet — 🔒 sospesa</div></div><div class="card-b" style="display:block"><div class="readbox">Il gourmet è chiuso: le pulizie sono sospese. Segna quello che produci nella <b>Scheda di servizio</b> qui sotto.</div></div></div>';}
+  if(isOff(cook)){return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">🔓 Oggi sei libero</div></div><div class="card-b" style="display:block"><div class="readbox">Buon riposo! La tua pulizia oggi la copre <b>Badr</b>. Non devi segnare niente.</div></div></div>';}
   if(PEOPLE[cook]&&PEOPLE[cook].tournant){
     var base=checklistCard('cpulb','I miei compiti (Panificazione / Tournant)','pulizia#'+cook,puliziaFor(cook));
-    var cov=getCover();
+    var cov=getCover();if(!cov)cov=badrCovers();
     var opts='<option value="">— nessuna copertura —</option>'+COVER.map(function(x){return '<option value="'+x[0]+'" '+(x[0]===cov?'selected':'')+'>'+x[1]+' ('+x[0]+')</option>';}).join('');
-    var sel='<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Oggi copri la partita di:</div></div><div class="card-b" style="display:block"><select class="txt" onchange="setCover(this.value)">'+opts+'</select></div></div>';
+    var sel='<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Oggi copri la partita di:</div></div><div class="card-b" style="display:block">'+(badrCovers()?'<div class="readbox" style="margin-bottom:8px">🔓 Oggi è libero <b>'+esc(badrCovers())+'</b>: copri la sua partita.</div>':'')+'<select class="txt" onchange="setCover(this.value)">'+opts+'</select></div></div>';
     var mySett=checklistCard('cpulbs','La mia pulizia settimanale','pulizias#'+cook,puliziaSettFor(cook));
     var covCards=cov?(checklistCard('cpul','Pulizia — '+esc(cov)+' (copri tu)','pulizia#'+cov,puliziaFor(cov))+(puliziaSettFor(cov)?checklistCard('cpuls','Pulizia settimanale — '+esc(cov),'pulizias#'+cov,puliziaSettFor(cov)):'')):'';
     return base+mySett+sel+covCards;

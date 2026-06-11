@@ -112,6 +112,9 @@ const ITEMS={apertura:APERTURA,chiusura:CHIUSURA};
 const LABEL={apertura:'Apertura (entro 14:00)',chiusura:'Chiusura (entro 22:00)'};
 const CAPI=["Alex","Mattia","Ubaldo","Erjola","Badr","Gianluca"];
 const CHIUSI=["Gianluca"]; // partite chiuse: pulizie sospese, solo produzione
+const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[6],Erjola:[2],Badr:[0]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
+function isOff(cook,dayStr){var wd=new Date((dayStr||todayStr())+"T00:00:00").getDay();return !!(RIPOSO[cook]&&RIPOSO[cook].indexOf(wd)>=0);}
+function badrCovers(dayStr){var L=["Alex","Mattia","Erjola"];for(var k=0;k<L.length;k++){if(isOff(L[k],dayStr))return L[k];}return "";}
 const CHEF=["Briefing di 5 minuti con la brigata (coperti, coperture, impiattamenti)","Verifica linea pronta entro le 18:00","Decorazioni pronte entro le 18:30","Pane pronto entro le 18:20","Controllo pulizia di fine servizio (ognuno la sua partita)"];
 const PANE=[
  {id:"vegipan",nm:"Vegipan",unit:"pz",soglia:10},
@@ -201,18 +204,18 @@ function puliziaCard(ck,day){
   let body='';let totMiss=0;let anyReq=false;
   cooks.forEach(c=>{
     if(CHIUSI.indexOf(c)>=0){body+='<div class="card" style="margin:8px 0 0;box-shadow:none;border-radius:10px;background:#faf8f2"><div class="card-h" style="padding:11px 12px;background:#faf8f2"><div class="t" style="font-size:14.5px">'+esc(c)+' — 🔒 bloccato</div><span class="muted">gourmet chiuso</span></div></div>';return;}
-    const dm=byCook[c]||{};const items=puliziaFor(c);const done=Object.keys(dm).length;const tot=items.length;const pill=done===tot?'ok':(ov?'no':'mid');
-    var req=(window.CTRL||{})['pulizia#'+c+'@'+day];var isReq=req&&req.stato==='richiesto';if(isReq)anyReq=true;
+    const dm=byCook[c]||{};const items=puliziaFor(c);const done=Object.keys(dm).length;const tot=items.length;var off=isOff(c,day);const pill=off?'mid':(done===tot?'ok':(ov?'no':'mid'));var pilltxt=off?'libero':(done+'/'+tot);
+    var req=(window.CTRL||{})['pulizia#'+c+'@'+day];var isReq=req&&req.stato==='richiesto';if(isReq&&!off)anyReq=true;
     var rows='';
     items.forEach((it,i)=>{var r=dm[i];
       if(r){rows+='<div class="row"><span class="donerow">✓ '+esc(it)+'</span><span class="muted">'+tloc(r.at)+'</span></div>';}
-      else{totMiss++;rows+='<div class="row">'+(ov?'<span class="missrow">✗ '+esc(it)+'</span><span class="muted">NON SVOLTO</span>':'<span class="pendrow">◦ '+esc(it)+'</span><span class="muted">in attesa</span>')+'</div>';}
+      else{if(!off)totMiss++;rows+='<div class="row">'+((ov&&!off)?'<span class="missrow">✗ '+esc(it)+'</span><span class="muted">NON SVOLTO</span>':'<span class="pendrow">◦ '+esc(it)+'</span><span class="muted">'+(off?'(libero)':'in attesa')+'</span>')+'</div>';}
     });
-    var bellC=isReq?' <span style="color:var(--warn);font-weight:800">🔔</span>':'';
+    var bellC=(isReq&&!off)?' <span style="color:var(--warn);font-weight:800">🔔</span>':'';var lib=off?(' <span style="color:#c9a227;font-weight:700">🔓 Libero'+(c!=='Badr'?' — coperto da Badr':'')+'</span>'):bellC;
     var cid='pul_'+c;var open=(window.FOLD&&window.FOLD[cid])||isReq;
     body+='<div class="card fold'+(open?' open':'')+'" id="fold'+cid+'" style="margin:8px 0 0;box-shadow:none;border-radius:10px">'
-      +'<div class="card-h" style="padding:11px 12px" onclick="toggleFold(\''+cid+'\')"><div class="t" style="font-size:14.5px">'+esc(c)+bellC+'</div><span class="pill '+pill+'">'+done+'/'+tot+'</span><span class="tog">›</span></div>'
-      +'<div class="card-b" style="padding:2px 12px 10px">'+rows+ctrlLine('pulizia#'+c+'@'+day)+'</div></div>';
+      +'<div class="card-h" style="padding:11px 12px" onclick="toggleFold(\''+cid+'\')"><div class="t" style="font-size:14.5px">'+esc(c)+lib+'</div><span class="pill '+pill+'">'+pilltxt+'</span><span class="tog">›</span></div>'
+      +'<div class="card-b" style="padding:2px 12px 10px">'+rows+(off?'':ctrlLine('pulizia#'+c+'@'+day))+'</div></div>';
   });
   const hpill=totMiss===0?'ok':(ov?'no':'mid');
   var bell=anyReq?' <span style="color:var(--warn);font-weight:800">🔔 da controllare</span>':'';
