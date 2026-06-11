@@ -11,33 +11,33 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
 <title>Prinz Rudolf · Dessert</title>
 <style>
-  :root{--bordeaux:#1c1c1c;--bordeaux-d:#000;--cream:#faf8f2;--paper:#fff;--ink:#1a1a1a;--muted:#8a8378;--line:#ececec;--gold:#c9a227;--yellow:#f5c518;--ok:#2e7d5b;--warn:#c0392b}
+  :root{--bordeaux:#6e1423;--bordeaux-d:#180407;--cream:#faf7f7;--paper:#fff;--ink:#1a1a1a;--muted:#8a7d7f;--line:#ece6e7;--gold:#6e1423;--yellow:#8e1d2c;--ok:#2e7d5b;--warn:#c0392b}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   html,body{margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--cream);color:var(--ink);line-height:1.45;padding-bottom:env(safe-area-inset-bottom)}
   #lock{position:fixed;inset:0;z-index:50;background:linear-gradient(160deg,var(--bordeaux),var(--bordeaux-d));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;color:#fff;text-align:center}
-  #lock .mark{width:64px;height:64px;border-radius:16px;border:2px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;letter-spacing:1px;margin-bottom:18px}
+  #lock .mark{width:64px;height:64px;border-radius:16px;border:2px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;letter-spacing:1px;margin-bottom:18px}
   #lock h1{font-size:22px;margin:0 0 4px;font-weight:600}
   #lock p{opacity:.85;font-size:13px;margin:0 0 24px;letter-spacing:.5px}
   #lock .box{width:100%;max-width:300px}
   #lock input{width:100%;border:none;border-radius:12px;padding:14px 16px;font-size:17px;text-align:center;color:var(--ink);margin-bottom:12px}
-  #lock button{width:100%;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--yellow),var(--gold));color:#1a1400;cursor:pointer}
+  #lock button{width:100%;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--yellow),var(--gold));color:#fff;cursor:pointer}
   #lock .err{color:#ffd2d2;font-size:13px;height:18px;margin-top:10px}
   #lock label{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;opacity:.9;margin-top:14px;cursor:pointer}
   #lock label input{width:auto;margin:0}
   header{position:sticky;top:0;z-index:20;background:linear-gradient(160deg,var(--bordeaux),var(--bordeaux-d));color:#fff;padding:calc(env(safe-area-inset-top) + 14px) 12px 0;box-shadow:0 2px 14px rgba(0,0,0,.18)}
   .brand{display:flex;align-items:center;gap:10px;padding:0 4px}
-  .brand .mark{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gold);font-size:14px;flex:none}
+  .brand .mark{width:32px;height:32px;border-radius:8px;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px;flex:none}
   .brand h1{font-size:16px;margin:0;font-weight:600}
   .brand small{display:block;font-size:10px;opacity:.8;letter-spacing:1.5px;text-transform:uppercase}
   .tabs{display:flex;gap:4px;margin-top:11px;overflow-x:auto;-webkit-overflow-scrolling:touch}
   .tabs button{flex:none;border:none;background:transparent;color:#fff;opacity:.7;font-size:13.5px;font-weight:700;padding:9px 12px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
-  .tabs button.on{opacity:1;border-bottom-color:var(--gold)}
+  .tabs button.on{opacity:1;border-bottom-color:#fff}
   main{max-width:820px;margin:0 auto;padding:14px}
   #status{font-size:12px;color:var(--muted);margin-bottom:10px;text-align:center}
   .wtabs{display:flex;gap:8px;margin-bottom:12px}
-  .wtabs button{flex:1;border:1.5px solid var(--gold);background:#fff;color:var(--bordeaux);border-radius:10px;padding:9px;font-size:14px;font-weight:700;cursor:pointer}
-  .wtabs button.on{background:var(--gold);color:#1a1400}
+  .wtabs button{flex:1;border:1.5px solid #fff;background:#fff;color:var(--bordeaux);border-radius:10px;padding:9px;font-size:14px;font-weight:700;cursor:pointer}
+  .wtabs button.on{background:var(--gold);color:#fff}
   .search{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:15px;margin-bottom:12px;font-family:inherit}
   .daylab{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:14px 0 4px}
   .card{background:var(--paper);border:1px solid var(--line);border-radius:14px;margin-bottom:11px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)}
@@ -53,7 +53,7 @@
   .recipe{white-space:pre-wrap;font-size:13.5px;color:#333}
   .muted{color:var(--muted);font-size:13px}
   .qctrl{display:flex;align-items:center;gap:10px;flex:none}
-  .qctrl button{width:34px;height:34px;border:none;border-radius:9px;font-size:20px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,var(--yellow),var(--gold));color:#1a1400;line-height:1}
+  .qctrl button{width:34px;height:34px;border:none;border-radius:9px;font-size:20px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,var(--yellow),var(--gold));color:#fff;line-height:1}
   .qctrl .qn{min-width:40px;text-align:center;font-size:19px;font-weight:800;cursor:pointer}
   .back{display:inline-flex;align-items:center;gap:6px;border:none;background:transparent;color:var(--gold);font-weight:700;font-size:14px;cursor:pointer;padding:6px 0;margin-bottom:6px}
   .dhead{margin-bottom:6px}
