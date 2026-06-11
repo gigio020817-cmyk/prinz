@@ -66,6 +66,7 @@
   .empty{text-align:center;color:var(--muted);padding:36px 16px}
   footer{text-align:center;font-size:11px;color:var(--muted);padding:18px}
 .dishphoto{width:100%;display:block;border-radius:16px;margin:14px 0 8px;box-shadow:0 6px 22px rgba(0,0,0,.20);aspect-ratio:4/3;object-fit:cover;cursor:zoom-in}#lightbox{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.93);display:none;align-items:center;justify-content:center;padding:16px}#lightbox img{max-width:100%;max-height:100%;border-radius:10px}
+.corrbox{margin:18px 0 6px;padding:14px;border:1px dashed #c9a227;border-radius:12px;background:rgba(201,162,39,.06)}.corrlbl{font-weight:700;font-size:14px;margin-bottom:8px}.corrta{width:100%;min-height:72px;border:1px solid #e0d9c8;border-radius:9px;padding:9px;font-size:14px;font-family:inherit;box-sizing:border-box}.corrrow{display:flex;gap:9px;margin-top:9px;flex-wrap:wrap}.corrbtn{border:none;border-radius:9px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;background:#eee}.corrbtn.save{background:#2e7d5b;color:#fff}.corrbtn.exp{background:linear-gradient(135deg,#f5c518,#c9a227);color:#1a1400}.corrmodal{display:none;position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:16px}.corrmbox{background:#fff;border-radius:16px;padding:18px;max-width:520px;width:100%}.corrmbox h3{margin:0 0 4px}.corrmbox p{margin:0 0 10px;font-size:13px;color:#8a8378}.corrmbox textarea{width:100%;height:240px;border:1px solid #e0d9c8;border-radius:10px;padding:10px;font-size:12.5px;font-family:ui-monospace,Menlo,monospace;box-sizing:border-box}.corrmrow{display:flex;gap:9px;margin-top:10px}.corrmrow .corrbtn{flex:1;padding:12px}
 </style>
 </head>
 <body>
@@ -145,12 +146,19 @@ function openDish(i){
       +'<svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div>'
       +'<div class="comp-body"><div class="recipe">'+esc(c.r)+'</div>'
       +(c.q?'<div class="kv"><b>Quantità:</b> '+esc(c.q)+'</div>':'')
-      +(c.note?'<div class="kv"><b>Note:</b> '+esc(c.note)+'</div>':'')+'</div></div>').join('');
+      +(c.note?'<div class="kv"><b>Note:</b> '+esc(c.note)+'</div>':'')+'</div></div>').join('')+'<div class="corrbox"><div class="corrlbl">✏️ Le mie correzioni</div><textarea id="corrTa" class="corrta" placeholder="Scrivi qui cosa correggere in questa ricetta…">'+esc(getCorr(curW,i))+'</textarea><div class="corrrow"><button class="corrbtn save" onclick="saveCorr('+curW+','+i+')">Salva</button><button class="corrbtn exp" onclick="exportCorr()">📤 Esporta correzioni</button></div></div>';
 }
 function toggle(id){document.getElementById(id).classList.toggle('open');}
 document.getElementById('q').addEventListener('input',function(){renderList(this.value)});
 function zoomImg(src){var lb=document.getElementById('lightbox');lb.querySelector('img').src=src;lb.style.display='flex';}
+
+function corrKey(w,i){return 'corr|'+w+'|'+i;}
+function getCorr(w,i){try{return localStorage.getItem(corrKey(w,i))||'';}catch(e){return '';}}
+function saveCorr(w,i){var v=document.getElementById('corrTa').value;try{localStorage.setItem(corrKey(w,i),v);}catch(e){}var b=event&&event.target;if(b){var t=b.textContent;b.textContent='✓ Salvato';setTimeout(function(){b.textContent=t;},1500);}}
+function exportCorr(){var out='CORREZIONI RICETTARIO PRIMI — Prinz Rudolf\n\n';var any=false;WEEKS.forEach(function(wk,w){(wk.dishes||[]).forEach(function(d,i){var c=getCorr(w,i);if(c&&c.trim()){any=true;out+='• ['+(wk.sett||('Sett '+(w+1)))+' · '+(d.giorno||'')+'] '+d.title+'\n  → '+c.trim()+'\n\n';}});});if(!any)out+='(non hai ancora scritto correzioni)';var m=document.getElementById('corrModal');m.querySelector('textarea').value=out;m.style.display='flex';}
+function copyCorr(){var t=document.getElementById('corrModal').querySelector('textarea');t.select();t.setSelectionRange(0,99999);try{navigator.clipboard.writeText(t.value);}catch(e){try{document.execCommand('copy')}catch(_){}}var b=event&&event.target;if(b){var x=b.textContent;b.textContent='✓ Copiato';setTimeout(function(){b.textContent=x;},1500);}}
 </script>
 <div id="lightbox" onclick="this.style.display='none'"><img alt=""></div>
+<div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Correzioni da inviare a Claude</h3><p>Copia questo testo e incollalo a Claude in chat.</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
 </body>
 </html>
