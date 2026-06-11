@@ -172,7 +172,7 @@ function timbraCard(){
 }
 async function timbraIn(){var c=getCook();if(!c){alert("Prima scegli il tuo nome.");return;}var t=TIMBRA[c]||{};if(t.in)return;t.in=new Date().toISOString();TIMBRA[c]=t;try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today+'|'+c,v:t})});toast('Arrivo registrato: '+now());render();}catch(e){toast('⚠️ Non salvato');console.error(e);}}
 function whoBar(){
-  let o='<option value="">— scegli il tuo nome —</option>'+TEAM.map(t=>'<option '+(t[0]===getCook()?'selected':'')+'>'+t[0]+'</option>').join('');
+  let o='<option value="">— scegli il tuo nome —</option>'+TEAM.filter(function(t){return t[0]!=='Gigio';}).map(t=>'<option '+(t[0]===getCook()?'selected':'')+'>'+t[0]+'</option>').join('');
   document.getElementById('whoBar').innerHTML='Sei: <select onchange="setCook(this.value)">'+o+'</select>';
 }
 function toggleCard(id){document.getElementById(id).classList.toggle('open')}
