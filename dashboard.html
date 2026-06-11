@@ -71,6 +71,21 @@
   .reprow{display:flex;gap:9px;margin-top:10px}.reprow button{flex:1;border:none;border-radius:10px;padding:12px;font-weight:700;cursor:pointer}
   .reprow .copy{background:linear-gradient(135deg,var(--yellow),var(--gold));color:#1a1400}.reprow .close{background:#eee}
   footer{text-align:center;font-size:11px;color:var(--muted);padding:18px}
+  #wrep{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:60;align-items:center;justify-content:center;padding:18px}
+  .wrepbox{background:#fff;border-radius:16px;padding:18px;max-width:520px;width:100%;max-height:88vh;display:flex;flex-direction:column}
+  .wrepbox h3{margin:0 0 2px}
+  .wrepbox .wsub{margin:0 0 8px;font-size:13px;color:var(--muted)}
+  .whint{font-size:12px;color:#5a4600;background:#fff6da;border:1px solid var(--gold);border-radius:9px;padding:8px 10px;margin-bottom:10px}
+  #wrepbody{overflow:auto;flex:1;-webkit-overflow-scrolling:touch}
+  .wperson{margin-bottom:10px}
+  .wph{font-weight:800;font-size:15px;margin:8px 0 2px;color:var(--bordeaux)}
+  .wmiss{display:flex;gap:9px;align-items:flex-start;padding:8px 2px;border-bottom:1px solid var(--line);cursor:pointer;font-size:13.5px}
+  .wmiss .wck{width:22px;height:22px;border-radius:6px;border:2px solid var(--ok);color:#fff;background:var(--ok);display:flex;align-items:center;justify-content:center;font-size:13px;flex:none;margin-top:1px}
+  .wmiss.off .wck{background:#fff;color:transparent;border-color:#ccc}
+  .wmiss.off .wt{text-decoration:line-through;opacity:.45}
+  .wmiss .wt{flex:1}
+  .wok{font-size:13px;color:var(--ok);font-weight:600;padding:4px 0}
+  .wnote{font-size:13px;padding:5px 0;border-bottom:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -99,6 +114,7 @@
 <footer>Prinz Rudolf · Dashboard Chef · si aggiorna da sola ogni 30s</footer>
 </div>
 <div id="rep"><div class="repbox"><h3>Report del giorno</h3><p>Copialo e conservalo o mandalo alla direzione.</p><textarea id="reptxt" readonly></textarea><div class="reprow"><button class="copy" onclick="copyRep()">Copia</button><button class="close" onclick="document.getElementById('rep').style.display='none'">Chiudi</button></div></div></div>
+<div id="wrep"><div class="wrepbox"><h3>Riepilogo settimana</h3><p class="wsub" id="wrepsub"></p><div class="whint">Tocca una riga per <b>giustificarla</b>: si barra e non finisce nel report. Tocca di nuovo per rimetterla.</div><div id="wrepbody"></div><div class="reprow"><button class="copy" id="wcopybtn" onclick="copyWeek()">📋 Copia (solo quelle tenute)</button><button class="close" onclick="document.getElementById('wrep').style.display='none'">Chiudi</button></div></div></div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
@@ -432,28 +448,52 @@ async function exportWeekReport(){
   var noteMap={};(notes||[]).forEach(function(r){var d=r.k.slice(9);if(days.indexOf(d)>=0)noteMap[d]=(r.v&&r.v.text)||'';});
   var GG=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
   function lbl(d){var x=new Date(d+'T00:00:00');return GG[x.getDay()]+' '+d.split('-').reverse().slice(0,2).join('/');}
+  function eh(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   var today=todayStr();
   var activeCAPI=CAPI.filter(function(c){return CHIUSI.indexOf(c)<0;});
-  var o='RIEPILOGO SETTIMANALE · PRINZ RUDOLF\n'+lbl(mon)+' → '+lbl(sun)+'\n';
-  o+='\n— COSA NON È STATO FATTO (per persona) —\n';
+  var html='';
   activeCAPI.forEach(function(c){
-    o+='\n'+c+'\n';var any=false;var items=puliziaFor(c);
+    var rows='';var items=puliziaFor(c);
     days.forEach(function(d){
       if(d>today)return;if(isOff(c,d))return;
       var done=(bd[c]&&bd[c][d])||{};var nd=Object.keys(done).length;
       var miss=[];items.forEach(function(it,i){if(!done[i])miss.push(it);});
-      if(nd===0){o+='  • '+lbl(d)+': NIENTE segnato\n';any=true;}
-      else if(miss.length){o+='  • '+lbl(d)+': '+miss.join('; ')+'\n';any=true;}
+      if(nd===0){rows+='<div class="wmiss on" onclick="wtog(this)"><span class="wck">✓</span><span class="wt">'+eh(lbl(d))+': NIENTE segnato</span></div>';}
+      else if(miss.length){rows+='<div class="wmiss on" onclick="wtog(this)"><span class="wck">✓</span><span class="wt">'+eh(lbl(d))+': '+eh(miss.join('; '))+'</span></div>';}
     });
     var sit=puliziaSettFor(c)||[];var sdone=bw[c]||{};var smiss=[];sit.forEach(function(it,i){if(!sdone[i])smiss.push(it);});
-    if(smiss.length){o+='  • Settimanale (da fare): '+smiss.join('; ')+'\n';any=true;}
-    if(!any)o+='  ✅ tutto svolto\n';
+    if(smiss.length){rows+='<div class="wmiss on" onclick="wtog(this)"><span class="wck">✓</span><span class="wt">Settimanale (da fare): '+eh(smiss.join('; '))+'</span></div>';}
+    html+='<div class="wperson"><div class="wph">'+eh(c)+'</div>'+(rows||'<div class="wok">✅ tutto svolto</div>')+'</div>';
   });
-  o+='\n— NOTE DELLA SETTIMANA —\n';var hasN=false;
-  days.forEach(function(d){if(noteMap[d]&&noteMap[d].trim()){hasN=true;o+=lbl(d)+': '+noteMap[d].trim()+'\n';}});
-  if(!hasN)o+='(nessuna nota)\n';
+  var nhtml='';var hasN=false;
+  days.forEach(function(d){if(noteMap[d]&&noteMap[d].trim()){hasN=true;nhtml+='<div class="wnote"><b>'+eh(lbl(d))+'</b>: '+eh(noteMap[d].trim())+'</div>';}});
+  html+='<div class="wperson wnotes"><div class="wph">📝 Note della settimana</div>'+(hasN?nhtml:'<div class="wok">(nessuna nota)</div>')+'</div>';
+  document.getElementById('wrepsub').textContent=lbl(mon)+' → '+lbl(sun);
+  document.getElementById('wrepbody').innerHTML=html;
   document.getElementById('status').textContent='✓ Riepilogo settimana pronto';
-  document.getElementById('reptxt').value=o;document.getElementById('rep').style.display='flex';
+  document.getElementById('wrep').style.display='flex';
+}
+function wtog(el){el.classList.toggle('on');el.classList.toggle('off');}
+function copyWeek(){
+  var sub=document.getElementById('wrepsub').textContent;
+  var o='RIEPILOGO SETTIMANALE · PRINZ RUDOLF\n'+sub+'\n';
+  document.querySelectorAll('#wrepbody .wperson').forEach(function(p){
+    var name=p.querySelector('.wph').textContent;o+='\n'+name+'\n';
+    if(p.classList.contains('wnotes')){
+      var ns=p.querySelectorAll('.wnote');
+      if(!ns.length){o+='(nessuna nota)\n';}else ns.forEach(function(n){o+='• '+n.textContent+'\n';});
+      return;
+    }
+    var ok=p.querySelector('.wok');var kept=p.querySelectorAll('.wmiss.on .wt');
+    if(ok){o+='✅ tutto svolto\n';}
+    else if(!kept.length){o+='✅ niente da segnalare (tutto giustificato)\n';}
+    else kept.forEach(function(t){o+='• '+t.textContent+'\n';});
+  });
+  var ta=document.createElement('textarea');ta.value=o;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,99999);
+  try{navigator.clipboard.writeText(o);}catch(e){}
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+  var b=document.getElementById('wcopybtn');if(b){var t0=b.textContent;b.textContent='Copiato ✓';setTimeout(function(){b.textContent=t0;},1500);}
 }
 
 </script>
