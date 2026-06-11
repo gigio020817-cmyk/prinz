@@ -92,7 +92,7 @@
     <button onclick="shiftDay(1)">Giorno dopo ›</button>
     <button onclick="goToday()">Oggi</button>
     <button onclick="loadAll()">↻ Aggiorna</button>
-    <button onclick="exportReport()">📄 Report</button>
+    <button onclick="exportReport()">📄 Report</button><button onclick="exportWeekReport()">📅 Settimana</button>
   </div>
 </header>
 <main><div id="status">Caricamento…</div><div id="noteBox"></div><div id="view"></div></main>
@@ -415,6 +415,47 @@ function buildReport(){
 }
 function exportReport(){document.getElementById('reptxt').value=buildReport();document.getElementById('rep').style.display='flex';}
 function copyRep(){const t=document.getElementById('reptxt');t.select();t.setSelectionRange(0,99999);try{navigator.clipboard.writeText(t.value);}catch(e){try{document.execCommand('copy')}catch(_){}}alert('Report copiato!');}
+async function exportWeekReport(){
+  var sel=document.getElementById('datePick').value||todayStr();
+  var mon=weekStart(sel);
+  var days=[];for(var i=0;i<7;i++){var d=new Date(mon+'T00:00:00');d.setDate(d.getDate()+i);days.push(d.toISOString().slice(0,10));}
+  var sun=days[6];
+  document.getElementById('status').textContent='Carico la settimana…';
+  var ck,ckw,notes;
+  try{
+    ck=await sb('kitchen_checks?day=in.('+days.join(',')+')&grp=like.pulizia%23*&select=*');
+    ckw=await sb('kitchen_checks?day=eq.'+mon+'&grp=like.pulizias%23*&select=*');
+    notes=await sb('kitchen_meta?k=like.notechef|*&select=*');
+  }catch(e){document.getElementById('status').textContent='⚠️ Errore settimana';alert('Errore nel caricamento della settimana');return;}
+  var bd={};(ck||[]).forEach(function(r){var c=r.grp.slice(8);bd[c]=bd[c]||{};(bd[c][r.day]=bd[c][r.day]||{})[r.idx]=1;});
+  var bw={};(ckw||[]).forEach(function(r){var c=r.grp.slice(9);(bw[c]=bw[c]||{})[r.idx]=1;});
+  var noteMap={};(notes||[]).forEach(function(r){var d=r.k.slice(9);if(days.indexOf(d)>=0)noteMap[d]=(r.v&&r.v.text)||'';});
+  var GG=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+  function lbl(d){var x=new Date(d+'T00:00:00');return GG[x.getDay()]+' '+d.split('-').reverse().slice(0,2).join('/');}
+  var today=todayStr();
+  var activeCAPI=CAPI.filter(function(c){return CHIUSI.indexOf(c)<0;});
+  var o='RIEPILOGO SETTIMANALE · PRINZ RUDOLF\n'+lbl(mon)+' → '+lbl(sun)+'\n';
+  o+='\n— COSA NON È STATO FATTO (per persona) —\n';
+  activeCAPI.forEach(function(c){
+    o+='\n'+c+'\n';var any=false;var items=puliziaFor(c);
+    days.forEach(function(d){
+      if(d>today)return;if(isOff(c,d))return;
+      var done=(bd[c]&&bd[c][d])||{};var nd=Object.keys(done).length;
+      var miss=[];items.forEach(function(it,i){if(!done[i])miss.push(it);});
+      if(nd===0){o+='  • '+lbl(d)+': NIENTE segnato\n';any=true;}
+      else if(miss.length){o+='  • '+lbl(d)+': '+miss.join('; ')+'\n';any=true;}
+    });
+    var sit=puliziaSettFor(c)||[];var sdone=bw[c]||{};var smiss=[];sit.forEach(function(it,i){if(!sdone[i])smiss.push(it);});
+    if(smiss.length){o+='  • Settimanale (da fare): '+smiss.join('; ')+'\n';any=true;}
+    if(!any)o+='  ✅ tutto svolto\n';
+  });
+  o+='\n— NOTE DELLA SETTIMANA —\n';var hasN=false;
+  days.forEach(function(d){if(noteMap[d]&&noteMap[d].trim()){hasN=true;o+=lbl(d)+': '+noteMap[d].trim()+'\n';}});
+  if(!hasN)o+='(nessuna nota)\n';
+  document.getElementById('status').textContent='✓ Riepilogo settimana pronto';
+  document.getElementById('reptxt').value=o;document.getElementById('rep').style.display='flex';
+}
+
 </script>
 </body>
 </html>
