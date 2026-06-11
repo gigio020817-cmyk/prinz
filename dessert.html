@@ -125,14 +125,15 @@ function renderMezza(v){
   var wk=DATA.mezza[curW];
   wk.dishes.forEach(function(d,i){
     html+='<div class="daylab">'+esc(d.giorno)+'</div>';
-    html+='<div class="card" id="m_'+curW+'_'+i+'"><div class="card-h" onclick="tog(this)"><div class="t">'+esc(d.title)+'</div><span class="tog">›</span></div><div class="card-b">'+comps(d.comps)+'</div></div>';
+    html+='<div class="card" id="m_'+curW+'_'+i+'"><div class="card-h" onclick="tog(this.closest(\'.card\'))"><div class="t">'+esc(d.title)+'</div><span class="tog">›</span></div><div class="card-b">'+comps(d.comps)+'</div></div>';
   });
   v.innerHTML=html;
 }
 function setW(i){curW=i;render();window.scrollTo(0,0);}
+function fmtR(r){var t=esc(r||'');if(!t)return '';return '• '+t.split(' + ').join('\n• ');}
 function comps(cs){
   if(!cs||!cs.length)return '<div class="muted">Ricetta da aggiungere.</div>';
-  return cs.map(function(c){return '<div class="comp"><h4>'+esc(c.n)+'</h4>'+(c.r?'<div class="recipe">'+esc(c.r)+'</div>':'')+'</div>';}).join('');
+  return cs.map(function(c){return '<div class="comp"><h4>'+esc(c.n)+'</h4>'+(c.r?'<div class="recipe">'+fmtR(c.r)+'</div>':'')+'</div>';}).join('');
 }
 function renderSection(v,sec){
   var items=DATA[sec]||[];
