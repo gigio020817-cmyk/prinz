@@ -61,6 +61,7 @@
   .dhead h2{font-size:19px;margin:4px 0 0;line-height:1.25}
   .hint{font-size:12px;color:var(--muted);margin-bottom:10px}
   footer{text-align:center;font-size:11px;color:var(--muted);padding:18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;align-items:start}.grid2 .comp{padding:8px 0}
 </style>
 </head>
 <body>
@@ -125,7 +126,7 @@ function renderMezza(v){
   var wk=DATA.mezza[curW];
   wk.dishes.forEach(function(d,i){
     html+='<div class="daylab">'+esc(d.giorno)+'</div>';
-    html+='<div class="card" id="m_'+curW+'_'+i+'"><div class="card-h" onclick="tog(this.closest(\'.card\'))"><div class="t">'+esc(d.title)+'</div><span class="tog">›</span></div><div class="card-b">'+comps(d.comps)+'</div></div>';
+    html+='<div class="card" id="m_'+curW+'_'+i+'"><div class="card-h" onclick="tog(this.closest(\'.card\'))"><div class="t">'+esc(d.title)+'</div><span class="tog">›</span></div><div class="card-b"><div class="grid2">'+comps(d.comps)+'</div></div></div>';
   });
   v.innerHTML=html;
 }
