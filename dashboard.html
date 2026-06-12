@@ -151,7 +151,7 @@ const PEOPLE={
    pulizia:["Attrezzature: bilance, pacojet, forno pasticceria, frighi pasticceria, bimby e microonde","Banco frigo: riordino, controllo date, FIFO","Coperchi puliti e in ordine","Abbattitore davanti: pulito","Controllo sporcizia vicino ai piatti"],
    puliziaSett:["Lavoro interno frigo pasticceria","Pulizia scaffali pasticceria","Frighi pasticceria (dentro e fuori)","Piccoli elettrodomestici della pasticceria","Riordino e pulizia scaffali con mise en place","Planetarie piccole e suo abbattitore","Planetarie grandi: se le usi, pulire subito dopo l\'uso"]},
  "Ubaldo":{pulizia:["Piano di lavoro pulito e sanificato","Attrezzatura partita: affettatrice, cassetti pizzeria, coltelli, lavandino, vetrina pizzeria","Banco frigo: riordino, controllo date, FIFO","Coperchi puliti e in ordine","Pulizia forno pizzeria (passata)","Frigo e fermalievita sempre puliti","Controllo sporcizia cassetti pizzeria","Pulizia planetaria a braccia tuffanti (ogni giorno dopo l'impasto)"],puliziaSett:["Interno banco frigo / cassetti (anche guarnizioni)","Pulizia interno del forno pizzeria","Pulizia cella di competenza (a fondo) + controllo scadenze","Pulizia pizzeria zona bassa","Vetrina pizzeria","Zona cartoni pizzeria","Frighi della pizzeria e cassetti dell'impasto","Piccoli elettrodomestici della pizzeria","Attrezzatura condivisa: planetarie grandi (pulizia profonda)","Abbattitore davanti: pulizia dentro e fuori"]},
- "Badr":{tournant:true,pulizia:["Aiutare le partite in difficoltà","Aiutare nella pulizia delle partite","Controllo produzione pane per il servizio","Controllo scorte pane e impasti","Rifornire pane e lievitati del giorno","Pulizia zona panificazione a fine servizio"]},
+ "Badr":{tournant:true,pulizia:["Aiutare le partite in difficoltà","Aiutare nella pulizia delle partite finché tutti non hanno finito","Rifornire il pane nel frigo se è finito","Controllo produzione pane per il servizio","Controllo scorte pane e impasti","Pulizia zona panificazione a fine servizio"]},
  "Gianluca":{pulizia:["Controllare richieste fingerfood/aperitivi e organizzarle","Piano di lavoro pulito e sanificato","Attrezzature: planetaria piccola, microonde, bimby, lavandino, coltelli","Banco frigo: riordino, controllo date, FIFO","Coperchi puliti e in ordine","Fornelli / piastra","Forno","Abbattitore davanti: pulito","Pass centrale gourmet","Lampade gourmet","Controllo sporcizia vicino ai piatti","Cambio acqua roner (ogni giorno di servizio)"],puliziaSett:["Interno banco frigo / cassetti (anche guarnizioni)","Pulizia scaffali","Congelatore gourmet","Piccoli elettrodomestici della partita","Filtri cappa (ogni 2 settimane)"]}
 };
 function puliziaFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].pulizia)||PULIZIA;}
@@ -220,6 +220,7 @@ function puliziaCard(ck,day){
   let body='';let totMiss=0;let anyReq=false;
   cooks.forEach(c=>{
     if(CHIUSI.indexOf(c)>=0){body+='<div class="card" style="margin:8px 0 0;box-shadow:none;border-radius:10px;background:#faf8f2"><div class="card-h" style="padding:11px 12px;background:#faf8f2"><div class="t" style="font-size:14.5px">'+esc(c)+' — 🔒 bloccato</div><span class="muted">gourmet chiuso</span></div></div>';return;}
+    if(c==='Badr'&&badrCovers(day)){body+='<div class="card" style="margin:8px 0 0;box-shadow:none;border-radius:10px;background:#fff6da"><div class="card-h" style="padding:11px 12px;background:#fff6da"><div class="t" style="font-size:14.5px">Badr — 🔒 oggi in partita</div><span class="muted">copre '+esc(badrCovers(day))+'</span></div></div>';return;}
     const dm=byCook[c]||{};const items=puliziaFor(c);const done=Object.keys(dm).length;const tot=items.length;var off=isOff(c,day);const pill=off?'mid':(done===tot?'ok':(ov?'no':'mid'));var pilltxt=off?'libero':(done+'/'+tot);
     var req=(window.CTRL||{})['pulizia#'+c+'@'+day];var isReq=req&&req.stato==='richiesto';if(isReq&&!off)anyReq=true;
     var rows='';
@@ -348,7 +349,8 @@ function riepilogoCard(){
   function cnt(grp){var m={};ck.filter(function(r){return r.grp===grp;}).forEach(function(r){m[r.idx]=1;});return Object.keys(m).length;}
   var apD=cnt('apertura'),chD=cnt('chiusura');
   var activeCAPI=CAPI.filter(function(c){return CHIUSI.indexOf(c)<0;});
-  var capOk=0;activeCAPI.forEach(function(c){var items=puliziaFor(c);var m={};ck.filter(function(r){return r.grp==='pulizia#'+c;}).forEach(function(r){m[r.idx]=1;});if(items.length&&Object.keys(m).length>=items.length)capOk++;});
+  var capList=activeCAPI.filter(function(c){return !(c==='Badr'&&badrCovers(D.day));});
+  var capOk=0;capList.forEach(function(c){var items=puliziaFor(c);var m={};ck.filter(function(r){return r.grp==='pulizia#'+c;}).forEach(function(r){m[r.idx]=1;});if(items.length&&Object.keys(m).length>=items.length)capOk++;});
   var wOk=0;activeCAPI.forEach(function(c){var items=puliziaSettFor(c)||[];var m={};ckw.filter(function(r){return r.grp==='pulizias#'+c;}).forEach(function(r){m[r.idx]=1;});if(items.length&&Object.keys(m).length>=items.length)wOk++;});
   var signed={};(D.presa||[]).forEach(function(p){signed[p.cook]=1;});var presaOk=TEAM.filter(function(x){return signed[x[0]];}).length;
   var req=0,C=window.CTRL||{};Object.keys(C).forEach(function(k){if(C[k]&&C[k].stato==='richiesto')req++;});
@@ -356,7 +358,7 @@ function riepilogoCard(){
   var T=window.TIMB||{};var arr=TEAM.filter(function(x){return T[x[0]]&&T[x[0]].in;}).length;
   var hasNote=!!(window.NOTE&&window.NOTE.trim());
   function chip(lbl,icon){return '<span style="display:inline-block;background:#fbf8f2;border:1px solid var(--line);border-radius:20px;padding:4px 10px;margin:3px 4px 0 0;font-size:12.5px;font-weight:600">'+icon+' '+lbl+'</span>';}
-  var s=chip('Apertura',ic(apD,APERTURA.length))+chip('Pulizie',ic(capOk,activeCAPI.length))+chip('Settimanale',ic(wOk,activeCAPI.length))+chip('Chiusura',ic(chD,CHIUSURA.length))+chip('Mansionario',ic(presaOk,TEAM.length));
+  var s=chip('Apertura',ic(apD,APERTURA.length))+chip('Pulizie',ic(capOk,capList.length))+chip('Settimanale',ic(wOk,activeCAPI.length))+chip('Chiusura',ic(chD,CHIUSURA.length))+chip('Mansionario',ic(presaOk,TEAM.length));
   var a=chip(req+' da controllare',req?'🔔':'✅')+chip(dueP?(dueP+' pane da produrre'):'pane ok',dueP?'🥖':'✅')+chip(arr+'/'+TEAM.length+' arrivi','🕐')+chip(hasNote?'note presenti':'nessuna nota','📝');
   return '<div class="card" style="border-color:var(--gold)"><div class="card-h"><div class="t">📋 Riepilogo del giorno<div class="sub">riletta veloce — controlla se manca qualcosa</div></div></div><div class="card-b"><div>'+s+'</div><div style="margin-top:5px">'+a+'</div></div></div>';
 }
@@ -388,8 +390,9 @@ function buildReport(){
   var ap=mapg('apertura'),ch=mapg('chiusura');
   var apD=Object.keys(ap).length,chD=Object.keys(ch).length;
   var activeCAPI=CAPI.filter(function(c){return CHIUSI.indexOf(c)<0;});
+  var capList=activeCAPI.filter(function(c){return !(c==='Badr'&&badrCovers(D.day));});
   var capDone=0,capMiss=[];
-  activeCAPI.forEach(function(c){var items=puliziaFor(c);var m={};D.ck.filter(function(r){return r.grp==='pulizia#'+c;}).forEach(function(r){m[r.idx]=r;});var dn=Object.keys(m).length;if(dn>=items.length){capDone++;}else{var miss=[];items.forEach(function(it,i){if(!m[i])miss.push(it);});capMiss.push(c+': '+miss.join('; '));}});
+  capList.forEach(function(c){var items=puliziaFor(c);var m={};D.ck.filter(function(r){return r.grp==='pulizia#'+c;}).forEach(function(r){m[r.idx]=r;});var dn=Object.keys(m).length;if(dn>=items.length){capDone++;}else{var miss=[];items.forEach(function(it,i){if(!m[i])miss.push(it);});capMiss.push(c+': '+miss.join('; '));}});
   var wcooks=activeCAPI;
   var bw={};(D.ckw||[]).forEach(function(r){var cc=r.grp.slice(9);(bw[cc]=bw[cc]||{})[r.idx]=r;});
   var wDone=0,wMiss=[];wcooks.forEach(function(c){var items=puliziaSettFor(c)||[];var m=bw[c]||{};var dn=Object.keys(m).length;if(dn>=items.length){wDone++;}else{var miss=[];items.forEach(function(it,i){if(!m[i])miss.push(it);});wMiss.push(c+': '+miss.join('; '));}});
@@ -406,7 +409,7 @@ function buildReport(){
   var o='REPORT CUCINA · PRINZ RUDOLF\n'+data+'  ·  Resp.: '+resp+'\n';
   var fatto=[];
   if(apD>=APERTURA.length) fatto.push('Apertura completata');
-  if(capDone>0) fatto.push('Pulizia partite ok: '+capDone+'/'+activeCAPI.length+' cuochi');
+  if(capDone>0) fatto.push('Pulizia partite ok: '+capDone+'/'+capList.length+' cuochi');
   if(wDone>0) fatto.push('Pulizia settimanale ok: '+wDone+'/'+wcooks.length);
   if(chD>=CHIUSURA.length) fatto.push('Chiusura completata');
   if(!presaMiss.length) fatto.push('Mansionario firmato da tutti');
@@ -455,7 +458,7 @@ async function exportWeekReport(){
   activeCAPI.forEach(function(c){
     var rows='';var items=puliziaFor(c);
     days.forEach(function(d){
-      if(d>today)return;if(isOff(c,d))return;
+      if(d>today)return;if(isOff(c,d))return;if(c==='Badr'&&badrCovers(d))return;
       var done=(bd[c]&&bd[c][d])||{};var nd=Object.keys(done).length;
       var miss=[];items.forEach(function(it,i){if(!done[i])miss.push(it);});
       if(nd===0){rows+='<div class="wmiss on" onclick="wtog(this)"><span class="wck">✓</span><span class="wt">'+eh(lbl(d))+': NIENTE segnato</span></div>';}
