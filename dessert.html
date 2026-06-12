@@ -68,6 +68,18 @@
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;align-items:start}.grid2 .comp{padding:8px 0}
 .qunit{font-size:11px;color:var(--muted);font-weight:700;align-self:center}
 .dishphoto{display:block;max-width:100%;width:auto;max-height:62vh;margin:4px auto 10px;cursor:zoom-in}#lightbox{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:16px}#lightbox img{max-width:100%;max-height:100%;border-radius:12px}
+  .corrbox{margin-top:12px;background:#fbf3f4;border:1px dashed var(--bordeaux);border-radius:10px;padding:9px 10px}
+  .corrlbl{font-size:12px;font-weight:800;color:var(--bordeaux);margin-bottom:5px}
+  .corrta{width:100%;border:1px solid #e3c9cd;border-radius:8px;padding:8px;font-size:13px;font-family:inherit;min-height:46px;box-sizing:border-box}
+  .corrrow{display:flex;gap:8px;margin-top:7px;flex-wrap:wrap}
+  .corrbtn{border:none;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;cursor:pointer;background:#eee;color:#333}
+  .corrbtn.save{background:var(--bordeaux);color:#fff}
+  .corrbtn.exp{background:var(--yellow);color:#fff}
+  .corrmodal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;align-items:center;justify-content:center;padding:16px}
+  .corrmbox{background:#fff;border-radius:14px;padding:16px;max-width:520px;width:100%}
+  .corrmbox h3{margin:0 0 4px}.corrmbox p{margin:0 0 8px;font-size:13px;color:#777}
+  .corrmbox textarea{width:100%;height:280px;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:12.5px;font-family:ui-monospace,Menlo,monospace;box-sizing:border-box}
+  .corrmrow{display:flex;gap:8px;margin-top:10px}.corrmrow button{flex:1}
 </style>
 </head>
 <body>
@@ -102,7 +114,7 @@ async function decrypt(password){
   const p=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64(ENC.iv)},key,b64(ENC.ct));
   return JSON.parse(new TextDecoder().decode(p));
 }
-var DATA=null, SCOUNT={}, curTab='mezza', curW=0;
+var DATA=null, SCOUNT={}, CORR={}, curTab='mezza', curW=0;
 const TABS=[['mezza','🍮 Mezza pensione'],['vetrina','🍰 Vetrina dolci'],['gelati','🍨 Gelati'],['torte','🥧 Torte colazioni']];
 const pw=document.getElementById('pw'),err=document.getElementById('err');
 async function unlock(p,fromStore){
@@ -119,7 +131,8 @@ function buildTabs(){document.getElementById('tabs').innerHTML=TABS.map(t=>'<but
 function setTab(t){curTab=t;buildTabs();render();window.scrollTo(0,0);}
 async function loadCounts(){
   try{var rows=await sb('kitchen_meta?k=like.dessert|*&select=*');SCOUNT={};(rows||[]).forEach(function(r){SCOUNT[r.k]=(r.v&&typeof r.v.q==='number')?r.v.q:0;});
-    document.getElementById('status').textContent='✓ Collegato';if(curTab!=='mezza')render();
+    try{var crows=await sb('kitchen_meta?k=like.dcorr|*&select=*');CORR={};(crows||[]).forEach(function(r){CORR[r.k]=(r.v&&r.v.text)||'';});}catch(_){}
+    document.getElementById('status').textContent='✓ Collegato';render();
   }catch(e){document.getElementById('status').textContent='⚠️ Giacenze offline (le ricette funzionano comunque)';}
 }
 function render(){
@@ -132,7 +145,7 @@ function renderMezza(v){
   var wk=DATA.mezza[curW];
   wk.dishes.forEach(function(d,i){
     html+='<div class="daylab">'+esc(d.giorno)+'</div>';
-    html+='<div class="card" id="m_'+curW+'_'+i+'"><div class="card-h" onclick="tog(this.closest(\'.card\'))"><div class="t">'+esc(d.title)+'</div><span class="tog">›</span></div><div class="card-b">'+(d.img?'<img class="dishphoto" src="'+d.img+'" alt="" onclick="zoomImg(this.src)">':'')+'<div class="grid2">'+comps(d.comps)+'</div></div></div>';
+    html+='<div class="card" id="m_'+curW+'_'+i+'"><div class="card-h" onclick="tog(this.closest(\'.card\'))"><div class="t">'+esc(d.title)+'</div><span class="tog">›</span></div><div class="card-b">'+(d.img?'<img class="dishphoto" src="'+d.img+'" alt="" onclick="zoomImg(this.src)">':'')+'<div class="grid2">'+comps(d.comps)+'</div>'+corrBox('mezza|'+curW+'|'+i)+'</div></div>';
   });
   v.innerHTML=html;
 }
@@ -157,7 +170,7 @@ function renderSection(v,sec){
         +'</div>'
         +'<span class="tog" onclick="tog(this.closest(\'.card\'))">›</span>'
       +'</div>'
-      +'<div class="card-b">'+(it.img?'<img class="dishphoto" src="'+it.img+'" alt="" onclick="zoomImg(this.src)">':'')+comps(it.comps)+'</div></div>';
+      +'<div class="card-b">'+(it.img?'<img class="dishphoto" src="'+it.img+'" alt="" onclick="zoomImg(this.src)">':'')+comps(it.comps)+corrBox(sec+'|'+it.id)+'</div></div>';
   });
   v.innerHTML=html;
 }
@@ -166,8 +179,14 @@ function chg(ev,sec,id,delta){ev.stopPropagation();var key='dessert|'+sec+'|'+id
 function setQ(sec,id){var key='dessert|'+sec+'|'+id;var cur=SCOUNT[key]||0;var n=prompt('Quantità prodotta:',cur);if(n===null)return;n=parseInt(n,10);if(isNaN(n)||n<0)return;SCOUNT[key]=n;var el=document.getElementById('q_'+sec+'_'+id);if(el)el.textContent=n;saveQ(key,n);}
 async function saveQ(key,q){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:key,v:{q:q}})});}catch(e){console.error(e);}}
 function zoomImg(src){var lb=document.getElementById('lightbox');lb.querySelector('img').src=src;lb.style.display='flex';}
+function corrBox(cid){return '<div class="corrbox"><div class="corrlbl">✏️ Modifiche da fare (Erjola)</div><textarea class="corrta" placeholder="Scrivi qui cosa cambiare in questa ricetta…">'+esc(getCorr(cid))+'</textarea><div class="corrrow"><button class="corrbtn save" onclick="saveCorr(\''+cid+'\',this)">Salva</button><button class="corrbtn exp" onclick="exportCorr()">📤 Esporta tutte</button></div></div>';}
+function getCorr(cid){return CORR['dcorr|'+cid]||'';}
+function saveCorr(cid,btn){var ta=btn.closest('.corrbox').querySelector('textarea');var v=ta.value;CORR['dcorr|'+cid]=v;sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'dcorr|'+cid,v:{text:v}})}).catch(function(e){console.error(e);});var t=btn.textContent;btn.textContent='✓ Salvato';setTimeout(function(){btn.textContent=t;},1500);}
+function exportCorr(){var out='MODIFICHE PASTICCERIA — Prinz Rudolf\n\n';var any=false;(DATA.mezza||[]).forEach(function(wk,w){(wk.dishes||[]).forEach(function(d,i){var c=getCorr('mezza|'+w+'|'+i);if(c&&c.trim()){any=true;out+='• [Mezza pensione · '+(wk.sett||'')+' · '+(d.giorno||'')+'] '+(d.title||'')+'\n  → '+c.trim()+'\n\n';}});});[['vetrina','Vetrina dolci'],['gelati','Gelati'],['torte','Torte colazioni']].forEach(function(S){(DATA[S[0]]||[]).forEach(function(it){var c=getCorr(S[0]+'|'+it.id);if(c&&c.trim()){any=true;out+='• ['+S[1]+'] '+(it.nm||'')+'\n  → '+c.trim()+'\n\n';}});});if(!any)out+='(nessuna modifica scritta)';var m=document.getElementById('corrModal');m.querySelector('textarea').value=out;m.style.display='flex';}
+function copyCorr(){var t=document.getElementById('corrModal').querySelector('textarea');t.select();t.setSelectionRange(0,99999);try{navigator.clipboard.writeText(t.value);}catch(e){try{document.execCommand('copy')}catch(_){}}var b=event&&event.target;if(b){var x=b.textContent;b.textContent='✓ Copiato';setTimeout(function(){b.textContent=x;},1500);}}
 </script>
 <div id="lightbox" onclick="this.style.display='none'"><img alt=""></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 12/06 11:15</div>
+<div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Modifiche da inviare</h3><p>Copia questo testo e mandalo a Gigio (o incollalo a Claude in chat).</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 12/06 11:28</div>
 </body>
 </html>
