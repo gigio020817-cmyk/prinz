@@ -91,7 +91,7 @@
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="lavoroprinz";
-const TEAM=[["Gigio","Chef di cucina"],["Gianluca","Sous chef"],["Alex","Secondi"],["Mattia","Primi"],["Ubaldo","Pizzeria · turno serale"],["Erjola","Pasticceria"],["Badr","Tournant + Panificazione"],["Majeet","Commis"]];
+const TEAM=[["Gigio","Chef di cucina"],["Gianluca","Sous chef"],["Alex","Secondi"],["Marco","Antipasti"],["Mattia","Primi"],["Ubaldo","Pizzeria · turno serale"],["Erjola","Pasticceria"],["Badr","Tournant + Panificazione"],["Majeet","Commis"]];
 const PULIZIA=["Piano di lavoro pulito e sanificato","Attrezzatura della partita (bilance, bimby/pacojet, sottovuoto, friggitrice, microonde)","Banco frigo: riordino, controllo date, FIFO","Coperchi puliti e in ordine","Fornelli / piastra / griglia della propria zona","Forno: parte superiore e frontale","Salamandra: passata","Abbattitore davanti: pulito","Pulizia del pass (dietro, sopra, decorazioni)","Controllo sporcizia vicino ai piatti","Cambio acqua roner (carni ogni giorno)"];
 const APERTURA=["Accendere le attrezzature del mattino","Controllare le PRESENZE settimanali","Ricevere e sistemare la merce (FIFO)","Controllo mise en place e scorte","Taglieri e contenitori al loro posto","Pasto del personale fuori per le 11:30","Controllare gli avanzi e stoccarli","Stracci puliti, postazioni in ordine"];
 const CHIUSURA=["Tutto spento (attrezzature)","Pulizia serale adeguata di tutto","Celle chiuse e in ordine, prodotti etichettati","Scarico/filtraggio friggitrici se necessario","Microonde e pelapatate puliti","Taglieri e contenitori a posto (plastica/organico)"];
@@ -148,7 +148,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 async function sb(path,opts){opts=opts||{};const h={apikey:SB_KEY,'Content-Type':'application/json'};if(opts.headers)Object.assign(h,opts.headers);const r=await fetch(SB_URL+'/rest/v1/'+path,{method:opts.method||'GET',headers:h,body:opts.body});if(!r.ok)throw new Error('HTTP '+r.status+' '+await r.text());const txt=await r.text();return txt?JSON.parse(txt):null;}
 
 /* state */
-let CK={},ENT=[],META=null,PRESA=[],CTRL={},TIMBRA={},PREVPASS=[];
+let CK={},ENT=[],META=null,PRESA=[],CTRL={},TIMBRA={},PREVPASS=[],NOTECUOCO={};
 function dayShift(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
 function getCook(){return localStorage.getItem('pr_cook')||''}
 function setCook(n){localStorage.setItem('pr_cook',n);render();}
@@ -168,7 +168,7 @@ pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
 async function loadAll(){
   document.getElementById('status').textContent='Caricamento dal cloud…';
   try{
-    const[ck,ckw,ent,meta,presa,ctrl,timb,prevp]=await Promise.all([
+    const[ck,ckw,ent,meta,presa,ctrl,timb,prevp,ncuoco]=await Promise.all([
       sb('kitchen_checks?day=eq.'+today+'&select=*'),
       sb('kitchen_checks?day=eq.'+weekStart(today)+'&grp=like.pulizias%23*&select=*'),
       sb('kitchen_entries?day=eq.'+today+'&select=*&order=at'),
@@ -176,13 +176,15 @@ async function loadAll(){
       sb('kitchen_presa?select=*'),
       sb('kitchen_meta?k=like.ctrl|*&select=*'),
       sb('kitchen_meta?k=like.timbra|'+today+'*&select=*'),
-      sb('kitchen_entries?day=eq.'+dayShift(today,-1)+'&type=eq.passaggio&select=*&order=at')
+      sb('kitchen_entries?day=eq.'+dayShift(today,-1)+'&type=eq.passaggio&select=*&order=at'),
+      sb('kitchen_meta?k=like.notacuoco|*&select=*')
     ]);
     CK={};(ck||[]).concat(ckw||[]).forEach(r=>{CK[r.grp+'_'+r.idx]={by:r.cook,at:r.at};});
     ENT=ent||[];META=(meta&&meta[0])?meta[0].v:null;PRESA=presa||[];
     CTRL={};(ctrl||[]).forEach(r=>{CTRL[r.k.slice(5)]=r.v;});
     TIMBRA={};(timb||[]).forEach(r=>{var p=r.k.split('|');TIMBRA[p[2]]=r.v;});
     PREVPASS=prevp||[];
+    NOTECUOCO={};(ncuoco||[]).forEach(function(r){NOTECUOCO[r.k]=(r.v&&r.v.text)||'';});
     document.getElementById('status').textContent='✓ Collegato · '+today.split('-').reverse().join('/');
     render();
   }catch(e){document.getElementById('status').textContent='⚠️ Problema di collegamento. Controlla internet e riapri.';console.error(e);}
@@ -319,6 +321,17 @@ function menuCard(){
   var c=MENU_CENA.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — '+esc(d[1])+' · <b>Contorno:</b> '+esc(d[2])+' · <b>Veg:</b> '+esc(d[3])+(d[4]?' · <b>Prepara:</b> '+esc(d[4]):'')+'</div>';}).join('');
   return '<div class="card" id="cmenu"><div class="card-h" onclick="toggleCard(\'cmenu\')"><div class="t">📋 Menu del personale</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">'+MENU_INFO+'</div><div style="font-weight:700;margin:4px 0 2px">PRANZO (~30 pax)</div>'+p+'<div class="readbox" style="margin-top:8px">'+MENU_PRANZO_NOTE+'</div><div style="font-weight:700;margin:12px 0 2px">CENA (~25 pax)</div>'+c+'<div class="readbox" style="margin-top:8px">'+MENU_CENA_NOTE+'</div></div></div>';
 }
+function notaCard(){
+  var cook=getCook();
+  if(['Alex','Gianluca'].indexOf(cook)<0) return '';
+  var key='notacuoco|'+cook+'|'+today;var cur=NOTECUOCO[key]||'';
+  return '<div class="card open" id="cnota" style="border-color:var(--gold)"><div class="card-h" onclick="toggleCard(\'cnota\')"><div class="t">📝 Note del giorno</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">Scrivi qui problemi, segnalazioni o cose da dire allo chef. Le legge e le analizza lui.</div><textarea class="txt" id="notaTxt" placeholder="Scrivi qui…">'+esc(cur)+'</textarea><button class="btn" onclick="saveNota()">Salva nota</button></div></div>';
+}
+async function saveNota(){
+  var cook=getCook();if(!cook){alert('Prima scegli il tuo nome.');return;}
+  var v=document.getElementById('notaTxt').value;var key='notacuoco|'+cook+'|'+today;NOTECUOCO[key]=v;
+  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:key,v:{text:v,cook:cook,at:new Date().toISOString()}})});toast('Nota salvata');}catch(e){toast('⚠️ Non salvata');console.error(e);}
+}
 function render(){
   whoBar();
   var ME=getCook();
@@ -331,6 +344,7 @@ function render(){
     +(showApe?checklistCard('cap',apeTitle,'apertura',APERTURA):'')
     +puliziaSection()
     +schedaCard()
+    +notaCard()
     +((PEOPLE[ME]&&PEOPLE[ME].noChiu)?'':checklistCard('cch','Check-list chiusura','chiusura',CHIUSURA))
     +prevPassCard()
     +passCard()
@@ -339,6 +353,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/06 18:51</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/06 19:03</div>
 </body>
 </html>

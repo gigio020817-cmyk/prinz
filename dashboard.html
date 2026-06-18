@@ -123,14 +123,14 @@
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
-const TEAM=[["Gigio","Chef di cucina"],["Gianluca","Sous chef"],["Alex","Secondi"],["Mattia","Primi"],["Ubaldo","Pizzeria · turno serale"],["Erjola","Pasticceria"],["Badr","Tournant + Panificazione"],["Majeet","Commis"]];
+const TEAM=[["Gigio","Chef di cucina"],["Gianluca","Sous chef"],["Alex","Secondi"],["Marco","Antipasti"],["Mattia","Primi"],["Ubaldo","Pizzeria · turno serale"],["Erjola","Pasticceria"],["Badr","Tournant + Panificazione"],["Majeet","Commis"]];
 const APERTURA=["Accendere le attrezzature del mattino","Controllare le PRESENZE settimanali","Ricevere e sistemare la merce (FIFO)","Controllo mise en place e scorte","Taglieri e contenitori al loro posto","Pasto del personale fuori per le 11:30","Controllare gli avanzi e stoccarli","Stracci puliti, postazioni in ordine"];
 const PULIZIA=["Piano di lavoro pulito e sanificato","Attrezzatura della partita (bilance, bimby/pacojet, sottovuoto, friggitrice, microonde)","Banco frigo: riordino, controllo date, FIFO","Coperchi puliti e in ordine","Fornelli / piastra / griglia della propria zona","Forno: parte superiore e frontale","Salamandra: passata","Abbattitore davanti: pulito","Pulizia del pass (dietro, sopra, decorazioni)","Controllo sporcizia vicino ai piatti","Cambio acqua roner (carni ogni giorno)"];
 const CHIUSURA=["Tutto spento (attrezzature)","Pulizia serale adeguata di tutto","Celle chiuse e in ordine, prodotti etichettati","Scarico/filtraggio friggitrici se necessario","Microonde e pelapatate puliti","Taglieri e contenitori a posto (plastica/organico)"];
 const PULIZIA_SETT=["Interno banco frigo / cassetti (anche guarnizioni)","Forno e piastra a fondo","Pulizia della cella di competenza (a fondo) + controllo scadenze","Pulizia scaffali (compresi quelli bassi)","Piccoli elettrodomestici della partita","Pulizia roner (acqua e aceto a 90°C per 1 ora)","Scongelamento congelatori piccoli (ogni 2 settimane)","Filtri cappe: smontare e dare ai lavapiatti (ogni 2 settimane)"];
 const ITEMS={apertura:APERTURA,chiusura:CHIUSURA};
 const LABEL={apertura:'Apertura (entro 14:00)',chiusura:'Chiusura (entro 22:00)'};
-const CAPI=["Alex","Mattia","Ubaldo","Erjola","Badr","Majeet","Gianluca"];
+const CAPI=["Alex","Marco","Mattia","Ubaldo","Erjola","Badr","Majeet","Gianluca"];
 const CHIUSI=["Gianluca"]; // partite chiuse: pulizie sospese, solo produzione
 const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[6],Erjola:[2],Badr:[0],Majeet:[3]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
 function isOff(cook,dayStr){var wd=new Date((dayStr||todayStr())+"T00:00:00").getDay();return !!(RIPOSO[cook]&&RIPOSO[cook].indexOf(wd)>=0);}
@@ -186,7 +186,7 @@ async function loadAll(silent){
   const day=document.getElementById('datePick').value;
   if(!silent)document.getElementById('status').textContent='Caricamento…';
   try{
-    const[ck,ckw,ent,meta,presa,ctrl,note,timb,pane]=await Promise.all([
+    const[ck,ckw,ent,meta,presa,ctrl,note,timb,pane,cnote]=await Promise.all([
       sb('kitchen_checks?day=eq.'+day+'&select=*&order=at'),
       sb('kitchen_checks?day=eq.'+weekStart(day)+'&grp=like.pulizias%23*&select=*&order=at'),
       sb('kitchen_entries?day=eq.'+day+'&select=*&order=at'),
@@ -195,13 +195,15 @@ async function loadAll(silent){
       sb('kitchen_meta?k=like.ctrl|*&select=*'),
       sb('kitchen_meta?k=eq.notechef|'+day+'&select=*'),
       sb('kitchen_meta?k=like.timbra|'+day+'*&select=*'),
-      sb('kitchen_meta?k=like.pane|*&select=*')
+      sb('kitchen_meta?k=like.pane|*&select=*'),
+      sb('kitchen_meta?k=like.notacuoco|*&select=*')
     ]);
     window.CTRL={};(ctrl||[]).forEach(r=>{window.CTRL[r.k.slice(5)]=r.v;});
     window.NOTE=(note&&note[0]&&note[0].v)?(note[0].v.text||''):'';
     window.NOTE_AT=(note&&note[0]&&note[0].v)?(note[0].v.at||null):null;
     window.TIMB={};(timb||[]).forEach(function(r){var p=r.k.split('|');window.TIMB[p[2]]=r.v;});
     window.PANESC={};(pane||[]).forEach(function(r){var id=r.k.slice(5);window.PANESC[id]=(r.v&&typeof r.v.scorta==='number')?r.v.scorta:0;});
+    window.COOKNOTES=(cnote||[]).map(function(r){var p=(r.k||'').split('|');return {cook:p[1],day:p[2],text:(r.v&&r.v.text)||'',at:(r.v&&r.v.at)||null};}).filter(function(x){return x.day===day && x.text && x.text.trim();});
     render(day,ck,ckw,ent,(meta&&meta[0])?meta[0].v:null,presa);
     renderNote();
     document.getElementById('status').textContent='✓ Aggiornato alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
@@ -342,6 +344,11 @@ const MENU_CENA=[
  ['Dom','Pita / focaccia farcita (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Versione vegetariana','Alex']
 ];
 const MENU_CENA_NOTE='Piatti composti (hamburger, wrap, pita): ~2 a testa per metà dei coperti (~38 pz su 25 pax). Cena: maiale ok, niente manzo (tranne hamburger del martedì). Insalata e riso bianco sempre presenti.';
+function cookNotesCard(){
+  var n=window.COOKNOTES||[];if(!n.length)return '';
+  var rows=n.map(function(x){return '<div class="row" style="align-items:flex-start"><span><b>'+esc(x.cook)+':</b> '+esc(x.text).replace(/\n/g,'<br>')+'</span><span class="muted">'+(x.at?tloc(x.at):'')+'</span></div>';}).join('');
+  return '<div class="card" style="border-color:var(--gold)"><div class="card-h"><div class="t">📝 Note dei cuochi<div class="sub">scritte dai capi partita (Alex, Gianluca…)</div></div><span class="pill ok">'+n.length+'</span></div><div class="card-b">'+rows+'</div></div>';
+}
 function menuCard(){
   var p=MENU_PRANZO.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — <b>Primo:</b> '+esc(d[1])+' · <b>Secondo:</b> '+esc(d[2])+(d[3]&&d[3]!=='—'?' · <b>Alt. carne:</b> '+esc(d[3]):'')+' · <b>Veg:</b> '+esc(d[4])+' · <b>Contorni:</b> '+esc(d[5])+'</div>';}).join('');
   var c=MENU_CENA.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — '+esc(d[1])+' · <b>Contorno:</b> '+esc(d[2])+' · <b>Veg:</b> '+esc(d[3])+(d[4]?' · <b>Prepara:</b> '+esc(d[4]):'')+'</div>';}).join('');
@@ -372,7 +379,7 @@ function render(day,ck,ckw,ent,meta,presa){
   window.LAST={day:day,ck:ck,ckw:ckw,ent:ent,meta:meta,presa:presa};
   const resp=(meta&&meta.name)?meta.name:'';
   const scheda=ent.filter(e=>e.type==='scheda');const pass=ent.filter(e=>e.type==='passaggio');
-  let h=riepilogoCard()+chefCard(ck,day);
+  let h=riepilogoCard()+chefCard(ck,day)+cookNotesCard();
   h+=timbraCardDash();
   h+='<div class="card"><div class="card-h"><div class="t">Responsabile della settimana</div></div><div class="card-b">'+(resp?'<div class="row"><span><b>'+esc(resp)+'</b></span><span class="muted">'+((meta.dal)||'?')+' → '+((meta.al)||'?')+'</span></div>':'<div class="muted">Non impostato.</div>')+'</div></div>';
   h+=shared('apertura',ck,day,resp);
@@ -505,6 +512,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/06 18:43</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/06 19:03</div>
 </body>
 </html>
