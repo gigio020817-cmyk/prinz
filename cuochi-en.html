@@ -112,6 +112,27 @@ const PEOPLE={
  "Gianluca":{pulizia:["Check fingerfood/aperitif requests and organise them","Worktop clean and sanitised","Equipment: small mixer, microwave, bimby, sink, knives","Fridge counter: tidy up, check dates, FIFO","Lids clean and tidy","Stoves / griddle","Oven","Blast chiller front: clean","Central gourmet pass","Gourmet lamps","Check for dirt near the plates","Change roner water (every service day)"],puliziaSett:["Inside fridge counter / drawers (incl. seals)","Clean shelves","Gourmet freezer","Small appliances of the station","Hood filters (every 2 weeks)"]},
  "Majeet":{noResp:true,noApe:true,noChiu:true,pulizia:["Help the stations wherever needed","Help clean the stations until everyone has finished","Prepare mise en place and bases for the stations","Keep shared worktops and equipment clean","Help at the pass during service"],puliziaSett:["Deep clean the assigned shared area","Help with the weekly deep clean of the stations"]}
 };
+const MENU_INFO='Lunch ~30 people · Dinner ~25 people · quantities next to each dish';
+const MENU_PRANZO=[
+ ['Mon','Pasta with tomato and basil (~1.2 kg)','Sous-vide pork collar in sauce (~1.6 kg)','Chicken cacciatora (~0.7 kg)','Vegetable parmigiana (~0.8 kg)','Mash ~1.8 kg + vegetables ~2 kg'],
+ ['Tue','Pasta with beef ragù (~1.2 kg)','Chicken curry (~1.8 kg)','—','Vegetable and chickpea curry (~0.9 kg)','Potatoes ~1.5 kg + frozen vegetables ~2 kg'],
+ ['Wed','Baked pasta (~1.2 kg)','Sous-vide braised beef (~1.6 kg)','Chicken bites (~0.7 kg)','Vegetable bake (~0.8 kg)','Mash ~1.8 kg + vegetables ~2 kg'],
+ ['Thu','Rice / risotto (~1.5 kg)','Turkey stew (~1.8 kg)','—','Baked pasta (veg) (~1 kg)','Roast potatoes ~1.8 kg + frozen vegetables ~2 kg'],
+ ['Fri','Tuna pasta (~1.2 kg)','Fried fish (~1.8 kg)','Stewed chicken (~0.7 kg)','Couscous with vegetables (~0.9 kg)','Parsley potatoes ~1.8 kg + vegetables ~2 kg'],
+ ['Sat','Pasta arrabbiata (~1.2 kg)','Sous-vide pork collar, mushroom sauce (~1.6 kg)','Stewed chicken (~0.7 kg)','Gratin vegetables (~0.8 kg)','Polenta/potatoes ~1.8 kg + frozen vegetables ~2 kg'],
+ ['Sun','Mushroom rice (~1.5 kg)','Roast beef in sauce (~1.6 kg)','Roast chicken (~0.8 kg)','Gratin vegetables (~0.8 kg)','Mash ~1.8 kg + vegetables ~2 kg']
+];
+const MENU_PRANZO_NOTE='Always available: boiled white rice (1 kg) · salad of the day (~1 kg) · cold extra: tuna (~0.8 kg) or 12 boiled eggs · grated cheese. Trays under the pass: 6 hot (top: first course · main · alternative/veg — bottom: white rice · vegetables · potatoes/mash) + separate cold counter (salad · cold extra).';
+const MENU_CENA=[
+ ['Mon','Pasta salad ~1.5 kg (tuna, corn, mozzarella)','Green salad + bread','No tuna, with cheese','Majeet'],
+ ['Tue','Burger in a bun (~38 pcs · 2 each for half)','Fries/croquettes ~2.5 kg + salad','Veggie burger','Alex'],
+ ['Wed','Baked pasta (~1.5 kg)','Salad + bread','Vegetarian baked pasta','Mattia'],
+ ['Thu','Tray pizza (~2.5 kg dough)','Salad','Vegetable pizza','Badr'],
+ ['Fri','Rice salad ~1.5 kg (tuna, eggs, corn)','Salad + bread','Veg version with chickpeas/cheese','Majeet'],
+ ['Sat','Chicken wrap / kebab (~38 pcs · 2 each for half)','Fries/croquettes ~2.5 kg + salad','Vegetable and cheese wrap','Badr'],
+ ['Sun','Filled pita / focaccia (~38 pcs · 2 each for half)','Fries/croquettes ~2.5 kg + salad','Vegetarian version','Alex']
+];
+const MENU_CENA_NOTE='Assembled dishes (burger, wrap, pita): ~2 each for half the covers (~38 pcs for 25 people). Dinner: pork ok, no beef (except the Tuesday burger). Salad and white rice always available.';
 function puliziaFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].pulizia)||PULIZIA;}
 function puliziaSettFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].puliziaSett)||PULIZIA_SETT;}
 function weekStart(ds){var d=new Date(ds+'T00:00:00');var k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return d.toISOString().slice(0,10);}
@@ -275,6 +296,11 @@ function puliziaSection(){
   }
   return checklistCard('cpul','My cleaning (station chef)','pulizia#'+(cook||'_'),puliziaFor(cook||'_'))+(puliziaSettFor(cook)?checklistCard('cpuls','Weekly cleaning (by SUNDAY)','pulizias#'+cook,puliziaSettFor(cook)):'');
 }
+function menuCard(){
+  var p=MENU_PRANZO.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — <b>First:</b> '+esc(d[1])+' · <b>Main:</b> '+esc(d[2])+(d[3]&&d[3]!=='—'?' · <b>Meat alt.:</b> '+esc(d[3]):'')+' · <b>Veg:</b> '+esc(d[4])+' · <b>Sides:</b> '+esc(d[5])+'</div>';}).join('');
+  var c=MENU_CENA.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — '+esc(d[1])+' · <b>Side:</b> '+esc(d[2])+' · <b>Veg:</b> '+esc(d[3])+(d[4]?' · <b>Prepares:</b> '+esc(d[4]):'')+'</div>';}).join('');
+  return '<div class="card" id="cmenu"><div class="card-h" onclick="toggleCard(\'cmenu\')"><div class="t">📋 Staff menu</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">'+MENU_INFO+'</div><div style="font-weight:700;margin:4px 0 2px">LUNCH (~30 people)</div>'+p+'<div class="readbox" style="margin-top:8px">'+MENU_PRANZO_NOTE+'</div><div style="font-weight:700;margin:12px 0 2px">DINNER (~25 people)</div>'+c+'<div class="readbox" style="margin-top:8px">'+MENU_CENA_NOTE+'</div></div></div>';
+}
 function render(){
   whoBar();
   var ME=getCook();
@@ -291,9 +317,10 @@ function render(){
     +prevPassCard()
     +passCard()
     +presaCard()
+    +menuCard()
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 12/06 11:15</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/06 18:39</div>
 </body>
 </html>
