@@ -98,7 +98,7 @@ const CHIUSURA=["Tutto spento (attrezzature)","Pulizia serale adeguata di tutto"
 const PULIZIA_SETT=["Interno banco frigo / cassetti (anche guarnizioni)","Forno e piastra a fondo","Pulizia della cella di competenza (a fondo) + controllo scadenze","Pulizia scaffali (compresi quelli bassi)","Piccoli elettrodomestici della partita","Pulizia roner (acqua e aceto a 90°C per 1 ora)","Scongelamento congelatori piccoli (ogni 2 settimane)","Filtri cappe: smontare e dare ai lavapiatti (ogni 2 settimane)"];
 const RESP=[["Sett. 1","Ubaldo"],["Sett. 2","Mattia"],["Sett. 3","Badr"],["Sett. 4","Alex"],["Sett. 5","Gianluca"]];
 const CHIUSI=["Gianluca"]; // partite chiuse: pulizie sospese, solo produzione
-const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[6],Erjola:[2],Badr:[0],Majeet:[3]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
+const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[6],Erjola:[2],Badr:[0],Majeet:[3],Marco:[5]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
 function isOff(cook){var wd=new Date(today+"T00:00:00").getDay();return !!(RIPOSO[cook]&&RIPOSO[cook].indexOf(wd)>=0);}
 function badrCovers(){var L=["Alex","Mattia","Erjola"];for(var k=0;k<L.length;k++){if(isOff(L[k]))return L[k];}return "";}
 const GTOT={apertura:APERTURA.length,chiusura:CHIUSURA.length,pulizia:PULIZIA.length};
@@ -353,6 +353,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/06 19:03</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/06 19:05</div>
 </body>
 </html>
