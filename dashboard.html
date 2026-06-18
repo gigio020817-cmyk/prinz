@@ -332,18 +332,18 @@ const MENU_PRANZO=[
 ];
 const MENU_PRANZO_NOTE='Sempre presenti: riso bianco bollito (1 kg) · insalata del giorno (~1 kg) · freddo extra: tonno (~0,8 kg) o 12 uova sode · formaggio grattugiato. Placche sotto il pass: 6 calde (sopra: primo · secondo · alternativa/veg — sotto: riso bianco · verdure · patate/purè) + banco freddo a parte (insalata · freddo extra).';
 const MENU_CENA=[
- ['Lun','Insalata di pasta ~1,5 kg (tonno, mais, mozzarella)','Insalata verde + pane','Senza tonno, con formaggio'],
- ['Mar','Hamburger nel pane (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Burger di verdure'],
- ['Mer','Wrap / kebab di pollo (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Wrap di verdure e formaggio'],
- ['Gio','Pizza in teglia (~2,5 kg impasto)','Insalata','Pizza di verdure'],
- ['Ven','Pasta al forno (~1,5 kg)','Insalata + pane','Pasta al forno vegetariana'],
- ['Sab','Pita / focaccia farcita (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Versione vegetariana'],
- ['Dom','Insalata di riso ~1,5 kg (tonno, uova, mais)','Insalata + pane','Versione veg con ceci/formaggio']
+ ['Lun','Insalata di pasta ~1,5 kg (tonno, mais, mozzarella)','Insalata verde + pane','Senza tonno, con formaggio','Manjeet'],
+ ['Mar','Hamburger nel pane (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Burger di verdure','Alex'],
+ ['Mer','Pasta al forno (~1,5 kg)','Insalata + pane','Pasta al forno vegetariana','Mattia'],
+ ['Gio','Pizza in teglia (~2,5 kg impasto)','Insalata','Pizza di verdure','Badr'],
+ ['Ven','Insalata di riso ~1,5 kg (tonno, uova, mais)','Insalata + pane','Versione veg con ceci/formaggio','Manjeet'],
+ ['Sab','Wrap / kebab di pollo (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Wrap di verdure e formaggio','Badr'],
+ ['Dom','Pita / focaccia farcita (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Versione vegetariana','Alex']
 ];
 const MENU_CENA_NOTE='Piatti composti (hamburger, wrap, pita): ~2 a testa per metà dei coperti (~38 pz su 25 pax). Cena: maiale ok, niente manzo (tranne hamburger del martedì). Insalata e riso bianco sempre presenti.';
 function menuCard(){
   var p=MENU_PRANZO.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — <b>Primo:</b> '+esc(d[1])+' · <b>Secondo:</b> '+esc(d[2])+(d[3]&&d[3]!=='—'?' · <b>Alt. carne:</b> '+esc(d[3]):'')+' · <b>Veg:</b> '+esc(d[4])+' · <b>Contorni:</b> '+esc(d[5])+'</div>';}).join('');
-  var c=MENU_CENA.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — '+esc(d[1])+' · <b>Contorno:</b> '+esc(d[2])+' · <b>Veg:</b> '+esc(d[3])+'</div>';}).join('');
+  var c=MENU_CENA.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — '+esc(d[1])+' · <b>Contorno:</b> '+esc(d[2])+' · <b>Veg:</b> '+esc(d[3])+(d[4]?' · <b>Prepara:</b> '+esc(d[4]):'')+'</div>';}).join('');
   var isOpen=(window.FOLD&&window.FOLD.menu)?' open':'';
   return '<div class="card fold'+isOpen+'" id="foldmenu"><div class="card-h" onclick="toggleFold(\'menu\')"><div class="t">📋 Menu del personale (Sett. 1)<div class="sub">tocca per leggere e controllare</div></div><span class="tog">›</span></div><div class="card-b"><div class="muted" style="margin-bottom:6px">'+MENU_INFO+'</div><div class="subh">PRANZO (~30 pax)</div>'+p+'<div class="muted" style="margin-top:8px;font-size:12px">'+MENU_PRANZO_NOTE+'</div><div class="subh" style="margin-top:14px">CENA (~25 pax)</div>'+c+'<div class="muted" style="margin-top:8px;font-size:12px">'+MENU_CENA_NOTE+'</div></div></div>';
 }
@@ -505,6 +505,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 12/06 11:15</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/06 18:04</div>
 </body>
 </html>
