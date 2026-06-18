@@ -112,6 +112,27 @@ const PEOPLE={
  "Gianluca":{pulizia:["Controllare richieste fingerfood/aperitivi e organizzarle","Piano di lavoro pulito e sanificato","Attrezzature: planetaria piccola, microonde, bimby, lavandino, coltelli","Banco frigo: riordino, controllo date, FIFO","Coperchi puliti e in ordine","Fornelli / piastra","Forno","Abbattitore davanti: pulito","Pass centrale gourmet","Lampade gourmet","Controllo sporcizia vicino ai piatti","Cambio acqua roner (ogni giorno di servizio)"],puliziaSett:["Interno banco frigo / cassetti (anche guarnizioni)","Pulizia scaffali","Congelatore gourmet","Piccoli elettrodomestici della partita","Filtri cappa (ogni 2 settimane)"]},
  "Majeet":{noResp:true,noApe:true,noChiu:true,pulizia:["Aiutare le partite dove serve","Aiutare nella pulizia delle partite finché tutti non hanno finito","Preparare mise en place e basi per le partite","Tenere puliti piani e attrezzature in comune","Aiutare al pass durante il servizio"],puliziaSett:["Pulizia a fondo della zona comune assegnata","Aiuto pulizia profonda settimanale delle partite"]}
 };
+const MENU_INFO='Pranzo ~30 pax · Cena ~25 pax · quantità accanto a ogni piatto';
+const MENU_PRANZO=[
+ ['Lun','Pasta al pomodoro e basilico (~1,2 kg)','Collo di maiale CBT in salsa (~1,6 kg)','Pollo alla cacciatora (~0,7 kg)','Parmigiana di verdure (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg'],
+ ['Mar','Pasta al ragù di manzo (~1,2 kg)','Pollo al curry (~1,8 kg)','—','Curry di verdure e ceci (~0,9 kg)','Patate ~1,5 kg + verdure surg. ~2 kg'],
+ ['Mer','Pasta al forno (~1,2 kg)','Brasato di manzo CBT (~1,6 kg)','Bocconcini di pollo (~0,7 kg)','Sformato di verdure (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg'],
+ ['Gio','Riso / risotto (~1,5 kg)','Spezzatino di tacchino (~1,8 kg)','—','Pasta al forno veg (~1 kg)','Patate al forno ~1,8 kg + verdure surg. ~2 kg'],
+ ['Ven','Pasta al tonno (~1,2 kg)','Pesce fritto (~1,8 kg)','Pollo in umido (~0,7 kg)','Couscous con verdure (~0,9 kg)','Patate prezzemolate ~1,8 kg + verdure ~2 kg'],
+ ['Sab','Pasta all\'arrabbiata (~1,2 kg)','Collo di maiale CBT, salsa funghi (~1,6 kg)','Pollo in umido (~0,7 kg)','Verdure gratinate (~0,8 kg)','Polenta/patate ~1,8 kg + verdure surg. ~2 kg'],
+ ['Dom','Riso ai funghi (~1,5 kg)','Arrosto di manzo in salsa (~1,6 kg)','Pollo arrosto (~0,8 kg)','Verdure gratinate (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg']
+];
+const MENU_PRANZO_NOTE='Sempre presenti: riso bianco bollito (1 kg) · insalata del giorno (~1 kg) · freddo extra: tonno (~0,8 kg) o 12 uova sode · formaggio grattugiato. Placche sotto il pass: 6 calde (sopra: primo · secondo · alternativa/veg — sotto: riso bianco · verdure · patate/purè) + banco freddo a parte (insalata · freddo extra).';
+const MENU_CENA=[
+ ['Lun','Insalata di pasta ~1,5 kg (tonno, mais, mozzarella)','Insalata verde + pane','Senza tonno, con formaggio','Manjeet'],
+ ['Mar','Hamburger nel pane (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Burger di verdure','Alex'],
+ ['Mer','Pasta al forno (~1,5 kg)','Insalata + pane','Pasta al forno vegetariana','Mattia'],
+ ['Gio','Pizza in teglia (~2,5 kg impasto)','Insalata','Pizza di verdure','Badr'],
+ ['Ven','Insalata di riso ~1,5 kg (tonno, uova, mais)','Insalata + pane','Versione veg con ceci/formaggio','Manjeet'],
+ ['Sab','Wrap / kebab di pollo (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Wrap di verdure e formaggio','Badr'],
+ ['Dom','Pita / focaccia farcita (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Versione vegetariana','Alex']
+];
+const MENU_CENA_NOTE='Piatti composti (hamburger, wrap, pita): ~2 a testa per metà dei coperti (~38 pz su 25 pax). Cena: maiale ok, niente manzo (tranne hamburger del martedì). Insalata e riso bianco sempre presenti.';
 function puliziaFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].pulizia)||PULIZIA;}
 function puliziaSettFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].puliziaSett)||PULIZIA_SETT;}
 function weekStart(ds){var d=new Date(ds+'T00:00:00');var k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return d.toISOString().slice(0,10);}
@@ -275,6 +296,11 @@ function puliziaSection(){
   }
   return checklistCard('cpul','La mia pulizia (capo partita)','pulizia#'+(cook||'_'),puliziaFor(cook||'_'))+(puliziaSettFor(cook)?checklistCard('cpuls','Pulizia settimanale (entro DOMENICA)','pulizias#'+cook,puliziaSettFor(cook)):'');
 }
+function menuCard(){
+  var p=MENU_PRANZO.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — <b>Primo:</b> '+esc(d[1])+' · <b>Secondo:</b> '+esc(d[2])+(d[3]&&d[3]!=='—'?' · <b>Alt. carne:</b> '+esc(d[3]):'')+' · <b>Veg:</b> '+esc(d[4])+' · <b>Contorni:</b> '+esc(d[5])+'</div>';}).join('');
+  var c=MENU_CENA.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — '+esc(d[1])+' · <b>Contorno:</b> '+esc(d[2])+' · <b>Veg:</b> '+esc(d[3])+(d[4]?' · <b>Prepara:</b> '+esc(d[4]):'')+'</div>';}).join('');
+  return '<div class="card" id="cmenu"><div class="card-h" onclick="toggleCard(\'cmenu\')"><div class="t">📋 Menu del personale</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">'+MENU_INFO+'</div><div style="font-weight:700;margin:4px 0 2px">PRANZO (~30 pax)</div>'+p+'<div class="readbox" style="margin-top:8px">'+MENU_PRANZO_NOTE+'</div><div style="font-weight:700;margin:12px 0 2px">CENA (~25 pax)</div>'+c+'<div class="readbox" style="margin-top:8px">'+MENU_CENA_NOTE+'</div></div></div>';
+}
 function render(){
   whoBar();
   var ME=getCook();
@@ -291,9 +317,10 @@ function render(){
     +prevPassCard()
     +passCard()
     +presaCard()
+    +menuCard()
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 12/06 11:15</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/06 18:35</div>
 </body>
 </html>
