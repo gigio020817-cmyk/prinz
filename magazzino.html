@@ -54,7 +54,7 @@
   .stepper .plus{background:var(--teal);color:#fff}
   .stepper button:active{transform:scale(.9)}
   .stepper .val{min-width:38px;text-align:center}
-  .stepper .val .n{font-size:22px;font-weight:900;line-height:1}
+  .stepper .val .n{font-size:21px;font-weight:900;line-height:1;border:1.5px solid var(--teal,#0f3d3e);border-radius:9px;padding:3px 9px;background:#eef5f2;display:inline-block;min-width:34px;cursor:pointer}
   .stepper .val small{font-size:10px;color:var(--muted);font-weight:700;display:block}
   .badge{font-size:11px;font-weight:900;padding:5px 10px;border-radius:20px;white-space:nowrap}
   .badge.ord{background:var(--warn);color:#fff}
@@ -171,7 +171,7 @@ function render(){
     v.innerHTML=h;return;
   }
   // tutto, per reparto
-  let h='';
+  let h='<div style="background:#eef5f2;border:1px solid var(--teal,#0f3d3e);border-radius:10px;padding:9px 11px;font-size:12.5px;margin-bottom:12px">✏️ <b>Conta il magazzino:</b> tocca il numero accanto a ogni prodotto e scrivi quanti ne hai contati.</div>';
   REPARTI.forEach(rep=>{
     const list=PROD.filter(p=>p.rep===rep);
     if(!list.length)return;
@@ -199,7 +199,7 @@ async function chg(id,delta){
 function setExact(id){
   const cook=getCook();if(!cook){toast('Prima scegli il tuo nome in alto');return;}
   const p=PROD.find(x=>x.id===id);if(!p)return;
-  const cur=getQ(id);const n=prompt('Giacenza attuale di '+p.nm+':',cur);if(n===null)return;
+  const cur=getQ(id);const n=prompt('Quanti '+(p.u||'pz')+' di "'+p.nm+'" hai contato?',cur);if(n===null)return;
   let v=parseInt(n,10);if(isNaN(v)||v<0)return;GIAC[id]=v;
   const el=document.getElementById('n_'+id);if(el)el.textContent=v;
   saveQ(id,v);logMov(p,v,'=',cook);tabsBar();render();
@@ -214,6 +214,6 @@ function buildOrd(f){var list=PROD.filter(p=>low(p)&&(p.forn||'—')===f);var ou
 function copyOrd(fenc){var f=decodeURIComponent(fenc);var out=buildOrd(f);var ta=document.createElement('textarea');ta.value=out;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,99999);try{navigator.clipboard.writeText(out);}catch(e){}try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);toast('Ordine copiato ✓');}
 function waOrd(fenc){var f=decodeURIComponent(fenc);var tel=FORN_TEL[f];var out=buildOrd(f);if(tel){window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(out),'_blank');}else{copyOrd(fenc);toast('Numero mancante — ordine copiato');}}
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 18:43</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 18:47</div>
 </body>
 </html>
