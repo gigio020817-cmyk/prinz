@@ -113,9 +113,9 @@ function render(){tabsBar();const v=document.getElementById('view');let h='';
     s.items.filter(it=>!it.fresco).forEach(it=>h+=rowStock(it));
     s.items.filter(it=>it.fresco).forEach(it=>h+=rowFresh(it));});
   v.innerHTML=h;}
-async function chg(id,d){const tot=getQ(id)+d;GIAC[id]=tot<0?0:tot;const el=document.getElementById('n_'+id);if(el)el.textContent=GIAC[id];saveQ(id,GIAC[id]);tabsBar();}
-function setEx(id){var cur=getQ(id);var n=prompt('Giacenza attuale:',cur);if(n===null)return;n=parseInt(n,10);if(isNaN(n)||n<0)return;GIAC[id]=n;var el=document.getElementById('n_'+id);if(el)el.textContent=n;saveQ(id,n);tabsBar();}
+async function chg(id,d){const tot=getQ(id)+d;GIAC[id]=tot<0?0:tot;const el=document.getElementById('n_'+id);if(el)el.textContent=GIAC[id];saveQ(id,GIAC[id]);tabsBar();clearTimeout(window._rr);window._rr=setTimeout(render,450);}
+function setEx(id){var cur=getQ(id);var n=prompt('Giacenza attuale:',cur);if(n===null)return;n=parseInt(n,10);if(isNaN(n)||n<0)return;GIAC[id]=n;var el=document.getElementById('n_'+id);if(el)el.textContent=n;saveQ(id,n);tabsBar();render();}
 async function saveQ(id,q){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'antiprod|'+id,v:{q:q}})});}catch(e){toast('⚠️ Non salvato');console.error(e);}}
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 10:13</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 10:38</div>
 </body></html>
