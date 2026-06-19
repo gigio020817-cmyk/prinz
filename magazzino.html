@@ -116,7 +116,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(document.getElementById('pw').value,false);
 document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')unlock(e.target.value,false)});
-(function(){let s=null;try{s=localStorage.getItem('mag_pw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>document.getElementById('pw').focus(),300);})();
+(function(){try{if(localStorage.getItem('pr_av_mag')!=='19/06 11:31'){localStorage.removeItem('mag_pw');localStorage.setItem('pr_av_mag','19/06 11:31');}}catch(_e){}let s=null;try{s=localStorage.getItem('mag_pw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>document.getElementById('pw').focus(),300);})();
 
 async function loadAll(){
   document.getElementById('status').textContent='Caricamento dal cloud…';
@@ -219,6 +219,6 @@ function copyOrd(fenc){
   document.body.removeChild(ta);toast('Ordine copiato ✓');
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 10:33</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 11:31</div>
 </body>
 </html>

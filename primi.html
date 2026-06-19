@@ -122,7 +122,7 @@ async function tryUnlock(password,fromStore){
 document.getElementById('enter').onclick=()=>tryUnlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(pw.value,false)});
 (function(){if(!window.crypto||!crypto.subtle){err.textContent="Apri l'app dal sito (https).";return;}
-  let s=null;try{s=localStorage.getItem('pr_pw')}catch(e){}
+  try{if(localStorage.getItem('pr_av_primi')!=='19/06 11:31'){localStorage.removeItem('pr_pw');localStorage.setItem('pr_av_primi','19/06 11:31');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_pw')}catch(e){}
   if(s){document.getElementById('remember').checked=true;tryUnlock(s,true);}else{setTimeout(()=>pw.focus(),300);}})();
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}
 function freqBadge(fr){if(!fr)return '';return '<span class="badge '+(FREQ[fr]||'b-na')+'">'+esc(fr)+'</span>';}
@@ -169,6 +169,6 @@ function copyCorr(){var t=document.getElementById('corrModal').querySelector('te
 </script>
 <div id="lightbox" onclick="this.style.display='none'"><img alt=""></div>
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Correzioni da inviare a Claude</h3><p>Copia questo testo e incollalo a Claude in chat.</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 10:33</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 11:31</div>
 </body>
 </html>

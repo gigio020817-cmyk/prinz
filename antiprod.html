@@ -59,7 +59,7 @@ async function sb(path,opt){opt=opt||{};const h=Object.assign({apikey:SB_KEY,'Co
 function unlock(p,fs){const err=document.getElementById('err');if(p!==APP_PW){err.textContent='Password errata';document.getElementById('pw').value='';return;}if(document.getElementById('remember').checked||fs){try{localStorage.setItem('ap_pw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';loadAll();if(!window._iv)window._iv=setInterval(loadAll,45000);}
 document.getElementById('enter').onclick=()=>unlock(document.getElementById('pw').value,false);
 document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')unlock(e.target.value,false)});
-(function(){let s=null;try{s=localStorage.getItem('ap_pw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>document.getElementById('pw').focus(),300);})();
+(function(){try{if(localStorage.getItem('pr_av_antiprod')!=='19/06 11:31'){localStorage.removeItem('ap_pw');localStorage.setItem('pr_av_antiprod','19/06 11:31');}}catch(_e){}let s=null;try{s=localStorage.getItem('ap_pw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>document.getElementById('pw').focus(),300);})();
 async function loadAll(){document.getElementById('status').textContent='Caricamento dal cloud…';
   try{const g=await sb('kitchen_meta?k=like.antiprod|*&select=*');GIAC={};(g||[]).forEach(r=>{GIAC[r.k.slice(9)]=(r.v&&typeof r.v.q==='number')?r.v.q:0;});
     const ws=weekStart();const c=await sb('kitchen_meta?k=like.antiprodchk|*&select=*');CHK={};(c||[]).forEach(r=>{var p=r.k.split('|');if(p[2]===ws&&r.v&&r.v.done)CHK[p[1]]=true;});
@@ -126,5 +126,5 @@ async function saveQ(id,q){try{await sb('kitchen_meta?on_conflict=k',{method:'PO
 async function toggleChk(id){var ws=weekStart();var done=!isChk(id);if(done)CHK[id]=true;else delete CHK[id];render();
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'antiprodchk|'+id+'|'+ws,v:{done:done}})});}catch(e){toast('⚠️ Non salvato');console.error(e);}}
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 11:28</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 11:31</div>
 </body></html>

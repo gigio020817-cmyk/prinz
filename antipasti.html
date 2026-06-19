@@ -139,7 +139,7 @@ async function tryUnlock(password,fromStore){
 document.getElementById('enter').onclick=()=>tryUnlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(pw.value,false)});
 (function(){if(!window.crypto||!crypto.subtle){err.textContent="Apri l'app dal sito (https), non come file locale.";return;}
-  let s=null;try{s=localStorage.getItem('pr_pw')}catch(e){}
+  try{if(localStorage.getItem('pr_av_anti')!=='19/06 11:31'){localStorage.removeItem('pr_pw');localStorage.setItem('pr_av_anti','19/06 11:31');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_pw')}catch(e){}
   if(s){document.getElementById('remember').checked=true;tryUnlock(s,true);}else{setTimeout(()=>pw.focus(),300);}})();
 function freqBadge(fr){if(!fr||fr==="—")return '';return `<span class="badge ${FREQ[fr]||'b-na'}">${fr}</span>`;}
 function renderList(filter){
@@ -177,6 +177,6 @@ function exportCorr(){var out='MODIFICHE ANTIPASTI — Prinz Rudolf\n\n';var any
 function copyCorr(){var t=document.getElementById('corrModal').querySelector('textarea');t.select();t.setSelectionRange(0,99999);try{navigator.clipboard.writeText(t.value);}catch(e){try{document.execCommand('copy')}catch(_){}}var b=event&&event.target;if(b){var x=b.textContent;b.textContent='✓ Copiato';setTimeout(function(){b.textContent=x;},1500);}}
 </script>
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Modifiche da inviare</h3><p>Copia questo testo e mandalo a Gigio (o incollalo a Claude in chat).</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 10:33</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 11:31</div>
 </body>
 </html>
