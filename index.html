@@ -18,7 +18,7 @@
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(160deg,var(--bordeaux),var(--bordeaux-d));color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 18px calc(32px + env(safe-area-inset-bottom))}
-  .mark{width:72px;height:72px;border-radius:18px;border:2px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:26px;letter-spacing:1px;margin-bottom:14px}
+  .mark{width:72px;height:72px;border-radius:18px;border:2px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:26px;letter-spacing:1px;margin-bottom:14px;cursor:pointer;user-select:none}
   h1{font-size:22px;margin:0 0 2px;font-weight:600}
   .sub{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:26px}
   .grid{width:100%;max-width:460px;display:flex;flex-direction:column;gap:12px}
@@ -27,24 +27,41 @@
   a.app .emoji{font-size:24px;width:30px;text-align:center;flex:none}
   a.app .arrow{margin-left:auto;color:var(--gold);font-weight:800}
   a.app small{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:2px}
+  .chefhdr{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);text-align:center;margin:4px 0 2px;cursor:pointer}
   footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:center}
 </style>
 </head>
 <body>
-  <div class="mark">PR</div>
+  <div class="mark" id="prmark">PR</div>
   <h1>Prinz Rudolf</h1>
   <div class="sub">App Cucina</div>
   <div class="grid">
-    <a class="app" href="dashboard.html"><span class="emoji">📋</span><span>Dashboard Chef<small>solo per lo chef</small></span><span class="arrow">›</span></a>
     <a class="app" href="cuochi.html"><span class="emoji">👨‍🍳</span><span>Dashboard Cuochi Prinz<small>check-list, pulizie, consegne</small></span><span class="arrow">›</span></a>
-    <a class="app" href="ordini.html"><span class="emoji">📦</span><span>Ordini Fornitori<small>ordini e WhatsApp</small></span><span class="arrow">›</span></a>
-    <a class="app" href="magazzino.html"><span class="emoji">🗄️</span><span>Magazzino<small>giacenze e scorte minime</small></span><span class="arrow">›</span></a>
     <a class="app" href="antipasti.html"><span class="emoji">🥗</span><span>Ricettario Antipasti<small>7 antipasti settimana</small></span><span class="arrow">›</span></a>
     <a class="app" href="primi.html"><span class="emoji">🍝</span><span>Ricettario Primi Piatti<small>2 settimane di primi</small></span><span class="arrow">›</span></a>
     <a class="app" href="dessert.html"><span class="emoji">🍰</span><span>Pasticceria<small>mezza pensione, vetrina, gelati, torte</small></span><span class="arrow">›</span></a>
     <a class="app" href="pane.html"><span class="emoji">🥖</span><span>App Pane<small>panificazione e scorte</small></span><span class="arrow">›</span></a>
   </div>
+  <div class="grid" id="chefapps" style="display:none;margin-top:16px">
+    <div class="chefhdr" id="chefhdr">🔒 Riservato chef · tocca per nascondere</div>
+    <a class="app" href="dashboard.html"><span class="emoji">📋</span><span>Dashboard Chef<small>solo per lo chef</small></span><span class="arrow">›</span></a>
+    <a class="app" href="ordini.html"><span class="emoji">📦</span><span>Ordini Fornitori<small>ordini e WhatsApp</small></span><span class="arrow">›</span></a>
+    <a class="app" href="magazzino.html"><span class="emoji">🗄️</span><span>Magazzino<small>giacenze e scorte minime</small></span><span class="arrow">›</span></a>
+  </div>
   <footer>Prinz Rudolf · Merano</footer>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 12/06 21:23</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/06 19:48</div>
+<script>
+  var CHEF_CODE="capo2026";
+  var box=document.getElementById('chefapps');
+  function showChef(){box.style.display='flex';}
+  function hideChef(){box.style.display='none';try{localStorage.removeItem('pr_chef')}catch(e){}}
+  try{if(localStorage.getItem('pr_chef')==='1')showChef();}catch(e){}
+  document.getElementById('prmark').addEventListener('click',function(){
+    if(box.style.display==='flex')return;
+    var c=prompt('Codice chef:');if(c===null)return;
+    if(c===CHEF_CODE){try{localStorage.setItem('pr_chef','1')}catch(e){}showChef();}
+  });
+  document.getElementById('chefhdr').addEventListener('click',hideChef);
+</script>
 </body>
 </html>
