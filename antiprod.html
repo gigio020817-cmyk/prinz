@@ -69,7 +69,7 @@ function getQ(id){return GIAC[id]||0;}
 function isChk(id){return !!CHK[id];}
 function due(it){if(it.chk)return !isChk(it.id);return !it.fresco && it.min!=null && getQ(it.id)<=it.min;}
 function tabsBar(){var n=0;SEZ.forEach(s=>s.items.forEach(it=>{if(due(it))n++;}));
-  const T=[['ordina','▶ Da produrre'+(n?' ('+n+')':'')],['tutto','Per antipasto'],['lista','➕ Lista da produrre'+(LISTA.length?' ('+LISTA.length+')':'')]];
+  const T=[['ordina','▶ Da produrre'+(n?' ('+n+')':'')],['lista','➕ Lista'+(LISTA.length?' ('+LISTA.length+')':'')],['tutto','Per antipasto']];
   document.getElementById('tabs').innerHTML=T.map(t=>'<button class="tab'+(FILT===t[0]?' on':'')+'" onclick="setFilt(\''+t[0]+'\')">'+esc(t[1])+'</button>').join('');}
 function setFilt(f){FILT=f;render();window.scrollTo(0,0);}
 function congPill(it){if(it.congt==='da')return '<span class="pill neve">❄️ da congelare</span>';if(it.congt==='gia')return '<span class="pill neve">❄️ surgelato (arriva così)</span>';return '';}
@@ -113,5 +113,5 @@ async function saveQ(id,q){try{await sb('kitchen_meta?on_conflict=k',{method:'PO
 async function toggleChk(id){var ws=weekStart();var done=!isChk(id);if(done)CHK[id]=true;else delete CHK[id];render();
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'antiprodchk|'+id+'|'+ws,v:{done:done}})});}catch(e){toast('⚠️ Non salvato');console.error(e);}}
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 11:08</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 11:12</div>
 </body></html>
