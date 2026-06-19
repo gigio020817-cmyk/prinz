@@ -49,9 +49,9 @@
     <a class="app" href="magazzino.html"><span class="emoji">🗄️</span><span>Magazzino<small>giacenze e scorte minime</small></span><span class="arrow">›</span></a>
   </div>
   <footer>Prinz Rudolf · Merano</footer>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/06 19:48</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/06 19:52</div>
 <script>
-  var CHEF_CODE="capo2026";
+  var CHEF_CODE="Capo2026";
   var box=document.getElementById('chefapps');
   function showChef(){box.style.display='flex';}
   function hideChef(){box.style.display='none';try{localStorage.removeItem('pr_chef')}catch(e){}}
@@ -59,7 +59,7 @@
   document.getElementById('prmark').addEventListener('click',function(){
     if(box.style.display==='flex')return;
     var c=prompt('Codice chef:');if(c===null)return;
-    if(c===CHEF_CODE){try{localStorage.setItem('pr_chef','1')}catch(e){}showChef();}
+    if(c.trim().toLowerCase()===CHEF_CODE.toLowerCase()){try{localStorage.setItem('pr_chef','1')}catch(e){}showChef();}
   });
   document.getElementById('chefhdr').addEventListener('click',hideChef);
 </script>
