@@ -104,7 +104,8 @@ function renderLista(v){
   h+='<div style="display:flex;gap:8px;margin-bottom:12px"><input id="listaIn" placeholder="Cosa produrre…" enterkeyhint="done" style="flex:1;border:1px solid var(--line);border-radius:11px;padding:12px;font-size:15px"><button onclick="addLista()" style="border:none;border-radius:11px;padding:0 16px;font-size:15px;font-weight:800;background:var(--g);color:#fff;cursor:pointer">Aggiungi</button></div>';
   if(!LISTA.length){h+='<div class="empty">Niente ancora. Scrivi cosa produrre qui sopra.</div>';}
   else{var ordered=LISTA.slice().sort(function(a,b){return (a.done?1:0)-(b.done?1:0);});
-    h+=ordered.map(function(x){var dn=!!x.done;return '<div class="row"><div class="chkbox'+(dn?' on':'')+'" onclick="toggleLista(\''+x.id+'\')">'+(dn?'✓':'')+'</div><div class="info"><div class="nm" style="'+(dn?'text-decoration:line-through;color:var(--muted)':'')+'">'+esc(x.t)+'</div>'+(dn&&x.doneAt?'<div class="meta"><span class="pill done">✓ fatto '+tloc(x.doneAt)+'</span></div>':'')+'</div></div>';}).join('');
+    var tdy=new Date().toISOString().slice(0,10);
+    h+=ordered.map(function(x){var dn=!!x.done;var ad=(x.at||'').slice(0,10);var carr=!dn&&ad&&ad<tdy;var meta='';if(carr)meta+='<span class="pill" style="background:#fdecea;color:#c0392b">↩ rimasta da '+ad.slice(8,10)+'/'+ad.slice(5,7)+'</span>';if(dn&&x.doneAt)meta+='<span class="pill done">✓ fatto '+tloc(x.doneAt)+'</span>';return '<div class="row'+(carr?' low':'')+'"><div class="chkbox'+(dn?' on':'')+'" onclick="toggleLista(\''+x.id+'\')">'+(dn?'✓':'')+'</div><div class="info"><div class="nm" style="'+(dn?'text-decoration:line-through;color:var(--muted)':'')+'">'+esc(x.t)+'</div>'+(meta?'<div class="meta">'+meta+'</div>':'')+'</div></div>';}).join('');
     if(LISTA.some(function(x){return x.done;}))h+='<button onclick="pulisciLista()" style="width:100%;margin-top:10px;border:1.5px solid var(--line);background:#fff;color:var(--muted);border-radius:11px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">🗑 Pulisci i fatti</button>';}
   v.innerHTML=h;
   var inp=document.getElementById('listaIn');if(inp)inp.addEventListener('keydown',function(e){if(e.key==='Enter')addLista();});
@@ -119,5 +120,5 @@ async function saveQ(id,q){try{await sb('kitchen_meta?on_conflict=k',{method:'PO
 async function toggleChk(id){var ws=weekStart();var done=!isChk(id);if(done)CHK[id]=true;else delete CHK[id];render();
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'antiprodchk|'+id+'|'+ws,v:{done:done}})});}catch(e){toast('⚠️ Non salvato');console.error(e);}}
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 11:21</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 11:25</div>
 </body></html>
