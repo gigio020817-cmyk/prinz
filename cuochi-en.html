@@ -176,7 +176,7 @@ async function loadAll(){
       sb('kitchen_presa?select=*'),
       sb('kitchen_meta?k=like.ctrl|*&select=*'),
       sb('kitchen_meta?k=like.timbra|'+today+'*&select=*'),
-      sb('kitchen_entries?day=eq.'+dayShift(today,-1)+'&type=eq.passaggio&select=*&order=at')
+      sb('kitchen_entries?day=in.('+dayShift(today,-2)+','+dayShift(today,-1)+')&type=eq.passaggio&select=*&order=at')
     ]);
     CK={};(ck||[]).concat(ckw||[]).forEach(r=>{CK[r.grp+'_'+r.idx]={by:r.cook,at:r.at};});
     ENT=ent||[];META=(meta&&meta[0])?meta[0].v:null;PRESA=presa||[];
@@ -256,11 +256,14 @@ function passCard(){
 function prevPassCard(){
   if(!PREVPASS.length)return '';
   const FL=[['pronto','READY'],['manca','MISSING / to finish'],['dove','Where things are'],['urgenti','Urgent'],['note','Notes']];
-  let blocks=PREVPASS.map(p=>{var d=p.data||{};
+  var GG=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  function dlabel(ds){try{var x=new Date(ds+'T00:00:00');return GG[x.getDay()]+' '+ds.split('-').reverse().slice(0,2).join('/');}catch(e){return ds||'';}}
+  var P=PREVPASS.slice().sort(function(a,b){if((a.day||'')!==(b.day||''))return (a.day||'')<(b.day||'')?1:-1;return ((a.at||'')<(b.at||'')?1:-1);});
+  let blocks=P.map(p=>{var d=p.data||{};
     var body=FL.filter(f=>(d[f[0]]||'').trim()).map(f=>'<div style="margin-top:4px"><b>'+f[1]+':</b> '+esc(d[f[0]])+'</div>').join('');
-    return '<div class="readbox" style="border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-bottom:8px;color:var(--ink)"><div style="font-weight:700;color:var(--bordeaux)">'+esc(d.partita||'?')+(d.da?(' — da '+esc(d.da)):'')+(d.a?(' → '+esc(d.a)):'')+'</div>'+(body||'<div class="muted" style="margin-top:4px">(no details)</div>')+'</div>';
+    return '<div class="readbox" style="border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-bottom:8px;color:var(--ink)"><div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:2px">📅 '+esc(dlabel(p.day))+'</div><div style="font-weight:700;color:var(--bordeaux)">'+esc(d.partita||'?')+(d.da?(' — from '+esc(d.da)):'')+(d.a?(' → '+esc(d.a)):'')+'</div>'+(body||'<div class="muted" style="margin-top:4px">(no details)</div>')+'</div>';
   }).join('');
-  return '<div class="card open" id="cprevpass" style="border-color:var(--gold)"><div class="card-h" onclick="toggleCard(\'cprevpass\')"><div class="t">Handover from yesterday</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:8px">What the station chefs left last night.</div>'+blocks+'</div></div>';
+  return '<div class="card open" id="cprevpass" style="border-color:var(--gold)"><div class="card-h" onclick="toggleCard(\'cprevpass\')"><div class="t">Handover</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:8px">What the station chefs left in the last days (most recent on top).</div>'+blocks+'</div></div>';
 }
 async function savePass(){const c=getCook();if(!c){alert('Pick your name first.');return;}const ids=['partita','da','a','pronto','manca','dove','urgenti','note'];const data={};ids.forEach(k=>data[k]=document.getElementById('pc_'+k).value.trim());if(!data.partita){alert('Enter at least the station.');return;}
   try{await sb('kitchen_entries',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({day:today,type:'passaggio',cook:c,data:data})});ENT.push({type:'passaggio',cook:c,at:new Date().toISOString(),data:data});render();openCard('cpass');toast('Handover sent');}catch(e){toast('⚠️ Not sent');console.error(e);}}
@@ -339,6 +342,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 11:31</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 20/06 08:23</div>
 </body>
 </html>
