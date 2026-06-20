@@ -135,13 +135,14 @@ const MENU_CENA=[
 const MENU_CENA_NOTE='Assembled dishes (burger, wrap, pita): ~2 each for half the covers (~38 pcs for 25 people). Dinner: pork ok, no beef (except the Tuesday burger). Salad and white rice always available.';
 function puliziaFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].pulizia)||PULIZIA;}
 function puliziaSettFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].puliziaSett)||PULIZIA_SETT;}
-function weekStart(ds){var d=new Date(ds+'T00:00:00');var k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return d.toISOString().slice(0,10);}
+function ymd(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+function weekStart(ds){var d=new Date(ds+'T00:00:00');var k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return ymd(d);}
 function itemsFor(g){return g.indexOf('pulizias#')===0?(puliziaSettFor(g.slice(9))||[]):(g.indexOf('pulizia#')===0?puliziaFor(g.slice(8)):(g.indexOf('pulizia')===0?PULIZIA:(ITEMS[g]||[])));}
 function scopeId(group){var dd=group.indexOf('pulizias#')===0?weekStart(today):today;return group+'@'+dd;}
 function ctrlFooter(group){var st=CTRL[scopeId(group)];if(st&&st.stato==='ok')return '<div class="ctrlbar okc">✔ Checked by the chef'+(st.chef?(' ('+esc(st.chef)+')'):'')+'</div>';if(st&&st.stato==='richiesto')return '<div class="ctrlbar waitc">⏳ Waiting for the chef to check</div>';return '<button class="ctrlbtn" onclick="requestControl(\''+group+'\')">Done → request check</button>';}
 async function requestControl(group){var c=getCook();if(!c){alert('Pick your name first.');return;}var sid=scopeId(group);CTRL[sid]={stato:'richiesto',by:c,at:new Date().toISOString()};try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'ctrl|'+sid,v:CTRL[sid]})});toast('Check requested from the chef');render();}catch(e){toast('⚠️ Not sent');console.error(e);}}
 function totalFor(g){return itemsFor(g).length;}
-const today=new Date().toISOString().slice(0,10);
+const today=ymd(new Date());
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}
 function now(){return new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
@@ -149,7 +150,7 @@ async function sb(path,opts){opts=opts||{};const h={apikey:SB_KEY,'Content-Type'
 
 /* state */
 let CK={},ENT=[],META=null,PRESA=[],CTRL={},TIMBRA={},PREVPASS=[];
-function dayShift(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+function dayShift(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return ymd(d);}
 function getCook(){return localStorage.getItem('pr_cook')||''}
 function setCook(n){localStorage.setItem('pr_cook',n);render();}
 
@@ -163,7 +164,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-(function(){try{if(localStorage.getItem('pr_av_cuochien')!=='19/06 11:31'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochien','19/06 11:31');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
+(function(){try{if(localStorage.getItem('pr_av_cuochien')!=='20/06 10:40'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochien','20/06 10:40');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 
 async function loadAll(){
   document.getElementById('status').textContent='Loading from cloud…';
@@ -176,7 +177,7 @@ async function loadAll(){
       sb('kitchen_presa?select=*'),
       sb('kitchen_meta?k=like.ctrl|*&select=*'),
       sb('kitchen_meta?k=like.timbra|'+today+'*&select=*'),
-      sb('kitchen_entries?day=in.('+dayShift(today,-2)+','+dayShift(today,-1)+')&type=eq.passaggio&select=*&order=at')
+      sb('kitchen_entries?day=gte.'+dayShift(today,-3)+'&day=lt.'+today+'&type=eq.passaggio&select=*&order=at')
     ]);
     CK={};(ck||[]).concat(ckw||[]).forEach(r=>{CK[r.grp+'_'+r.idx]={by:r.cook,at:r.at};});
     ENT=ent||[];META=(meta&&meta[0])?meta[0].v:null;PRESA=presa||[];
@@ -342,6 +343,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 20/06 08:23</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 20/06 10:40</div>
 </body>
 </html>
