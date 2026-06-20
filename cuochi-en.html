@@ -164,7 +164,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-(function(){try{if(localStorage.getItem('pr_av_cuochien')!=='20/06 10:40'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochien','20/06 10:40');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
+(function(){try{if(localStorage.getItem('pr_av_cuochien')!=='20/06 11:45'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochien','20/06 11:45');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 
 async function loadAll(){
   document.getElementById('status').textContent='Loading from cloud…';
@@ -328,14 +328,16 @@ function render(){
   var ME=getCook();
   var RN=(META&&META.name)?META.name:'';   // responsabile della settimana
   var showApe = RN ? (ME && ME===RN) : !(PEOPLE[ME]&&PEOPLE[ME].noApe);
+  var showChiu = RN ? (ME && ME===RN) : !(PEOPLE[ME]&&PEOPLE[ME].noChiu);
   var apeTitle = RN ? 'Opening checklist (person in charge this week)' : 'Opening checklist';
+  var chiTitle = RN ? 'Closing checklist (person in charge this week)' : 'Closing checklist';
   document.getElementById('view').innerHTML=
     timbraCard()+
     ((PEOPLE[ME]&&PEOPLE[ME].noResp)?'':respCard())
     +(showApe?checklistCard('cap',apeTitle,'apertura',APERTURA):'')
     +puliziaSection()
     +schedaCard()
-    +((PEOPLE[ME]&&PEOPLE[ME].noChiu)?'':checklistCard('cch','Closing checklist','chiusura',CHIUSURA))
+    +(showChiu?checklistCard('cch',chiTitle,'chiusura',CHIUSURA):'')
     +prevPassCard()
     +passCard()
     +presaCard()
@@ -343,6 +345,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 20/06 10:40</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 20/06 11:45</div>
 </body>
 </html>
