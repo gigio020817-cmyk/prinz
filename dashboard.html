@@ -162,12 +162,14 @@ const PEOPLE={
 };
 function puliziaFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].pulizia)||PULIZIA;}
 function puliziaSettFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].puliziaSett)||PULIZIA_SETT;}
-function weekStart(ds){var d=new Date(ds+'T00:00:00');var k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return d.toISOString().slice(0,10);}
+function ymd(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+function dayShift(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return ymd(d);}
+function weekStart(ds){var d=new Date(ds+'T00:00:00');var k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return ymd(d);}
 
 const DL={apertura:14*60,pulizia:22*60,chiusura:22*60};
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}
 function tloc(iso){try{return new Date(iso).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}catch(e){return''}}
-function todayStr(){return new Date().toISOString().slice(0,10)}
+function todayStr(){return ymd(new Date())}
 function overdue(grp,day){const t=DL[grp]||(22*60);if(day<todayStr())return true;if(day>todayStr())return false;const n=new Date();return (n.getHours()*60+n.getMinutes())>=t;}
 async function sb(path,opts){opts=opts||{};var h={apikey:SB_KEY};if(opts.body)h['Content-Type']='application/json';if(opts.headers)Object.assign(h,opts.headers);const r=await fetch(SB_URL+'/rest/v1/'+path,{method:opts.method||'GET',headers:h,body:opts.body});if(!r.ok)throw new Error('HTTP '+r.status);const t=await r.text();return t?JSON.parse(t):[];}
 function ctrlLine(sid){var st=(window.CTRL||{})[sid];if(st&&st.stato==='ok')return '<div class="row"><span class="donerow">✔ Controllato dallo chef'+(st.chef?(' — '+esc(st.chef)):'')+'</span><span class="muted">'+(st.at?tloc(st.at):'')+'</span></div>';if(st&&st.stato==='richiesto')return '<div class="row"><span class="missrow">⏳ controllo richiesto'+(st.by?(' da '+esc(st.by)):'')+'</span><button class="ctrlbtn" onclick="setControl(\''+sid+'\')">Segna controllato</button></div>';return '';}
@@ -177,9 +179,9 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{if(document.getElementById('datePick').value===todayStr())loadAll(true)},30000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-(function(){try{if(localStorage.getItem('pr_av_dash')!=='19/06 11:31'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','19/06 11:31');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
+(function(){try{if(localStorage.getItem('pr_av_dash')!=='20/06 10:55'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','20/06 10:55');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
-function shiftDay(n){var d=new Date(document.getElementById('datePick').value+'T00:00:00');d.setDate(d.getDate()+n);document.getElementById('datePick').value=d.toISOString().slice(0,10);loadAll();}
+function shiftDay(n){var d=new Date(document.getElementById('datePick').value+'T00:00:00');d.setDate(d.getDate()+n);document.getElementById('datePick').value=ymd(d);loadAll();}
 window.FOLD=window.FOLD||{};
 function toggleFold(id){window.FOLD[id]=!window.FOLD[id];var e=document.getElementById('fold'+id);if(e)e.classList.toggle('open',window.FOLD[id]);}
 
@@ -187,7 +189,7 @@ async function loadAll(silent){
   const day=document.getElementById('datePick').value;
   if(!silent)document.getElementById('status').textContent='Caricamento…';
   try{
-    const[ck,ckw,ent,meta,presa,ctrl,note,timb,pane,cnote,recmods]=await Promise.all([
+    const[ck,ckw,ent,meta,presa,ctrl,note,timb,pane,cnote,recmods,prevpass]=await Promise.all([
       sb('kitchen_checks?day=eq.'+day+'&select=*&order=at'),
       sb('kitchen_checks?day=eq.'+weekStart(day)+'&grp=like.pulizias%23*&select=*&order=at'),
       sb('kitchen_entries?day=eq.'+day+'&select=*&order=at'),
@@ -198,8 +200,10 @@ async function loadAll(silent){
       sb('kitchen_meta?k=like.timbra|'+day+'*&select=*'),
       sb('kitchen_meta?k=like.pane|*&select=*'),
       sb('kitchen_meta?k=like.notacuoco|*&select=*'),
-      sb('kitchen_meta?k=like.*corr|*&select=*')
+      sb('kitchen_meta?k=like.*corr|*&select=*'),
+      sb('kitchen_entries?day=gte.'+dayShift(day,-3)+'&day=lt.'+day+'&type=eq.passaggio&select=*&order=at')
     ]);
+    window.PREVPASS=prevpass||[];
     window.CTRL={};(ctrl||[]).forEach(r=>{window.CTRL[r.k.slice(5)]=r.v;});
     window.NOTE=(note&&note[0]&&note[0].v)?(note[0].v.text||''):'';
     window.NOTE_AT=(note&&note[0]&&note[0].v)?(note[0].v.at||null):null;
@@ -403,7 +407,12 @@ function render(day,ck,ckw,ent,meta,presa){
   h+=weeklyCard(ckw,day);
   h+=shared('chiusura',ck,day,resp);
   h+='<div class="card"><div class="card-h"><div class="t">Scheda di servizio</div><span class="pill '+(scheda.length?'ok':'no')+'">'+scheda.length+' voci</span></div><div class="card-b">'+(scheda.length?scheda.map(e=>'<div class="row"><span>'+esc(e.data.cosa)+(e.data.entro?' <span class="muted">(entro '+esc(e.data.entro)+')</span>':'')+'</span><span class="muted">'+esc(e.cook)+' · '+tloc(e.at)+'</span></div>').join(''):'<div class="muted">Niente.</div>')+'</div></div>';
-  h+='<div class="card"><div class="card-h"><div class="t">Passaggi di consegne</div><span class="pill '+(pass.length?'ok':'no')+'">'+pass.length+'</span></div><div class="card-b">'+(pass.length?pass.map(p=>'<div class="row"><span><b>'+esc(p.data.partita||'?')+'</b>: '+esc(p.data.da||'?')+' → '+esc(p.data.a||'?')+(p.data.manca?'<div class="missrow" style="font-weight:400">Manca: '+esc(p.data.manca)+'</div>':'')+'</span><span class="muted">'+esc(p.cook)+' · '+tloc(p.at)+'</span></div>').join(''):'<div class="muted">Nessuno.</div>')+'</div></div>';
+  var GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+  function dlab(ds){try{var x=new Date(ds+'T00:00:00');return GG[x.getDay()]+' '+ds.split('-').reverse().slice(0,2).join('/');}catch(e){return ds||'';}}
+  var allPass=(window.PREVPASS||[]).concat(pass);
+  allPass=allPass.slice().sort(function(a,b){if((a.day||'')!==(b.day||''))return (a.day||'')<(b.day||'')?1:-1;return ((a.at||'')<(b.at||'')?1:-1);});
+  function passRow(p){var d=p.data||{};var lascia=(p.day&&p.day!==day)?(' <span class="muted">(lasciato '+esc(dlab(p.day))+')</span>'):'';return '<div class="row"><span><b>'+esc(d.partita||'?')+'</b>: '+esc(d.da||'?')+' → '+esc(d.a||'?')+lascia+(d.pronto?'<div class="missrow" style="font-weight:400;color:#2e7d32">Pronto: '+esc(d.pronto)+'</div>':'')+(d.manca?'<div class="missrow" style="font-weight:400">Manca: '+esc(d.manca)+'</div>':'')+(d.dove?'<div class="missrow" style="font-weight:400">Dove: '+esc(d.dove)+'</div>':'')+(d.urgenti?'<div class="missrow" style="font-weight:400">Urgenti: '+esc(d.urgenti)+'</div>':'')+(d.note?'<div class="missrow" style="font-weight:400">Note: '+esc(d.note)+'</div>':'')+'</span><span class="muted">'+esc(p.cook)+' · '+tloc(p.at)+'</span></div>';}
+  h+='<div class="card"><div class="card-h"><div class="t">Passaggi di consegne</div><span class="pill '+(allPass.length?'ok':'no')+'">'+allPass.length+'</span></div><div class="card-b">'+(allPass.length?allPass.map(passRow).join(''):'<div class="muted">Nessuno negli ultimi giorni.</div>')+'</div></div>';
   const signed={};(presa||[]).forEach(p=>signed[p.cook]=p.at);const ns=Object.keys(signed).length;
   h+='<div class="card"><div class="card-h"><div class="t">Presa visione mansionario</div><span class="pill '+(ns>=TEAM.length?'ok':ns?'mid':'no')+'">'+ns+'/'+TEAM.length+'</span></div><div class="card-b">'+TEAM.map(t=>'<div class="row"><span>'+t[0]+' <span class="muted">· '+t[1]+'</span></span>'+(signed[t[0]]?'<span class="pill ok">✓</span>':'<span class="pill no">manca</span>')+'</div>').join('')+'</div></div>';
   h+=menuCard();
@@ -528,6 +537,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 11:31</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 20/06 10:55</div>
 </body>
 </html>
