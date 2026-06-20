@@ -179,7 +179,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{if(document.getElementById('datePick').value===todayStr())loadAll(true)},30000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-(function(){try{if(localStorage.getItem('pr_av_dash')!=='20/06 10:55'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','20/06 10:55');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
+(function(){try{if(localStorage.getItem('pr_av_dash')!=='20/06 11:20'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','20/06 11:20');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
 function shiftDay(n){var d=new Date(document.getElementById('datePick').value+'T00:00:00');d.setDate(d.getDate()+n);document.getElementById('datePick').value=ymd(d);loadAll();}
 window.FOLD=window.FOLD||{};
@@ -216,9 +216,14 @@ async function loadAll(silent){
     document.getElementById('status').textContent='✓ Aggiornato alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
   }catch(e){document.getElementById('status').textContent='⚠️ Problema di collegamento.';console.error(e);}
 }
+function aperturaLibera(day){var D=window.LAST;var resp=(D&&D.meta&&D.meta.name)?D.meta.name:'';return !!(resp&&isOff(resp,day));}
 function shared(grp,ck,day,resp){
   const items=ITEMS[grp];const dmap={};ck.filter(r=>r.grp===grp).forEach(r=>dmap[r.idx]=r);
-  const done=Object.keys(dmap).length;const tot=items.length;const ov=overdue(grp,day);const p=Math.round(done/tot*100);
+  const done=Object.keys(dmap).length;const tot=items.length;
+  if(grp==='apertura' && resp && isOff(resp,day) && done===0){
+    return '<div class="card"><div class="card-h"><div class="t">'+LABEL[grp]+'<div class="sub">Responsabile: '+esc(resp)+'</div></div><span class="pill mid">Libero</span></div><div class="card-b"><div class="row"><span class="muted">🟦 Oggi <b>'+esc(resp)+'</b> è libero — apertura non richiesta. Controllo nullo.</span></div></div></div>';
+  }
+  const ov=overdue(grp,day);const p=Math.round(done/tot*100);
   let rows=items.map((it,i)=>{const r=dmap[i];
     if(r)return '<div class="row"><span class="donerow">✓ '+esc(it)+' <span class="muted">— '+esc(r.cook)+'</span></span><span class="muted">'+tloc(r.at)+'</span></div>';
     if(ov)return '<div class="row"><span class="missrow">✗ '+esc(it)+'</span><span class="muted">NON SVOLTO</span></div>';
@@ -391,7 +396,8 @@ function riepilogoCard(){
   var T=window.TIMB||{};var arr=TEAM.filter(function(x){return T[x[0]]&&T[x[0]].in;}).length;
   var hasNote=!!(window.NOTE&&window.NOTE.trim());
   function chip(lbl,icon){return '<span style="display:inline-block;background:#fbf8f2;border:1px solid var(--line);border-radius:20px;padding:4px 10px;margin:3px 4px 0 0;font-size:12.5px;font-weight:600">'+icon+' '+lbl+'</span>';}
-  var s=chip('Apertura',ic(apD,APERTURA.length))+chip('Pulizie',ic(capOk,capList.length))+chip('Settimanale',ic(wOk,activeCAPI.length))+chip('Chiusura',ic(chD,CHIUSURA.length))+chip('Mansionario',ic(presaOk,TEAM.length));
+  var apIcon=aperturaLibera(D.day)&&apD===0?'🟦':ic(apD,APERTURA.length);
+  var s=chip(aperturaLibera(D.day)&&apD===0?'Apertura (libero)':'Apertura',apIcon)+chip('Pulizie',ic(capOk,capList.length))+chip('Settimanale',ic(wOk,activeCAPI.length))+chip('Chiusura',ic(chD,CHIUSURA.length))+chip('Mansionario',ic(presaOk,TEAM.length));
   var a=chip(req+' da controllare',req?'🔔':'✅')+chip(arr+'/'+TEAM.length+' arrivi','🕐')+chip(hasNote?'note presenti':'nessuna nota','📝');
   return '<div class="card" style="border-color:var(--gold)"><div class="card-h"><div class="t">📋 Riepilogo del giorno<div class="sub">riletta veloce — controlla se manca qualcosa</div></div></div><div class="card-b"><div>'+s+'</div><div style="margin-top:5px">'+a+'</div></div></div>';
 }
@@ -444,15 +450,17 @@ function buildReport(){
   var data=GG[new Date(D.day+'T00:00:00').getDay()]+' '+dd;
   var schede=D.ent.filter(function(e){return e.type==='scheda';});
   var o='REPORT CUCINA · PRINZ RUDOLF\n'+data+'  ·  Resp.: '+resp+'\n';
+  var apLib=aperturaLibera(D.day)&&apD===0;
   var fatto=[];
-  if(apD>=APERTURA.length) fatto.push('Apertura completata');
+  if(apLib) fatto.push('Apertura: '+resp+' libero (non richiesta)');
+  else if(apD>=APERTURA.length) fatto.push('Apertura completata');
   if(capDone>0) fatto.push('Pulizia partite ok: '+capDone+'/'+capList.length+' cuochi');
   if(wDone>0) fatto.push('Pulizia settimanale ok: '+wDone+'/'+wcooks.length);
   if(chD>=CHIUSURA.length) fatto.push('Chiusura completata');
   if(!presaMiss.length) fatto.push('Mansionario firmato da tutti');
   o+='\n✅ FATTO\n'+(fatto.length?fatto.map(function(x){return '• '+x+'\n';}).join(''):'• —\n');
   var ds='';
-  if(apMiss.length) ds+='• Apertura ('+resp+'): '+apMiss.join('; ')+'\n';
+  if(apMiss.length && !apLib) ds+='• Apertura ('+resp+'): '+apMiss.join('; ')+'\n';
   capMiss.forEach(function(x){ds+='• '+x+'\n';});
   wMiss.forEach(function(x){ds+='• Settimanale '+x+'\n';});
   if(chMiss.length) ds+='• Chiusura: '+chMiss.join('; ')+'\n';
@@ -474,7 +482,7 @@ function copyRep(){const t=document.getElementById('reptxt');t.select();t.setSel
 async function exportWeekReport(){
   var sel=document.getElementById('datePick').value||todayStr();
   var mon=weekStart(sel);
-  var days=[];for(var i=0;i<7;i++){var d=new Date(mon+'T00:00:00');d.setDate(d.getDate()+i);days.push(d.toISOString().slice(0,10));}
+  var days=[];for(var i=0;i<7;i++){var d=new Date(mon+'T00:00:00');d.setDate(d.getDate()+i);days.push(ymd(d));}
   var sun=days[6];
   document.getElementById('status').textContent='Carico la settimana…';
   var ck,ckw,notes;
@@ -537,6 +545,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 20/06 10:55</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 20/06 11:20</div>
 </body>
 </html>
