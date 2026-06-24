@@ -91,7 +91,7 @@
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="lavoroprinz";
-const TEAM=[["Gigio","Head chef"],["Gianluca","Second chef · Tournant"],["Alex","Mains (Secondi)"],["Mattia","First courses (Primi)"],["Ubaldo","Pizza · evening shift"],["Erjola","Pastry"],["Badr","Mains (Secondi)"],["Majeet","Commis"]];
+const TEAM=[["Gigio","Head chef"],["Gianluca","Second chef · Tournant"],["Alex","Mains (Secondi)"],["Mattia","First courses (Primi)"],["Ubaldo","Pizza + Bakery · evening shift"],["Erjola","Pastry"],["Badr","Mains (Secondi)"],["Majeet","Commis"]];
 const PULIZIA=["Worktop clean and sanitised","Station equipment (scales, bimby/pacojet, vacuum sealer, fryer, microwave)","Fridge counter: tidy up, check dates, FIFO","Lids clean and tidy","Stoves / griddle / grill of your area","Oven: top and front","Salamander: wiped down","Blast chiller front: clean","Clean the pass (behind, on top, garnishes)","Check for dirt near the plates","Change roner water (meat every day)"];
 const APERTURA=["Turn on the morning equipment","Check the weekly ATTENDANCE","Receive and store deliveries (FIFO)","Check mise en place and stock","Cutting boards and containers in their place","Staff meal ready by 11:30","Check leftovers and store them","Clean cloths, stations tidy"];
 const CHIUSURA=["Everything switched off (equipment)","Proper evening cleaning of everything","Cold rooms closed and tidy, products labelled","Drain/filter fryers if needed","Microwave and potato peeler clean","Cutting boards and containers away (plastic/organic)"];
@@ -107,7 +107,7 @@ const PEOPLE={
  "Erjola":{noResp:true,noApe:true,noChiu:true,
    pulizia:["Equipment: scales, pacojet, pastry oven, pastry fridges, bimby and microwave","Fridge counter: tidy up, check dates, FIFO","Lids clean and tidy","Blast chiller front: clean","Check for dirt near the plates"],
    puliziaSett:["Deep clean inside pastry fridge","Clean pastry shelves","Pastry fridges (inside and out)","Small pastry appliances","Tidy and clean shelves with mise en place","Small stand mixers and their blast chiller","Large stand mixers: if you use them, clean right after use"]},
- "Ubaldo":{pulizia:["Worktop clean and sanitised","Station equipment: slicer, pizza drawers, knives, sink, pizza display","Fridge counter: tidy up, check dates, FIFO","Lids clean and tidy","Clean pizza oven (wipe down)","Fridge and proofer always clean","Check for dirt in pizza drawers","Clean the diving-arm mixer (every day after kneading)"],puliziaSett:["Inside fridge counter / drawers (incl. seals)","Clean inside the pizza oven","Deep clean your cold room + check expiry dates","Clean pizzeria low area","Pizza display","Pizza boxes area","Pizzeria fridges and dough drawers","Small pizzeria appliances","Shared equipment: large mixers (deep clean)","Blast chiller front: clean inside and out"]},
+ "Ubaldo":{pulizia:["Worktop clean and sanitised","Station equipment: slicer, pizza drawers, knives, sink, pizza display","Fridge counter: tidy up, check dates, FIFO","Lids clean and tidy","Clean pizza oven (wipe down)","Fridge and proofer always clean","Check for dirt in pizza drawers","Clean the diving-arm mixer (every day after kneading)","Bakery: doughs and bread baking of the day","Restock the bread in the fridge if it has run out"],puliziaSett:["Inside fridge counter / drawers (incl. seals)","Clean inside the pizza oven","Deep clean your cold room + check expiry dates","Clean pizzeria low area","Pizza display","Pizza boxes area","Pizzeria fridges and dough drawers","Small pizzeria appliances","Shared equipment: large mixers (deep clean)","Blast chiller front: clean inside and out","Bakery: deep clean of bakery area (bread oven and bread mixers)"]},
  "Badr":{},
  "Gianluca":{tournant:true,pulizia:["Cover the stations of whoever is off","Help the stations in trouble","Help clean the stations until everyone has finished"]},
  "Majeet":{noResp:true,noApe:true,noChiu:true,pulizia:["Help the stations wherever needed","Help clean the stations until everyone has finished","Prepare mise en place and bases for the stations","Keep shared worktops and equipment clean","Help at the pass during service"],puliziaSett:["Deep clean the assigned shared area","Help with the weekly deep clean of the stations"]}
@@ -164,9 +164,9 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='24/06 09:40';
+const APP_VER='24/06 10:10';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochien'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochien','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
-(function(){try{if(localStorage.getItem('pr_av_cuochien')!=='24/06 09:40'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochien','24/06 09:40');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
+(function(){try{if(localStorage.getItem('pr_av_cuochien')!=='24/06 10:10'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochien','24/06 10:10');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 
 async function loadAll(){
   document.getElementById('status').textContent='Loading from cloud…';
@@ -347,6 +347,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 24/06 09:40</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 24/06 10:10</div>
 </body>
 </html>
