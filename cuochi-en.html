@@ -92,10 +92,10 @@ const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="lavoroprinz";
 const TEAM=[["Gigio","Head chef"],["Gianluca","Second chef · Tournant"],["Alex","Mains (Secondi)"],["Mattia","First courses (Primi)"],["Ubaldo","Pizza + Bakery · evening shift"],["Erjola","Pastry"],["Badr","Mains (Secondi)"],["Majeet","Commis"]];
-const PULIZIA=["Worktop clean and sanitised","Station equipment (scales, bimby/pacojet, vacuum sealer, fryer, microwave)","Fridge counter: tidy up, check dates, FIFO","Lids clean and tidy","Stoves / griddle / grill of your area","Oven: top and front","Salamander: wiped down","Blast chiller front: clean","Clean the pass (behind, on top, garnishes)","Check for dirt near the plates","Change roner water (meat every day)"];
+const PULIZIA=["Worktops and work area (worktop sanitised · lids tidy · no dirt near the plates)","Cooking (stoves/griddle/grill · oven top and front · salamander)","Station equipment (scales, bimby/pacojet, vacuum sealer, fryer, microwave · change roner water)","Cold (fridge counter: tidy, dates, FIFO · blast chiller front)","Pass (behind, on top, garnishes)"];
 const APERTURA=["Turn on the morning equipment","Check the weekly ATTENDANCE","Receive and store deliveries (FIFO)","Check mise en place and stock","Cutting boards and containers in their place","Staff meal ready by 11:30","Check leftovers and store them","Clean cloths, stations tidy"];
-const CHIUSURA=["Everything switched off (equipment)","Proper evening cleaning of everything","Cold rooms closed and tidy, products labelled","Drain/filter fryers if needed","Microwave and potato peeler clean","Cutting boards and containers away (plastic/organic)"];
-const PULIZIA_SETT=["Inside fridge counter / drawers (incl. seals)","Oven and griddle deep clean","Deep clean your cold room + check expiry dates","Clean shelves (including the low ones)","Small appliances of the station","Clean roner (water and vinegar at 90°C for 1 hour)","Defrost small freezers (every 2 weeks)","Hood filters: remove and give to dishwashers (every 2 weeks)"];
+const CHIUSURA=["Everything switched off (equipment)","Evening cleaning of everything (microwave, potato peeler, fryers if needed)","Cold rooms closed and tidy, products labelled","Cutting boards and containers away (plastic/organic)"];
+const PULIZIA_SETT=["Cold deep clean (inside fridge counter/drawers incl. seals · your cold room + expiry dates)","Cooking deep clean (oven and griddle)","Shelves and small appliances (including low ones)","Roner deep clean (water and vinegar at 90°C for 1 hour)","Every 2 weeks: defrost small freezers · hood filters to dishwashers"];
 const RESP=[["Week 1","Ubaldo"],["Week 2","Mattia"],["Week 3","Badr"],["Week 4","Alex"],["Week 5","Gianluca"]];
 const CHIUSI=[]; // partite chiuse: pulizie sospese, solo produzione
 const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[6],Erjola:[2],Badr:[0],Majeet:[3]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
@@ -106,8 +106,8 @@ const ITEMS={apertura:APERTURA,chiusura:CHIUSURA,pulizia:PULIZIA};
 const PEOPLE={
  "Erjola":{noResp:true,noApe:true,noChiu:true,
    pulizia:["Equipment: scales, pacojet, pastry oven, pastry fridges, bimby and microwave","Fridge counter: tidy up, check dates, FIFO","Lids clean and tidy","Blast chiller front: clean","Check for dirt near the plates"],
-   puliziaSett:["Deep clean inside pastry fridge","Clean pastry shelves","Pastry fridges (inside and out)","Small pastry appliances","Tidy and clean shelves with mise en place","Small stand mixers and their blast chiller","Large stand mixers: if you use them, clean right after use"]},
- "Ubaldo":{pulizia:["Worktop clean and sanitised","Station equipment: slicer, pizza drawers, knives, sink, pizza display","Fridge counter: tidy up, check dates, FIFO","Lids clean and tidy","Clean pizza oven (wipe down)","Fridge and proofer always clean","Check for dirt in pizza drawers","Clean the diving-arm mixer (every day after kneading)","Bakery: doughs and bread baking of the day","Restock the bread in the fridge if it has run out"],puliziaSett:["Inside fridge counter / drawers (incl. seals)","Clean inside the pizza oven","Deep clean your cold room + check expiry dates","Clean pizzeria low area","Pizza display","Pizza boxes area","Pizzeria fridges and dough drawers","Small pizzeria appliances","Shared equipment: large mixers (deep clean)","Blast chiller front: clean inside and out","Bakery: deep clean of bakery area (bread oven and bread mixers)"]},
+   puliziaSett:["Pastry fridges (inside · in and out)","Pastry shelves (incl. mise en place tidy-up)","Small pastry appliances","Small stand mixers and their blast chiller","Large stand mixers: if you use them, clean right after use"]},
+ "Ubaldo":{pulizia:["Worktops and work area (worktop sanitised · lids tidy · dirt in pizza drawers)","Pizzeria equipment (slicer, drawers, knives, sink, display · diving-arm mixer after kneading)","Pizza oven (wipe down)","Cold (fridge counter: tidy, dates, FIFO · fridge and proofer clean)","Bakery (doughs and bread baking of the day · restock bread in the fridge if out)"],puliziaSett:["Cold deep clean (inside fridge counter/drawers incl. seals · cold room + expiry dates · pizzeria fridges and dough drawers)","Pizza oven (clean inside)","Pizzeria deep clean (low area · display · boxes area)","Small appliances · large mixers (deep clean)","Blast chiller front (inside and out)","Bakery deep clean (bread oven and bread mixers)"]},
  "Badr":{},
  "Gianluca":{tournant:true,pulizia:["Cover the stations of whoever is off","Help the stations in trouble","Help clean the stations until everyone has finished"]},
  "Majeet":{noResp:true,noApe:true,noChiu:true,pulizia:["Help the stations wherever needed","Help clean the stations until everyone has finished","Prepare mise en place and bases for the stations","Keep shared worktops and equipment clean","Help at the pass during service"],puliziaSett:["Deep clean the assigned shared area","Help with the weekly deep clean of the stations"]}
@@ -164,9 +164,9 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='24/06 10:10';
+const APP_VER='24/06 18:45';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochien'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochien','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
-(function(){try{if(localStorage.getItem('pr_av_cuochien')!=='24/06 10:10'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochien','24/06 10:10');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
+(function(){try{if(localStorage.getItem('pr_av_cuochien')!=='24/06 18:45'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochien','24/06 18:45');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 
 async function loadAll(){
   document.getElementById('status').textContent='Loading from cloud…';
@@ -347,6 +347,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 24/06 10:10</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 24/06 18:45</div>
 </body>
 </html>
