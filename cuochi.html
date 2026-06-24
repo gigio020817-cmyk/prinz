@@ -150,7 +150,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 async function sb(path,opts){opts=opts||{};const h={apikey:SB_KEY,'Content-Type':'application/json'};if(opts.headers)Object.assign(h,opts.headers);const r=await fetch(SB_URL+'/rest/v1/'+path,{method:opts.method||'GET',headers:h,body:opts.body});if(!r.ok)throw new Error('HTTP '+r.status+' '+await r.text());const txt=await r.text();return txt?JSON.parse(txt):null;}
 
 /* state */
-let CK={},ENT=[],META=null,PRESA=[],CTRL={},TIMBRA={},PREVPASS=[],NOTECUOCO={};
+let CK={},ENT=[],META=null,PRESA=[],CTRL={},TIMBRA={},PREVPASS=[],NOTECUOCO={},PAUSE=[];
 function dayShift(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return ymd(d);}
 function getCook(){return localStorage.getItem('pr_cook')||''}
 function setCook(n){localStorage.setItem('pr_cook',n);render();}
@@ -165,14 +165,14 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='24/06 18:45';
+const APP_VER='24/06 19:45';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='24/06 18:45'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','24/06 18:45');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 
 async function loadAll(){
   document.getElementById('status').textContent='Caricamento dal cloud…';
   try{
-    const[ck,ckw,ent,meta,presa,ctrl,timb,prevp,ncuoco]=await Promise.all([
+    const[ck,ckw,ent,meta,presa,ctrl,timb,prevp,ncuoco,pausa]=await Promise.all([
       sb('kitchen_checks?day=eq.'+today+'&select=*'),
       sb('kitchen_checks?day=eq.'+weekStart(today)+'&grp=like.pulizias%23*&select=*'),
       sb('kitchen_entries?day=eq.'+today+'&select=*&order=at'),
@@ -181,7 +181,8 @@ async function loadAll(){
       sb('kitchen_meta?k=like.ctrl|*&select=*'),
       sb('kitchen_meta?k=like.timbra|'+today+'*&select=*'),
       sb('kitchen_entries?day=gte.'+dayShift(today,-3)+'&day=lt.'+today+'&type=eq.passaggio&select=*&order=at'),
-      sb('kitchen_meta?k=like.notacuoco|*&select=*')
+      sb('kitchen_meta?k=like.notacuoco|*&select=*'),
+      sb('kitchen_meta?k=like.pausa|'+today+'*&select=*')
     ]);
     CK={};(ck||[]).concat(ckw||[]).forEach(r=>{CK[r.grp+'_'+r.idx]={by:r.cook,at:r.at};});
     ENT=ent||[];META=(meta&&meta[0])?meta[0].v:null;PRESA=presa||[];
@@ -189,6 +190,7 @@ async function loadAll(){
     TIMBRA={};(timb||[]).forEach(r=>{var p=r.k.split('|');TIMBRA[p[2]]=r.v;});
     PREVPASS=prevp||[];
     NOTECUOCO={};(ncuoco||[]).forEach(function(r){NOTECUOCO[r.k]=(r.v&&r.v.text)||'';});
+    PAUSE=(pausa||[]).map(function(r){return {key:r.k,n:(r.v&&r.v.n)||'',out:(r.v&&r.v.out)||null,in:(r.v&&r.v.in)||null};}).sort(function(a,b){return (a.out||'').localeCompare(b.out||'');});
     document.getElementById('status').textContent='✓ Collegato · '+today.split('-').reverse().join('/');
     render();
   }catch(e){document.getElementById('status').textContent='⚠️ Problema di collegamento. Controlla internet e riapri.';console.error(e);}
@@ -203,6 +205,24 @@ function timbraCard(){
   return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Orario di arrivo &mdash; '+esc(c)+'</div></div><div class="card-b" style="display:block"><div class="readbox" style="margin-bottom:10px">⚠️ Segna l\'arrivo solo quando sei <b>già cambiato e in cucina</b>, non quando entri in struttura.</div>'+inH+'</div></div>';
 }
 async function timbraIn(){var c=getCook();if(!c){alert("Prima scegli il tuo nome.");return;}var t=TIMBRA[c]||{};if(t.in)return;t.in=new Date().toISOString();TIMBRA[c]=t;try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today+'|'+c,v:t})});toast('Arrivo registrato: '+now());render();}catch(e){toast('⚠️ Non salvato');console.error(e);}}
+function durMinC(a,b){try{return Math.max(0,Math.round((new Date(b)-new Date(a))/60000));}catch(e){return 0;}}
+function pausaListHtml(){
+  if(!PAUSE.length)return '<div class="readbox" style="margin-top:8px">Nessuna pausa oggi.</div>';
+  return '<div style="margin-top:8px">'+PAUSE.slice().reverse().map(function(p){
+    if(!p.in)return '<div class="row" style="display:flex;justify-content:space-between;padding:6px 0;color:#c0392b;font-weight:700"><span>🔴 '+esc(p.n)+' — fuori</span><span>dalle '+tloc(p.out)+'</span></div>';
+    return '<div class="row" style="display:flex;justify-content:space-between;padding:6px 0"><span>'+esc(p.n)+'</span><span style="color:#8a8378">'+tloc(p.out)+'→'+tloc(p.in)+' · '+durMinC(p.out,p.in)+' min</span></div>';
+  }).join('')+'</div>';
+}
+function pausaCard(){
+  var c=getCook();var btn;
+  if(!c){btn='<div class="readbox">Scegli il tuo nome in alto per usare la pausa.</div>';}
+  else{var open=null;for(var i=0;i<PAUSE.length;i++){if(PAUSE[i].n===c&&!PAUSE[i].in)open=PAUSE[i];}
+    if(open)btn='<div class="readbox" style="margin-bottom:10px;color:#c0392b;font-weight:700">🔴 Sei in pausa dalle '+tloc(open.out)+'</div><button class="btn" style="width:100%;margin-top:0" onclick="pausaIn()">↩️ Sono rientrato</button>';
+    else btn='<button class="btn" style="width:100%;margin-top:0" onclick="pausaOut()">🚬 Esco in pausa</button>';}
+  return '<div class="card open" id="cpausa"><div class="card-h" onclick="toggleCard(\'cpausa\')"><div class="t">⏸️ Pausa</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'+btn+pausaListHtml()+'</div></div>';
+}
+async function pausaOut(){var c=getCook();if(!c){alert('Prima scegli il tuo nome.');return;}for(var i=0;i<PAUSE.length;i++){if(PAUSE[i].n===c&&!PAUSE[i].in){toast('Sei già in pausa');return;}}var key='pausa|'+today+'|'+c+'|'+Date.now();var v={n:c,out:new Date().toISOString(),in:null};PAUSE.push({key:key,n:c,out:v.out,in:null});render();openCard('cpausa');try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:key,v:v})});toast('Pausa iniziata: '+now());}catch(e){toast('⚠️ Non salvato');console.error(e);}}
+async function pausaIn(){var c=getCook();if(!c)return;var open=null;for(var i=0;i<PAUSE.length;i++){if(PAUSE[i].n===c&&!PAUSE[i].in)open=PAUSE[i];}if(!open){render();return;}open.in=new Date().toISOString();render();openCard('cpausa');try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:open.key,v:{n:open.n,out:open.out,in:open.in}})});toast('Rientro registrato: '+now());}catch(e){toast('⚠️ Non salvato');console.error(e);}}
 function whoBar(){
   let o='<option value="">— scegli il tuo nome —</option>'+TEAM.filter(function(t){return t[0]!=='Gigio';}).map(t=>'<option '+(t[0]===getCook()?'selected':'')+'>'+t[0]+'</option>').join('');
   document.getElementById('whoBar').innerHTML='Sei: <select onchange="setCook(this.value)">'+o+'</select>';
@@ -349,6 +369,7 @@ function render(){
   var chiTitle = RN ? 'Check-list chiusura (responsabile della settimana)' : 'Check-list chiusura';
   document.getElementById('view').innerHTML=
     timbraCard()+
+    pausaCard()+
     ((PEOPLE[ME]&&PEOPLE[ME].noResp)?'':respCard())
     +(showApe?checklistCard('cap',apeTitle,'apertura',APERTURA):'')
     +puliziaSection()
@@ -362,6 +383,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 24/06 18:45</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 24/06 19:45</div>
 </body>
 </html>
