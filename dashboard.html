@@ -132,9 +132,9 @@ const ITEMS={apertura:APERTURA,chiusura:CHIUSURA};
 const LABEL={apertura:'Apertura (entro 14:00)',chiusura:'Chiusura (entro 22:00)'};
 const CAPI=["Alex","Nuovo","Mattia","Ubaldo","Erjola","Badr","Majeet","Gianluca"];
 const CHIUSI=[]; // partite chiuse: pulizie sospese, solo produzione
-const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[6],Erjola:[2],Badr:[0],Majeet:[3],Nuovo:[5]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
+const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[6],Erjola:[2],Badr:[0],Majeet:[3],Nuovo:[5],Ubaldo:[4]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
 function isOff(cook,dayStr){var wd=new Date((dayStr||todayStr())+"T00:00:00").getDay();return !!(RIPOSO[cook]&&RIPOSO[cook].indexOf(wd)>=0);}
-function badrCovers(dayStr){var L=["Alex","Mattia","Erjola"];for(var k=0;k<L.length;k++){if(isOff(L[k],dayStr))return L[k];}return "";}
+function badrCovers(dayStr){var L=["Alex","Mattia","Erjola","Ubaldo"];for(var k=0;k<L.length;k++){if(isOff(L[k],dayStr))return L[k];}return "";}
 const CHEF=["Briefing di 5 minuti con la brigata (coperti, coperture, impiattamenti)","Verifica linea pronta entro le 18:00","Decorazioni pronte entro le 18:30","Pane pronto entro le 18:20","Controllo pulizia di fine servizio (ognuno la sua partita)"];
 const PANE=[
  {id:"vegipan",nm:"Vegipan",unit:"pz",soglia:10},
@@ -179,7 +179,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{if(document.getElementById('datePick').value===todayStr())loadAll(true)},30000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='24/06 19:45';
+const APP_VER='25/06 19:15';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='24/06 18:45'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','24/06 18:45');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -214,7 +214,7 @@ async function loadAll(silent){
     window.PAUSE=(pausa||[]).map(function(r){return {n:(r.v&&r.v.n)||'',out:(r.v&&r.v.out)||null,in:(r.v&&r.v.in)||null};}).sort(function(a,b){return (a.out||'').localeCompare(b.out||'');});
     window.PANESC={};(pane||[]).forEach(function(r){var id=r.k.slice(5);window.PANESC[id]=(r.v&&typeof r.v.scorta==='number')?r.v.scorta:0;});
     window.COOKNOTES=(cnote||[]).map(function(r){var p=(r.k||'').split('|');return {cook:p[1],day:p[2],text:(r.v&&r.v.text)||'',at:(r.v&&r.v.at)||null};}).filter(function(x){return x.day===day && x.text && x.text.trim();});
-    window.RECMODS=(recmods||[]).map(function(r){var k=r.k||'';var app=k.indexOf('anticorr|')===0?'Antipasti':k.indexOf('primicorr|')===0?'Primi':k.indexOf('dcorr|')===0?'Pasticceria':k.indexOf('panecorr|')===0?'Pane':'?';return {app:app,label:(r.v&&r.v.label)||'',text:(r.v&&r.v.text)||'',at:(r.v&&r.v.at)||null};}).filter(function(x){return x.text && x.text.trim();});
+    window.RECMODS=(recmods||[]).map(function(r){var k=r.k||'';var app=k.indexOf('anticorr|')===0?'Antipasti':k.indexOf('primicorr|')===0?'Primi':k.indexOf('dcorr|')===0?'Pasticceria':k.indexOf('panecorr|')===0?'Pane':'?';return {key:k,app:app,label:(r.v&&r.v.label)||'',text:(r.v&&r.v.text)||'',at:(r.v&&r.v.at)||null};}).filter(function(x){return x.text && x.text.trim();});
     render(day,ck,ckw,ent,(meta&&meta[0])?meta[0].v:null,presa);
     renderNote();
     document.getElementById('status').textContent='✓ Aggiornato alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
@@ -252,7 +252,7 @@ function puliziaCard(ck,day){
       if(r){rows+='<div class="row"><span class="donerow">✓ '+esc(it)+'</span><span class="muted">'+tloc(r.at)+'</span></div>';}
       else{if(!off)totMiss++;rows+='<div class="row">'+((ov&&!off)?'<span class="missrow">✗ '+esc(it)+'</span><span class="muted">NON SVOLTO</span>':'<span class="pendrow">◦ '+esc(it)+'</span><span class="muted">'+(off?'(libero)':'in attesa')+'</span>')+'</div>';}
     });
-    var bellC=(isReq&&!off)?' <span style="color:var(--warn);font-weight:800">🔔</span>':'';var lib=off?(' <span style="color:#c9a227;font-weight:700">🔓 Libero'+(['Alex','Mattia','Erjola'].indexOf(c)>=0?' — coperto da Gianluca':'')+'</span>'):bellC;
+    var bellC=(isReq&&!off)?' <span style="color:var(--warn);font-weight:800">🔔</span>':'';var lib=off?(' <span style="color:#c9a227;font-weight:700">🔓 Libero'+(['Alex','Mattia','Erjola','Ubaldo'].indexOf(c)>=0?' — coperto da Gianluca':'')+'</span>'):bellC;
     var cid='pul_'+c;var open=(window.FOLD&&window.FOLD[cid])||isReq;
     body+='<div class="card fold'+(open?' open':'')+'" id="fold'+cid+'" style="margin:8px 0 0;box-shadow:none;border-radius:10px">'
       +'<div class="card-h" style="padding:11px 12px" onclick="toggleFold(\''+cid+'\')"><div class="t" style="font-size:14.5px">'+esc(c)+lib+'</div><span class="pill '+pill+'">'+pilltxt+'</span><span class="tog">›</span></div>'
@@ -364,9 +364,11 @@ const MENU_CENA_NOTE='Piatti composti (hamburger, wrap, pita): ~2 a testa per me
 function recModsCard(){
   var m=window.RECMODS||[];if(!m.length)return '';
   var byApp={};m.forEach(function(x){(byApp[x.app]=byApp[x.app]||[]).push(x);});
-  var body='';Object.keys(byApp).forEach(function(app){body+='<div class="subh">'+esc(app)+'</div>';byApp[app].forEach(function(x){body+='<div class="row" style="align-items:flex-start"><span>'+(x.label?'<b>'+esc(x.label)+':</b> ':'')+esc(x.text)+'</span><span class="muted">'+(x.at?tloc(x.at):'')+'</span></div>';});});
-  return '<div class="card" style="border-color:var(--gold)"><div class="card-h"><div class="t">📝 Modifiche ricette (da applicare)<div class="sub">scritte dai cuochi · le esporti solo tu</div></div><span class="pill ok">'+m.length+'</span></div><div class="card-b">'+body+'<button class="ctrlbtn" style="margin-top:10px;width:100%" onclick="copyRecMods()">📤 Copia tutte le modifiche</button></div></div>';
+  var body='';Object.keys(byApp).forEach(function(app){body+='<div class="subh">'+esc(app)+'</div>';byApp[app].forEach(function(x){body+='<div class="row" style="align-items:flex-start;gap:8px"><span style="flex:1">'+(x.label?'<b>'+esc(x.label)+':</b> ':'')+esc(x.text)+' <span class="muted" style="font-size:11px">'+(x.at?tloc(x.at):'')+'</span></span><button class="ctrlbtn" style="flex:none;padding:5px 9px;font-size:12px" onclick="clearRecMod(\''+esc(x.key)+'\')">✓ fatta</button></div>';});});
+  return '<div class="card" style="border-color:var(--gold)"><div class="card-h"><div class="t">📝 Modifiche ricette (da applicare)<div class="sub">tocca ✓ fatta quando l\'hai messa nella ricetta</div></div><span class="pill ok">'+m.length+'</span></div><div class="card-b">'+body+'<button class="ctrlbtn" style="margin-top:10px;width:100%" onclick="copyRecMods()">📤 Copia tutte le modifiche</button><button class="ctrlbtn" style="margin-top:8px;width:100%;border-color:#c0392b;color:#c0392b" onclick="clearAllRecMods()">🗑 Cancella tutte (le ho applicate)</button></div></div>';
 }
+async function clearRecMod(key){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:key,v:{label:'',text:''}})});window.RECMODS=(window.RECMODS||[]).filter(function(x){return x.key!==key;});loadAll(true);}catch(e){alert('Errore, riprova');console.error(e);}}
+async function clearAllRecMods(){var m=window.RECMODS||[];if(!m.length)return;if(!confirm('Cancellare tutte le '+m.length+' modifiche? Fallo solo se le hai già applicate alle ricette.'))return;try{for(var i=0;i<m.length;i++){await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:m[i].key,v:{label:'',text:''}})});}window.RECMODS=[];loadAll(true);}catch(e){alert('Errore, riprova');console.error(e);}}
 function copyRecMods(){
   var m=window.RECMODS||[];if(!m.length){alert('Nessuna modifica.');return;}
   var byApp={};m.forEach(function(x){(byApp[x.app]=byApp[x.app]||[]).push(x);});
@@ -568,6 +570,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 24/06 19:45</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 25/06 19:15</div>
 </body>
 </html>

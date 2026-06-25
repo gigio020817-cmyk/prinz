@@ -98,9 +98,9 @@ const CHIUSURA=["Tutto spento (attrezzature)","Pulizia serale di tutto (microond
 const PULIZIA_SETT=["Freddo a fondo (interno banco frigo/cassetti e guarnizioni · cella di competenza + scadenze)","Cotture a fondo (forno e piastra)","Scaffali e piccoli elettrodomestici (anche quelli bassi)","Roner a fondo (acqua e aceto a 90°C per 1 ora)","Ogni 2 settimane: scongelare congelatori piccoli · filtri cappe ai lavapiatti"];
 const RESP=[["Sett. 1","Ubaldo"],["Sett. 2","Mattia"],["Sett. 3","Badr"],["Sett. 4","Alex"],["Sett. 5","Gianluca"]];
 const CHIUSI=[]; // partite chiuse: pulizie sospese, solo produzione
-const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[6],Erjola:[2],Badr:[0],Majeet:[3],Nuovo:[5]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
+const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[6],Erjola:[2],Badr:[0],Majeet:[3],Nuovo:[5],Ubaldo:[4]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
 function isOff(cook){var wd=new Date(today+"T00:00:00").getDay();return !!(RIPOSO[cook]&&RIPOSO[cook].indexOf(wd)>=0);}
-function badrCovers(){var L=["Alex","Mattia","Erjola"];for(var k=0;k<L.length;k++){if(isOff(L[k]))return L[k];}return "";}
+function badrCovers(){var L=["Alex","Mattia","Erjola","Ubaldo"];for(var k=0;k<L.length;k++){if(isOff(L[k]))return L[k];}return "";}
 const GTOT={apertura:APERTURA.length,chiusura:CHIUSURA.length,pulizia:PULIZIA.length};
 const ITEMS={apertura:APERTURA,chiusura:CHIUSURA,pulizia:PULIZIA};
 const PEOPLE={
@@ -165,7 +165,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='24/06 19:45';
+const APP_VER='25/06 19:15';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='24/06 18:45'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','24/06 18:45');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 
@@ -327,7 +327,7 @@ function weeklyTodayCard(cook){
 function puliziaSection(){
   var cook=getCook();
   if(CHIUSI.indexOf(cook)>=0){return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Pulizia gourmet — 🔒 sospesa</div></div><div class="card-b" style="display:block"><div class="readbox">Il gourmet è chiuso: le pulizie sono sospese. Segna quello che produci nella <b>Scheda di servizio</b> qui sotto.</div></div></div>';}
-  if(isOff(cook)){return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">🔓 Oggi sei libero</div></div><div class="card-b" style="display:block"><div class="readbox">Buon riposo!'+(['Alex','Mattia','Erjola'].indexOf(cook)>=0?' La tua pulizia oggi la copre <b>Gianluca</b>.':'')+' Non devi segnare niente.</div></div></div>';}
+  if(isOff(cook)){return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">🔓 Oggi sei libero</div></div><div class="card-b" style="display:block"><div class="readbox">Buon riposo!'+(['Alex','Mattia','Erjola','Ubaldo'].indexOf(cook)>=0?' La tua pulizia oggi la copre <b>Gianluca</b>.':'')+' Non devi segnare niente.</div></div></div>';}
   if(PEOPLE[cook]&&PEOPLE[cook].tournant){
     var cov=getCover();if(!cov)cov=badrCovers();
     var opts='<option value="">— nessuna copertura —</option>'+COVER.map(function(x){return '<option value="'+x[0]+'" '+(x[0]===cov?'selected':'')+'>'+x[1]+' ('+x[0]+')</option>';}).join('');
@@ -383,6 +383,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 24/06 19:45</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 25/06 19:15</div>
 </body>
 </html>
