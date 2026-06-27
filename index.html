@@ -50,11 +50,12 @@
     <a class="app" href="dashboard.html"><span class="emoji">📋</span><span>Dashboard Chef<small>solo per lo chef</small></span><span class="arrow">›</span></a>
     <a class="app" href="ordini.html"><span class="emoji">📦</span><span>Ordini Fornitori<small>ordini e WhatsApp</small></span><span class="arrow">›</span></a>
     <a class="app" href="magazzino.html"><span class="emoji">🗄️</span><span>Magazzino<small>giacenze e scorte minime</small></span><span class="arrow">›</span></a>
+    <a class="app" href="manutenzione.html"><span class="emoji">🛠️</span><span>Manutenzione Cucina<small>guasti, interventi, bolle e fatture</small></span><span class="arrow">›</span></a>
   </div>
   <footer>Prinz Rudolf · Merano</footer>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 27/06 18:05</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 27/06 21:00</div>
 <script>
-  var APP_VER='27/06 18:05';
+  var APP_VER='27/06 21:00';
   (async function selfUpdate(){try{if(sessionStorage.getItem('upd_index'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_index','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
   var CHEF_CODE="Capo2026";
   var box=document.getElementById('chefapps');
