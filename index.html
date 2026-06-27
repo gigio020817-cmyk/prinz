@@ -40,6 +40,7 @@
     <a class="app" href="antipasti.html"><span class="emoji">🥗</span><span>Ricettario Antipasti<small>7 antipasti settimana</small></span><span class="arrow">›</span></a>
     <a class="app" href="antiprod.html"><span class="emoji">🍅</span><span>Produzioni Antipasti<small>cosa produrre, scorte e freschi</small></span><span class="arrow">›</span></a>
     <a class="app" href="primi.html"><span class="emoji">🍝</span><span>Ricettario Primi Piatti<small>2 settimane di primi</small></span><span class="arrow">›</span></a>
+    <a class="app" href="secondi.html"><span class="emoji">🥩</span><span>Ricettario Secondi<small>mezza pensione, 2 settimane</small></span><span class="arrow">›</span></a>
     <a class="app" href="dessert.html"><span class="emoji">🍰</span><span>Pasticceria<small>mezza pensione, vetrina, gelati, torte</small></span><span class="arrow">›</span></a>
     <a class="app" href="pane.html"><span class="emoji">🥖</span><span>App Pane<small>panificazione e scorte</small></span><span class="arrow">›</span></a>
     <a class="app" href="bistro3d.html"><span class="emoji">🍴</span><span>Bistro 3D<small>plastico del nuovo bistro</small></span><span class="arrow">›</span></a>
@@ -51,9 +52,9 @@
     <a class="app" href="magazzino.html"><span class="emoji">🗄️</span><span>Magazzino<small>giacenze e scorte minime</small></span><span class="arrow">›</span></a>
   </div>
   <footer>Prinz Rudolf · Merano</footer>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 24/06 14:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 27/06 18:05</div>
 <script>
-  var APP_VER='24/06 14:00';
+  var APP_VER='27/06 18:05';
   (async function selfUpdate(){try{if(sessionStorage.getItem('upd_index'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_index','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
   var CHEF_CODE="Capo2026";
   var box=document.getElementById('chefapps');

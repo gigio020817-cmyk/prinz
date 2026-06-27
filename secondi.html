@@ -86,6 +86,31 @@
   .corrmbox h3{margin:0 0 4px}.corrmbox p{margin:0 0 8px;font-size:13px;color:#777}
   .corrmbox textarea{width:100%;height:280px;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:12.5px;font-family:ui-monospace,Menlo,monospace;box-sizing:border-box}
   .corrmrow{display:flex;gap:8px;margin-top:10px}.corrmrow button{flex:1}
+
+  /* ===== Controllo Carne ===== */
+  #sectabs{display:flex;gap:8px;padding:10px 14px 12px;background:linear-gradient(160deg,var(--bordeaux),var(--bordeaux-d))}
+  #sectabs .sectab{flex:1;border:none;background:rgba(255,255,255,.14);color:#fff;border-radius:30px;padding:10px;font-size:14px;font-weight:700;cursor:pointer}
+  #sectabs .sectab.on{background:linear-gradient(135deg,var(--yellow),var(--gold));color:#1a1400}
+  #meatview{max-width:760px;margin:0 auto;padding:14px}
+  .mchint{background:#fbf3da;border:1px solid #e7d49a;border-radius:11px;padding:10px 12px;font-size:12.5px;color:#7a5d00;margin-bottom:12px}
+  .mccat{font-size:14px;font-weight:800;color:var(--bordeaux);margin:16px 4px 8px;border-bottom:3px solid var(--gold);padding-bottom:4px}
+  .mcrow{background:var(--paper);border:1px solid var(--line);border-radius:13px;margin-bottom:9px;padding:11px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .mcrow.low{border-color:#c0392b;border-width:2px;background:#fff8f7}
+  .mcinfo{flex:1;min-width:150px}
+  .mcnm{font-size:14.5px;font-weight:700;line-height:1.2}
+  .mcmeta{font-size:11.5px;color:var(--muted);margin-top:5px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .mcmin{color:var(--gold);font-weight:700;cursor:pointer;text-decoration:underline}
+  .mcpill{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:20px;background:#c0392b;color:#fff;margin-left:4px}
+  .mcstep{display:flex;align-items:center;gap:8px;flex:none}
+  .mcstep button{width:40px;height:40px;border:none;border-radius:50%;font-size:24px;font-weight:900;cursor:pointer;line-height:1}
+  .mcminus{background:#fff;color:#c0392b;border:2px solid #c0392b}
+  .mcplus{background:var(--bordeaux);color:#fff}
+  .mcstep button:active{transform:scale(.9)}
+  .mcval{min-width:48px;text-align:center;cursor:pointer}
+  .mcval .mcn{font-size:21px;font-weight:900;display:block;line-height:1}
+  .mcval small{font-size:10px;color:var(--muted);font-weight:700}
+  .mcprod{border:none;background:var(--bordeaux);color:#fff;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
+  .mcprod:active{transform:scale(.97)}
 </style>
 </head>
 <body>
@@ -108,7 +133,9 @@
     <input id="q" type="search" placeholder="Cerca piatto o ingrediente&hellip;" autocomplete="off">
   </div>
 </header>
+<div id="sectabs"><button id="tabRic" class="sectab on" onclick="showSecView('ric')">📖 Ricette</button><button id="tabCarne" class="sectab" onclick="showSecView('carne')">🥩 Controllo Carne</button></div>
 <main><div id="list"></div><div id="detail"></div></main>
+<div id="meatview" style="display:none"></div>
 <footer>Prinz Rudolf &middot; Ricettario Secondi — uso interno cucina</footer>
 </div>
 <div id="viewer" onclick="this.style.display='none'"><img id="vimg" src=""></div>
@@ -135,15 +162,15 @@ async function tryUnlock(password,fromStore){
     DISHES=await decrypt(password);
     try{var crows=await sb('kitchen_meta?k=like.seccorr|*&select=*');CORR={};(crows||[]).forEach(function(r){CORR[r.k]=(r.v&&r.v.text)||'';});}catch(_){}
     if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_pw',password)}catch(e){}}
-    document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';renderList();
+    document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';renderList();loadMeat();if(!window._miv)window._miv=setInterval(function(){var mv=document.getElementById('meatview');if(mv&&mv.style.display!=='none')loadMeat();},45000);
   }catch(e){err.textContent="Password errata";pw.value="";pw.focus();try{localStorage.removeItem('pr_pw')}catch(_){}}
 }
 document.getElementById('enter').onclick=()=>tryUnlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(pw.value,false)});
-const APP_VER='27/06 17:57';
+const APP_VER='27/06 18:10';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_sec'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_sec','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){if(!window.crypto||!crypto.subtle){err.textContent="Apri l'app dal sito (https), non come file locale.";return;}
-  try{if(localStorage.getItem('pr_av_sec')!=='27/06 17:57'){localStorage.removeItem('pr_pw');localStorage.setItem('pr_av_sec','27/06 17:57');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_pw')}catch(e){}
+  try{if(localStorage.getItem('pr_av_sec')!=='27/06 18:10'){localStorage.removeItem('pr_pw');localStorage.setItem('pr_av_sec','27/06 18:10');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_pw')}catch(e){}
   if(s){document.getElementById('remember').checked=true;tryUnlock(s,true);}else{setTimeout(()=>pw.focus(),300);}})();
 function freqBadge(fr){if(!fr||fr==="—")return '';return `<span class="badge ${FREQ[fr]||'b-na'}">${fr}</span>`;}
 function renderList(filter){
@@ -179,8 +206,32 @@ function corrBox(cid){return '<div class="corrbox"><div class="corrlbl">✏️ M
 function saveCorr(cid,btn){var ta=btn.closest('.corrbox').querySelector('textarea');var v=ta.value;CORR['seccorr|'+cid]=v;var _lab='';try{_lab=(DISHES[parseInt(cid.split('|')[1],10)]||{}).title||'';}catch(e){}sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'seccorr|'+cid,v:{text:v,label:_lab,at:new Date().toISOString()}})}).catch(function(e){console.error(e);});var t=btn.textContent;btn.textContent='✓ Salvato';setTimeout(function(){btn.textContent=t;},1500);}
 function exportCorr(){var out='MODIFICHE SECONDI — Prinz Rudolf\n\n';var any=false;DISHES.forEach(function(d,i){var c=getCorr('sec|'+i);if(c&&c.trim()){any=true;out+='• ['+(d.giorno||'')+'] '+(d.title||'')+'\n  → '+c.trim()+'\n\n';}});if(!any)out+='(nessuna modifica scritta)';var m=document.getElementById('corrModal');m.querySelector('textarea').value=out;m.style.display='flex';}
 function copyCorr(){var t=document.getElementById('corrModal').querySelector('textarea');t.select();t.setSelectionRange(0,99999);try{navigator.clipboard.writeText(t.value);}catch(e){try{document.execCommand('copy')}catch(_){}}var b=event&&event.target;if(b){var x=b.textContent;b.textContent='✓ Copiato';setTimeout(function(){b.textContent=x;},1500);}}
+
+var MEAT=[{"cat": "carne", "n": "Filetto di maiale", "u": "pz", "id": "filetto-di-maiale"}, {"cat": "carne", "n": "Spalla di maiale", "u": "kg", "id": "spalla-di-maiale"}, {"cat": "carne", "n": "Salsiccia suino nero siciliano", "u": "kg", "id": "salsiccia-suino-nero-siciliano"}, {"cat": "carne", "n": "Steak di tacchino", "u": "pz", "id": "steak-di-tacchino"}, {"cat": "carne", "n": "Petto d'anatra", "u": "pz", "id": "petto-d-anatra"}, {"cat": "carne", "n": "Petto di pollo al mais", "u": "pz", "id": "petto-di-pollo-al-mais"}, {"cat": "carne", "n": "Petto di faraona", "u": "pz", "id": "petto-di-faraona"}, {"cat": "carne", "n": "Guancia di manzo", "u": "pz", "id": "guancia-di-manzo"}, {"cat": "carne", "n": "Brasato di manzo", "u": "kg", "id": "brasato-di-manzo"}, {"cat": "carne", "n": "Goulash di manzo", "u": "kg", "id": "goulash-di-manzo"}, {"cat": "carne", "n": "Flan di manzo", "u": "pz", "id": "flan-di-manzo"}, {"cat": "carne", "n": "Scamone d'agnello", "u": "kg", "id": "scamone-d-agnello"}, {"cat": "pesce", "n": "Filetto di salmone", "u": "pz", "id": "filetto-di-salmone"}, {"cat": "pesce", "n": "Filetto di branzino", "u": "pz", "id": "filetto-di-branzino"}, {"cat": "pesce", "n": "Filetto di orata", "u": "pz", "id": "filetto-di-orata"}, {"cat": "pesce", "n": "Filetto di sgombro", "u": "pz", "id": "filetto-di-sgombro"}];
+var MSTOCK={};
+async function loadMeat(){try{var r=await sb('kitchen_meta?k=like.seccarne|*&select=*');MSTOCK={};(r||[]).forEach(function(x){MSTOCK[x.k.slice(9)]=x.v||{};});}catch(e){}var mv=document.getElementById('meatview');if(mv&&mv.style.display!=='none')renderMeat();}
+function findMeat(id){for(var i=0;i<MEAT.length;i++)if(MEAT[i].id===id)return MEAT[i];return null;}
+function mq(id){var v=MSTOCK[id];return (v&&typeof v.q==='number')?v.q:0;}
+function mmin(id){var v=MSTOCK[id];return (v&&typeof v.min==='number')?v.min:null;}
+function munit(id){var it=findMeat(id);return it?it.u:'';}
+function mtloc(iso){try{return new Date(iso).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})}catch(e){return''}}
+async function saveMeat(id){var v=MSTOCK[id]||{};try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'seccarne|'+id,v:v})});}catch(e){alert('\u26a0\ufe0f Non salvato, controlla internet');}}
+function mchg(id,d){var v=MSTOCK[id]||(MSTOCK[id]={});var q=(typeof v.q==='number'?v.q:0)+d;v.q=q<0?0:q;saveMeat(id);renderMeat();}
+function mset(id){var cur=mq(id);var n=prompt('Giacenza attuale ('+munit(id)+'):',cur);if(n===null)return;n=parseFloat((''+n).replace(',','.'));if(isNaN(n)||n<0)return;var v=MSTOCK[id]||(MSTOCK[id]={});v.q=n;saveMeat(id);renderMeat();}
+function mprod(id){var it=findMeat(id);if(!it)return;var n=prompt('Quanti '+it.u+' di "'+it.n+'" hai prodotto? (li aggiungo alla giacenza)','');if(n===null)return;n=parseFloat((''+n).replace(',','.'));if(isNaN(n)||n<=0)return;var v=MSTOCK[id]||(MSTOCK[id]={});v.q=(typeof v.q==='number'?v.q:0)+n;v.prod=new Date().toISOString();saveMeat(id);renderMeat();}
+function mminset(id){var it=findMeat(id);var cur=mmin(id);var n=prompt('Sotto quanti '+it.u+' segnalare "DA PRODURRE"? (lascia vuoto per togliere l\'avviso)',cur==null?'':cur);if(n===null)return;var v=MSTOCK[id]||(MSTOCK[id]={});if((''+n).trim()===''){delete v.min;}else{var x=parseFloat((''+n).replace(',','.'));if(isNaN(x)||x<0)return;v.min=x;}saveMeat(id);renderMeat();}
+function renderMeat(){var host=document.getElementById('meatview');if(!host)return;var groups=[['\ud83e\udd69 Carni','carne'],['\ud83d\udc1f Pesce','pesce']];
+ var h='<div class="mchint">Tocca <b>\uff0b Ho prodotto\u2026</b> quando fai una produzione: si aggiunge alla giacenza. Usa <b>\u2212</b> quando consumi. Tocca il numero per correggerlo a mano. Imposta un minimo per farti avvisare con <b>DA PRODURRE</b>.</div>';
+ groups.forEach(function(g){var items=MEAT.filter(function(m){return m.cat===g[1];});h+='<div class="mccat">'+g[0]+'</div>';
+  items.forEach(function(it){var q=mq(it.id),mn=mmin(it.id),low=(mn!=null&&q<=mn);var pr=(MSTOCK[it.id]&&MSTOCK[it.id].prod)?'<span class="mcm">ult. prod. '+mtloc(MSTOCK[it.id].prod)+'</span>':'';var minl='<span class="mcmin" onclick="mminset(\''+it.id+'\')">'+(mn!=null?('min '+mn+' '+it.u):'\uff0b imposta minimo')+'</span>';
+   h+='<div class="mcrow'+(low?' low':'')+'"><div class="mcinfo"><div class="mcnm">'+ce(it.n)+(low?' <span class="mcpill">DA PRODURRE</span>':'')+'</div><div class="mcmeta">'+minl+pr+'</div></div><div class="mcstep"><button class="mcminus" onclick="mchg(\''+it.id+'\',-1)">\u2212</button><div class="mcval" onclick="mset(\''+it.id+'\')"><span class="mcn">'+q+'</span><small>'+it.u+'</small></div><button class="mcplus" onclick="mchg(\''+it.id+'\',1)">+</button></div><button class="mcprod" onclick="mprod(\''+it.id+'\')">\uff0b Ho prodotto\u2026</button></div>';});});
+ host.innerHTML=h;}
+function showSecView(v){var main=document.querySelector('main'),mv=document.getElementById('meatview'),sr=document.querySelector('.search'),tr=document.getElementById('tabRic'),tc=document.getElementById('tabCarne'),ht=document.getElementById('hTitle');
+ if(v==='carne'){main.style.display='none';mv.style.display='block';if(sr)sr.style.display='none';tr.classList.remove('on');tc.classList.add('on');if(ht)ht.textContent='Controllo Carne';loadMeat();renderMeat();window.scrollTo(0,0);}
+ else{mv.style.display='none';main.style.display='block';if(sr)sr.style.display='';tr.classList.add('on');tc.classList.remove('on');renderList(document.getElementById('q').value);window.scrollTo(0,0);}}
+
 </script>
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Modifiche da inviare</h3><p>Copia questo testo e mandalo a Gigio (o incollalo a Claude in chat).</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 27/06 17:57</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 27/06 18:10</div>
 </body>
 </html>
