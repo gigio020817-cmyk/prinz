@@ -7,7 +7,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
 <title>Prinz Rudolf · Manutenzione</title>
 <style>
- :root{--nero:#1c1c1c;--nero-d:#000;--cream:#faf8f2;--paper:#fff;--ink:#1a1a1a;--muted:#8a8378;--line:#ececec;--gold:#c9a227;--yellow:#f5c518;--rosso:#c0392b;--ambra:#d98e04;--verde:#2e9c5f;--blu:#2b6cb0}
+ :root{--nero:#1c1c1c;--nero-d:#000;--cream:#faf8f2;--paper:#fff;--ink:#1a1a1a;--muted:#8a8378;--line:#ececec;--gold:#c9a227;--yellow:#f5c518;--rosso:#c0392b;--ambra:#d98e04;--verde:#2e9c5f;--blu:#2b6cb0;--wa:#25d366}
  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}html,body{margin:0;padding:0}
  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--cream);color:var(--ink);line-height:1.4;padding-bottom:env(safe-area-inset-bottom)}
  #lock{position:fixed;inset:0;z-index:50;background:linear-gradient(160deg,var(--nero),var(--nero-d));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;color:#fff;text-align:center}
@@ -21,8 +21,9 @@
  .brand h1{font-size:17px;margin:0;font-weight:800}.brand small{display:block;font-size:10px;opacity:.8;letter-spacing:1.4px;text-transform:uppercase;font-weight:700}
  main{max-width:820px;margin:0 auto;padding:14px}
  .bar{display:flex;gap:8px;margin-bottom:10px}
- .bar input{flex:1;border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-size:15px}
- .newbtn{border:none;border-radius:11px;padding:0 16px;font-size:15px;font-weight:800;background:var(--nero);color:#fff;cursor:pointer;white-space:nowrap}
+ .bar input{flex:1;border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-size:15px;min-width:0}
+ .newbtn{border:none;border-radius:11px;padding:11px 14px;font-size:15px;font-weight:800;background:var(--nero);color:#fff;cursor:pointer;white-space:nowrap}
+ .fornb{background:var(--blu)}
  .filters{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}.filters::-webkit-scrollbar{display:none}
  .fchip{flex:none;border:1px solid var(--line);background:#fff;border-radius:30px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;color:#555}.fchip.on{background:var(--nero);color:#fff;border-color:var(--nero)}
  #status{font-size:12px;color:var(--muted);margin-bottom:10px;text-align:center;font-weight:600}
@@ -36,11 +37,11 @@
  .b-da{background:var(--rosso)} .b-corso{background:var(--ambra)} .b-ok{background:var(--verde)}
  .att{display:inline-flex;align-items:center;gap:3px}
  .empty{text-align:center;color:var(--muted);padding:46px 16px;font-size:14px}
- /* detail */
- #detail{display:none;position:fixed;inset:0;z-index:40;background:var(--cream);overflow-y:auto;-webkit-overflow-scrolling:touch}
+ #detail,#forn{display:none;position:fixed;inset:0;z-index:40;background:var(--cream);overflow-y:auto;-webkit-overflow-scrolling:touch}
  .dwrap{max-width:760px;margin:0 auto;padding:14px 16px 60px}
  .dtop{position:sticky;top:0;background:var(--cream);padding:8px 0 10px;display:flex;align-items:center;gap:10px;z-index:5;border-bottom:1px solid var(--line);margin-bottom:14px}
  .dtop .back{border:none;background:none;color:var(--nero);font-size:16px;font-weight:800;cursor:pointer;padding:6px}
+ .dtop .ttl{font-weight:800;font-size:16px}
  .dtop .savebtn{margin-left:auto;border:none;border-radius:10px;padding:10px 18px;font-size:15px;font-weight:800;background:linear-gradient(135deg,var(--yellow),var(--gold));color:#1a1400;cursor:pointer}
  .field{margin-bottom:13px}
  .field label{display:block;font-size:12px;font-weight:800;color:#555;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
@@ -52,15 +53,25 @@
  .statosel button.on.s-da{background:var(--rosso);color:#fff;border-color:var(--rosso)}
  .statosel button.on.s-corso{background:var(--ambra);color:#fff;border-color:var(--ambra)}
  .statosel button.on.s-ok{background:var(--verde);color:#fff;border-color:var(--verde)}
+ .callrow{display:flex;gap:8px;margin:-4px 0 13px}
+ .callbtn{flex:1;text-align:center;border:none;border-radius:11px;padding:12px;font-size:14.5px;font-weight:800;cursor:pointer;color:#fff;background:var(--blu);text-decoration:none;display:block}
+ .callbtn.wa{background:var(--wa)}
+ .callbtn.share{background:#7a4fb0}
+ .callbtn.off{background:#cfcfcf;color:#777;pointer-events:none}
  .atts{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
  .attbox{position:relative;width:92px}
  .attbox .thumb{width:92px;height:92px;border-radius:10px;border:1px solid #ccc;object-fit:cover;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:30px}
  .attbox .lbl{font-size:10px;text-align:center;color:#666;margin-top:3px;font-weight:700}
  .attbox .del{position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;background:var(--rosso);color:#fff;border:2px solid #fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1}
  .addatt{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
- .addbtn{border:1.5px dashed var(--gold);background:#fffdf5;color:#8a6d00;border-radius:11px;padding:11px 14px;font-size:13.5px;font-weight:800;cursor:pointer}
+ .addbtn{display:inline-block;border:1.5px dashed var(--gold);background:#fffdf5;color:#8a6d00;border-radius:11px;padding:11px 14px;font-size:13.5px;font-weight:800;cursor:pointer}
  .addbtn input{display:none}
  .delrec{width:100%;margin-top:22px;border:1.5px solid var(--rosso);background:#fff;color:var(--rosso);border-radius:11px;padding:12px;font-size:14px;font-weight:800;cursor:pointer}
+ .frow{background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:11px 13px;margin-bottom:9px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+ .frow .fi{flex:1;min-width:0}.frow .fn{font-size:15px;font-weight:800}.frow .ft{font-size:12.5px;color:var(--muted)}
+ .ic{width:40px;height:40px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:#fff;flex:none;text-decoration:none}
+ .ic.call{background:var(--blu)} .ic.wa{background:var(--wa)} .ic.edit{background:#eee;color:#555} .ic.del{background:#fff;color:var(--rosso);border:1.5px solid var(--rosso)}
+ .addforn{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px;margin-bottom:14px}
  #viewer{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:60;padding:14px}#viewer img{max-width:100%;max-height:100%;border-radius:8px}
  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#15201a;color:#fff;padding:11px 16px;border-radius:12px;font-size:13.5px;font-weight:700;opacity:0;transition:opacity .2s;z-index:80;pointer-events:none}#toast.show{opacity:.97}
  #verbadge{position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none}
@@ -72,7 +83,7 @@
 <div id="app" style="display:none">
  <header><div class="brand"><div class="mark">PR</div><div><small>Prinz Rudolf · Cucina</small><h1>Manutenzione</h1></div></div></header>
  <main>
-  <div class="bar"><input id="q" type="search" placeholder="Cerca macchinario, problema, ditta…" autocomplete="off"><button class="newbtn" id="newBtn">＋ Nuovo</button></div>
+  <div class="bar"><input id="q" type="search" placeholder="Cerca macchinario, problema, ditta…" autocomplete="off"><button class="newbtn" id="newBtn">＋ Nuovo</button><button class="newbtn fornb" id="fornBtn">📇 Fornitori</button></div>
   <div class="filters" id="filters"></div>
   <div id="status">Caricamento…</div>
   <div id="list"></div>
@@ -82,30 +93,40 @@
  <div class="dtop"><button class="back" id="dBack">‹ Indietro</button><button class="savebtn" id="dSave">Salva</button></div>
  <div id="dform"></div>
 </div></div>
+<div id="forn"><div class="dwrap">
+ <div class="dtop"><button class="back" id="fBack">‹ Indietro</button><span class="ttl">📇 Rubrica fornitori</span></div>
+ <div id="fbody"></div>
+</div></div>
 <div id="viewer" onclick="this.style.display='none'"><img id="vimg" src=""></div>
 <div id="toast"></div>
-<div id="verbadge">v 27/06 21:00</div>
+<div id="verbadge">v 28/06 07:00</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 const CHEF_CODE="Capo2026";
-const APP_VER='27/06 21:00';
+const APP_VER='28/06 07:00';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
 async function sb(path,opt){opt=opt||{};var h=Object.assign({apikey:SB_KEY,'Content-Type':'application/json'},opt.headers||{});var r=await fetch(SB_URL+'/rest/v1/'+path,Object.assign({},opt,{headers:h}));if(!r.ok)throw new Error('HTTP '+r.status);var t=await r.text();return t?JSON.parse(t):[];}
-function unlock(p,fs){var e=el('err');if(p!==APP_PW){e.textContent='Password errata';el('pw').value='';return;}if(el('remember').checked||fs){try{localStorage.setItem('mt_pw','1')}catch(_){}}el('lock').style.display='none';el('app').style.display='block';loadAll();if(!window._iv)window._iv=setInterval(function(){if(el('detail').style.display!=='block')loadAll();},60000);}
+function unlock(p,fs){var e=el('err');if(p!==APP_PW){e.textContent='Password errata';el('pw').value='';return;}if(el('remember').checked||fs){try{localStorage.setItem('mt_pw','1')}catch(_){}}el('lock').style.display='none';el('app').style.display='block';loadAll();if(!window._iv)window._iv=setInterval(function(){if(el('detail').style.display!=='block'&&el('forn').style.display!=='block')loadAll();},60000);}
 el('enter').onclick=function(){unlock(el('pw').value,false);};
 el('pw').addEventListener('keydown',function(e){if(e.key==='Enter')unlock(e.target.value,false);});
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_manut'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_manut','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_manut')!==APP_VER){localStorage.removeItem('mt_pw');localStorage.setItem('pr_av_manut',APP_VER);}}catch(_e){}var s=null;try{s=localStorage.getItem('mt_pw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(function(){el('pw').focus();},300);})();
 
-var ITEMS=[],FILT='aperti',CUR=null;
+var ITEMS=[],FORN=[],FILT='aperti',CUR=null;
 var STATI={da:{t:'Da fare',b:'b-da',s:'s-da'},corso:{t:'In corso',b:'b-corso',s:'s-corso'},ok:{t:'Sistemato',b:'b-ok',s:'s-ok'}};
 function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
 function dShow(s){if(!s)return '';var p=s.split('-');return p.length===3?(p[2]+'/'+p[1]+'/'+p[0].slice(2)):s;}
-async function loadAll(){el('status').textContent='Caricamento dal cloud…';try{var r=await sb('kitchen_meta?k=like.manut|*&select=*');ITEMS=(r||[]).map(function(x){var v=x.v||{};v._id=x.k.slice(6);return v;}).filter(function(v){return !v.deleted;});el('status').textContent='✓ Collegato · '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});render();}catch(e){el('status').textContent='⚠️ Problema di collegamento. Controlla internet e riapri.';console.error(e);}}
+function waDigits(t){var d=(t||'').replace(/[^0-9]/g,'');if(!d)return '';if(d.indexOf('00')===0)d=d.slice(2);if(d.indexOf('39')!==0&&d.length<=10)d='39'+d;return d;}
+function waMsg(){var mac=el('f_mac')?el('f_mac').value:(CUR&&CUR.macchinario||'');var prob=el('f_prob')?el('f_prob').value:(CUR&&CUR.problema||'');return encodeURIComponent('Prinz Rudolf – Manutenzione\nMacchinario: '+mac+'\nProblema: '+prob);}
+async function loadAll(){el('status').textContent='Caricamento dal cloud…';try{
+  var r=await sb('kitchen_meta?k=like.manut|*&select=*');ITEMS=(r||[]).map(function(x){var v=x.v||{};v._id=x.k.slice(6);return v;}).filter(function(v){return !v.deleted;});
+  try{var fr=await sb('kitchen_meta?k=eq.manutfornlist&select=*');FORN=(fr&&fr[0]&&fr[0].v&&fr[0].v.items)?fr[0].v.items:[];}catch(_){}
+  el('status').textContent='✓ Collegato · '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});render();
+ }catch(e){el('status').textContent='⚠️ Problema di collegamento. Controlla internet e riapri.';console.error(e);}}
 function filtersBar(){var n=ITEMS.filter(function(i){return i.stato!=='ok';}).length;var T=[['aperti','🔧 Aperti'+(n?' ('+n+')':'')],['ok','✅ Sistemati'],['tutti','📋 Tutti']];el('filters').innerHTML=T.map(function(t){return '<button class="fchip'+(FILT===t[0]?' on':'')+'" onclick="setFilt(\''+t[0]+'\')">'+esc(t[1])+'</button>';}).join('');}
 function setFilt(f){FILT=f;render();window.scrollTo(0,0);}
 el('q').addEventListener('input',render);
@@ -119,26 +140,32 @@ function render(){filtersBar();var q=(el('q').value||'').trim().toLowerCase();va
  list.innerHTML=items.map(function(i){var st=STATI[i.stato||'da'];var na=(i.allegati||[]).length;
   return '<div class="card" onclick="openEdit(\''+i._id+'\')"><div class="top"><span class="mac">'+esc(i.macchinario||'(senza nome)')+'</span><span class="badge '+st.b+'">'+st.t+'</span></div>'+
   (i.problema?'<div class="prob">'+esc(i.problema)+'</div>':'')+
-  '<div class="meta">'+(i.ditta?'<span>🛠 '+esc(i.ditta)+'</span>':'')+(i.dataSegn?'<span>📅 '+dShow(i.dataSegn)+'</span>':'')+(i.stato==='ok'&&i.dataRip?'<span>✅ '+dShow(i.dataRip)+'</span>':'')+(i.costo?'<span>💶 '+esc(i.costo)+'</span>':'')+(na?'<span class="att">📎 '+na+'</span>':'')+'</div></div>';
+  '<div class="meta">'+(i.ditta?'<span>🛠 '+esc(i.ditta)+'</span>':'')+(i.tel?'<span>📞 '+esc(i.tel)+'</span>':'')+(i.dataSegn?'<span>📅 '+dShow(i.dataSegn)+'</span>':'')+(i.stato==='ok'&&i.dataRip?'<span>✅ '+dShow(i.dataRip)+'</span>':'')+(i.costo?'<span>💶 '+esc(i.costo)+'</span>':'')+(na?'<span class="att">📎 '+na+'</span>':'')+'</div></div>';
  }).join('');
 }
-function openNew(){CUR={_id:'i'+Date.now(),macchinario:'',problema:'',stato:'da',ditta:'',dataSegn:today(),dataRip:'',costo:'',note:'',allegati:[]};renderForm(true);}
+function openNew(){CUR={_id:'i'+Date.now(),macchinario:'',problema:'',stato:'da',ditta:'',tel:'',dataSegn:today(),dataRip:'',costo:'',note:'',allegati:[]};renderForm(true);}
 function openEdit(id){var it=ITEMS.find(function(i){return i._id===id;});if(!it)return;CUR=JSON.parse(JSON.stringify(it));renderForm(false);}
 el('newBtn').onclick=openNew;
+el('fornBtn').onclick=openForn;
 el('dBack').onclick=function(){el('detail').style.display='none';CUR=null;};
 el('dSave').onclick=save;
-function setStato(s){CUR.stato=s;if(s==='ok'&&!CUR.dataRip)CUR.dataRip=today();renderForm(CUR._isnew);}
-function renderForm(isNew){CUR._isnew=isNew;el('detail').style.display='block';window.scrollTo(0,0);
+el('fBack').onclick=function(){el('forn').style.display='none';render();};
+function setStato(s){grab();CUR.stato=s;if(s==='ok'&&!CUR.dataRip)CUR.dataRip=today();renderForm(CUR._isnew);}
+function renderForm(isNew){CUR._isnew=isNew;el('detail').style.display='block';el('forn').style.display='none';window.scrollTo(0,0);
  var atts=(CUR.allegati||[]).map(function(a,idx){var isImg=(a.mime||'').indexOf('image')===0;
    var thumb=isImg?'<img class="thumb" src="'+a.data+'" onclick="viewAtt('+idx+')">':'<div class="thumb" onclick="viewAtt('+idx+')">📄</div>';
    return '<div class="attbox">'+thumb+'<div class="lbl">'+esc(a.kind||'allegato')+'</div><div class="del" onclick="rmAtt('+idx+')">×</div></div>';
  }).join('');
+ var fopts='<option value="">— scegli dalla rubrica —</option>'+FORN.map(function(f){var sel=(CUR.ditta===f.nome)?' selected':'';return '<option value="'+esc(f.id)+'"'+sel+'>'+esc(f.nome)+(f.tel?' ('+esc(f.tel)+')':'')+'</option>';}).join('')+'<option value="__manual">✎ scrivi a mano</option>';
  var h='';
  h+='<div class="field"><label>Macchinario</label><input id="f_mac" list="maclist" placeholder="es. Forno combi, Abbattitore…" value="'+esc(CUR.macchinario)+'"><datalist id="maclist">'+macSuggest()+'</datalist></div>';
  h+='<div class="field"><label>Problema</label><textarea id="f_prob" placeholder="Cosa non va…">'+esc(CUR.problema)+'</textarea></div>';
  h+='<div class="field"><label>Stato</label><div class="statosel">'+['da','corso','ok'].map(function(s){return '<button class="'+STATI[s].s+(CUR.stato===s?' on':'')+'" onclick="setStato(\''+s+'\')">'+STATI[s].t+'</button>';}).join('')+'</div></div>';
+ h+='<div class="field"><label>Fornitore</label><select id="f_fornsel" onchange="pickForn()">'+fopts+'</select></div>';
+ h+='<div class="row2"><div class="field"><label>Nome ditta</label><input id="f_ditta" placeholder="chi interviene" value="'+esc(CUR.ditta)+'"></div><div class="field"><label>Telefono</label><input id="f_tel" type="tel" placeholder="numero" value="'+esc(CUR.tel||'')+'"></div></div>';
+ h+='<div class="callrow"><a class="callbtn call" onclick="doCall()">📞 Chiama</a><a class="callbtn wa" onclick="doWa()">💬 WhatsApp</a><a class="callbtn share" onclick="doShare()">📤 Invia con foto</a></div>';
  h+='<div class="row2"><div class="field"><label>Data segnalazione</label><input id="f_segn" type="date" value="'+esc(CUR.dataSegn)+'"></div><div class="field"><label>Data riparazione</label><input id="f_rip" type="date" value="'+esc(CUR.dataRip)+'"></div></div>';
- h+='<div class="row2"><div class="field"><label>Ditta / fornitore</label><input id="f_ditta" placeholder="chi interviene" value="'+esc(CUR.ditta)+'"></div><div class="field"><label>Costo</label><input id="f_costo" placeholder="es. 120 €" value="'+esc(CUR.costo)+'"></div></div>';
+ h+='<div class="field"><label>Costo</label><input id="f_costo" placeholder="es. 120 €" value="'+esc(CUR.costo)+'"></div>';
  h+='<div class="field"><label>Note</label><textarea id="f_note" placeholder="dettagli, garanzia, contatti…">'+esc(CUR.note)+'</textarea></div>';
  h+='<div class="field"><label>Allegati (bolla, fattura, foto)</label><div class="atts">'+(atts||'<span style="color:#999;font-size:13px">Nessun allegato</span>')+'</div>'+
    '<div class="addatt">'+
@@ -150,7 +177,15 @@ function renderForm(isNew){CUR._isnew=isNew;el('detail').style.display='block';w
  el('dform').innerHTML=h;
 }
 function macSuggest(){var set={};ITEMS.forEach(function(i){if(i.macchinario)set[i.macchinario]=1;});return Object.keys(set).map(function(m){return '<option value="'+esc(m)+'">';}).join('');}
-function grab(){CUR.macchinario=el('f_mac').value.trim();CUR.problema=el('f_prob').value.trim();CUR.dataSegn=el('f_segn').value;CUR.dataRip=el('f_rip').value;CUR.ditta=el('f_ditta').value.trim();CUR.costo=el('f_costo').value.trim();CUR.note=el('f_note').value.trim();}
+function pickForn(){var v=el('f_fornsel').value;if(v==='__manual'){el('f_ditta').value='';el('f_tel').value='';el('f_ditta').focus();return;}if(!v)return;var f=FORN.find(function(x){return x.id===v;});if(f){el('f_ditta').value=f.nome||'';el('f_tel').value=f.tel||'';}}
+function doCall(){var t=el('f_tel').value.trim();if(!t){toast('Aggiungi un numero');return;}location.href='tel:'+t.replace(/\s/g,'');}
+function doWa(){var t=el('f_tel').value.trim();var d=waDigits(t);if(!d){toast('Aggiungi un numero');return;}window.open('https://wa.me/'+d+'?text='+waMsg(),'_blank');}
+async function doShare(){grab();var msg='Prinz Rudolf – Manutenzione\nMacchinario: '+(CUR.macchinario||'')+'\nProblema: '+(CUR.problema||'')+(CUR.ditta?'\nFornitore: '+CUR.ditta:'');
+ var files=[];var imgs=(CUR.allegati||[]).filter(function(a){return (a.mime||'').indexOf('image')===0;});
+ try{for(var i=0;i<imgs.length;i++){var r=await fetch(imgs[i].data);var b=await r.blob();files.push(new File([b],'foto'+(i+1)+'.jpg',{type:imgs[i].mime||'image/jpeg'}));}}catch(e){}
+ if(navigator.share){try{var data={text:msg};if(files.length&&navigator.canShare&&navigator.canShare({files:files}))data.files=files;await navigator.share(data);return;}catch(e){if(e&&e.name==='AbortError')return;}}
+ var d=waDigits(CUR.tel);if(d){window.open('https://wa.me/'+d+'?text='+encodeURIComponent(msg),'_blank');toast('Su questo dispositivo allega la foto a mano');}else{toast('Condivisione non disponibile qui');}}
+function grab(){if(!el('f_mac'))return;CUR.macchinario=el('f_mac').value.trim();CUR.problema=el('f_prob').value.trim();CUR.dataSegn=el('f_segn').value;CUR.dataRip=el('f_rip').value;CUR.ditta=el('f_ditta').value.trim();CUR.tel=el('f_tel').value.trim();CUR.costo=el('f_costo').value.trim();CUR.note=el('f_note').value.trim();}
 function compress(file){return new Promise(function(res){
  if((file.type||'').indexOf('image')!==0){var fr=new FileReader();fr.onload=function(){res({mime:file.type||'application/octet-stream',data:fr.result,name:file.name});};fr.readAsDataURL(file);return;}
  var fr=new FileReader();fr.onload=function(){var img=new Image();img.onload=function(){var max=1400;var w=img.width,hh=img.height;if(w>max||hh>max){if(w>hh){hh=Math.round(hh*max/w);w=max;}else{w=Math.round(w*max/hh);hh=max;}}var c=document.createElement('canvas');c.width=w;c.height=hh;c.getContext('2d').drawImage(img,0,0,w,hh);res({mime:'image/jpeg',data:c.toDataURL('image/jpeg',0.7),name:(file.name||'foto')});};img.src=fr.result;};fr.readAsDataURL(file);
@@ -169,5 +204,23 @@ async function delRec(){var c=prompt('Codice chef per eliminare:');if(c===null)r
  var rec=Object.assign({},CUR);delete rec._id;delete rec._isnew;rec.deleted=true;rec.updatedAt=new Date().toISOString();
  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'manut|'+CUR._id,v:rec})});ITEMS=ITEMS.filter(function(i){return i._id!==CUR._id;});el('detail').style.display='none';CUR=null;render();toast('Eliminato');}catch(e){toast('⚠️ Non riuscito');console.error(e);}
 }
+/* ===== Rubrica fornitori ===== */
+function openForn(){el('forn').style.display='block';el('detail').style.display='none';window.scrollTo(0,0);renderForn();}
+function renderForn(){var h='';
+ h+='<div class="addforn"><div class="row2"><div class="field" style="margin-bottom:8px"><label>Nuovo fornitore</label><input id="nf_nome" placeholder="es. Tecnico forno Rational"></div><div class="field" style="margin-bottom:8px"><label>Telefono</label><input id="nf_tel" type="tel" placeholder="es. 349 1234567"></div></div><button class="newbtn" style="width:100%" onclick="addForn()">＋ Aggiungi alla rubrica</button></div>';
+ if(!FORN.length){h+='<div class="empty">Nessun fornitore salvato. Aggiungine uno qui sopra.</div>';}
+ else{FORN.slice().sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'');}).forEach(function(f){var d=waDigits(f.tel);
+   h+='<div class="frow"><div class="fi"><div class="fn">'+esc(f.nome||'(senza nome)')+'</div><div class="ft">'+esc(f.tel||'—')+'</div></div>'+
+   (f.tel?'<a class="ic call" href="tel:'+esc((f.tel||'').replace(/\s/g,''))+'">📞</a>':'')+
+   (d?'<a class="ic wa" href="https://wa.me/'+d+'" target="_blank">💬</a>':'')+
+   '<button class="ic edit" onclick="editForn(\''+f.id+'\')">✎</button>'+
+   '<button class="ic del" onclick="delForn(\''+f.id+'\')">🗑</button></div>';
+ });}
+ el('fbody').innerHTML=h;
+}
+async function saveForn(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'manutfornlist',v:{items:FORN}})});}catch(e){toast('⚠️ Non salvato');console.error(e);}}
+function addForn(){var n=el('nf_nome').value.trim();var t=el('nf_tel').value.trim();if(!n){toast('Scrivi il nome');return;}FORN.push({id:'f'+Date.now(),nome:n,tel:t});saveForn();renderForn();toast('✓ Aggiunto');}
+function editForn(id){var f=FORN.find(function(x){return x.id===id;});if(!f)return;var n=prompt('Nome fornitore:',f.nome||'');if(n===null)return;var t=prompt('Telefono:',f.tel||'');if(t===null)return;f.nome=n.trim();f.tel=t.trim();saveForn();renderForn();}
+function delForn(id){var f=FORN.find(function(x){return x.id===id;});if(!confirm('Eliminare "'+((f&&f.nome)||'')+'" dalla rubrica?'))return;FORN=FORN.filter(function(x){return x.id!==id;});saveForn();renderForn();}
 </script>
 </body></html>
