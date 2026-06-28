@@ -80,6 +80,12 @@
   .corrmbox h3{margin:0 0 4px}.corrmbox p{margin:0 0 8px;font-size:13px;color:#777}
   .corrmbox textarea{width:100%;height:280px;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:12.5px;font-family:ui-monospace,Menlo,monospace;box-sizing:border-box}
   .corrmrow{display:flex;gap:8px;margin-top:10px}.corrmrow button{flex:1}
+.ordintro{font-size:13px;color:#8a8378;margin:2px 0 14px;line-height:1.4}
+.ordsec{font-weight:800;font-size:16px;margin:20px 0 10px;color:#1a1a1a}
+.ordn{display:inline-block;background:#c9a227;color:#fff;border-radius:20px;padding:1px 9px;font-size:12px;font-weight:800;vertical-align:middle;margin-left:4px}
+.ordgrid{display:flex;flex-wrap:wrap;gap:8px}
+.ordit{border:1px solid #ececec;background:#fff;color:#1a1a1a;border-radius:20px;padding:9px 14px;font-size:14px;font-weight:600;cursor:pointer}
+.ordit.done{text-decoration:line-through;opacity:.4;background:#f2f2f2}
 </style>
 </head>
 <body>
@@ -115,7 +121,7 @@ async function decrypt(password){
   return JSON.parse(new TextDecoder().decode(p));
 }
 var DATA=null, SCOUNT={}, CORR={}, curTab='mezza', curW=0;
-const TABS=[['mezza','🍮 Mezza pensione'],['vetrina','🍰 Vetrina dolci'],['gelati','🍨 Gelati'],['torte','🥧 Torte colazioni']];
+const TABS=[['mezza','🍮 Mezza pensione'],['vetrina','🍰 Vetrina dolci'],['gelati','🍨 Gelati'],['torte','🥧 Torte colazioni'],['ordini','🛒 Ordini']];
 const pw=document.getElementById('pw'),err=document.getElementById('err');
 async function unlock(p,fromStore){
   if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}
@@ -126,9 +132,9 @@ async function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='19/06 11:31';
+const APP_VER='28/06 20:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dessert'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dessert','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
-(function(){try{if(localStorage.getItem('pr_av_dessert')!=='19/06 11:31'){localStorage.removeItem('pr_dspw');localStorage.setItem('pr_av_dessert','19/06 11:31');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dspw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
+(function(){try{if(localStorage.getItem('pr_av_dessert')!=='28/06 20:30'){localStorage.removeItem('pr_dspw');localStorage.setItem('pr_av_dessert','28/06 20:30');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dspw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function buildTabs(){document.getElementById('tabs').innerHTML=TABS.map(t=>'<button class="'+(t[0]===curTab?'on':'')+'" onclick="setTab(\''+t[0]+'\')">'+t[1]+'</button>').join('');}
 function setTab(t){curTab=t;buildTabs();render();window.scrollTo(0,0);}
 async function loadCounts(){
@@ -137,9 +143,12 @@ async function loadCounts(){
     document.getElementById('status').textContent='✓ Collegato';render();
   }catch(e){document.getElementById('status').textContent='⚠️ Giacenze offline (le ricette funzionano comunque)';}
 }
+var ORDLIST={"Settimana 1": ["Albume", "Amaretto (liquore)", "Amido di mais (maizena)", "Amido di riso", "Arance", "Biscotti digestivi", "Burro", "Cacao", "Caffè", "Cannella", "Cioccolato bianco", "Cioccolato fondente", "Destrosio", "Farina 00", "Farina di carrube", "Farina di mandorle", "Farina frolla", "Fecola di patate", "Fiori di sale", "Frutti di bosco", "Gelatina", "Glucosio", "Grand Marnier", "Latte", "Latte in polvere", "Lievito istantaneo", "Lime", "Limoni", "Mandorle", "Mascarpone", "Miele", "Neutro (stabilizz.)", "Nocciole", "Panna", "Pasta di pistacchio", "Pectina", "Pesche", "Philadelphia", "Pompelmo", "Purea di arancia rossa", "Purea di lampone", "Purea di pesca", "Rum", "Sale", "Tuorli", "Uova", "Vaniglia", "Zafferano", "Zucca", "Zucchero", "Zucchero a velo", "Zucchero di canna", "Zucchero invertito"], "Settimana 2": ["Albume", "Amido di mais (maizena)", "Ananas", "Biscotti digestivi", "Burro", "Cacao", "Cannella", "Cioccolato bianco", "Cioccolato fondente", "Cioccolato gianduia", "Destrosio", "Farina 00", "Farina di mandorle", "Farina frolla", "Fragole", "Gelatina", "Glucosio", "Latte", "Latte condensato", "Latte in polvere", "Lievito di birra", "Lime", "Limoncello", "Limoni", "Miele", "Neutro (stabilizz.)", "Nocciole", "Olio EVO", "Panna", "Pasta di nocciole", "Pectina", "Philadelphia", "Pro Espuma (stabilizz.)", "Purea di cocco", "Purea di lampone", "Purea di mirtilli", "Rosmarino", "Sale", "Tuorli", "Uova", "Vaniglia", "Yogurt greco", "Zucchero", "Zucchero a velo", "Zucchero di canna"], "Vetrina / Gelati / Torte": ["Albume", "Amido di mais (maizena)", "Arance", "Burro", "Burro di cacao", "Cacao", "Carote", "Cioccolato al lampone", "Cioccolato al latte", "Cioccolato fondente", "Cremor tartaro", "Destrosio", "Farina 00", "Farina di carrube", "Farina di guar", "Farina di mandorle", "Farina frolla", "Gelatina", "Glucosio", "Gocce di cioccolato", "Inulina", "Latte", "Latte in polvere", "Lievito istantaneo", "Lime", "Limoni", "Miele", "Neutro (stabilizz.)", "Nocciole", "Olio di semi", "Olio di vinacciolo", "Panna", "Pasta di nocciole", "Pectina", "Purea di albicocca", "Purea di amarene", "Purea di frutta", "Purea di lampone", "Purea di mango", "Sale", "Tuorli", "Uova", "Vaniglia", "Zucchero", "Zucchero a velo", "Zucchero di canna", "Zucchero invertito"]};
+function renderOrdini(v){var G=[['Settimana 1',ORDLIST['Settimana 1']],['Settimana 2',ORDLIST['Settimana 2']],['Vetrina / Gelati / Torte',ORDLIST['Vetrina / Gelati / Torte']]];var h='<div class="ordintro">Lista prodotti da ordinare ricavata dalle ricette. Tocca una voce per spuntarla mentre fai la spesa (si azzera riaprendo).</div>';G.forEach(function(g){var items=g[1]||[];h+='<div class="ordsec">🛒 '+esc(g[0])+' <span class="ordn">'+items.length+'</span></div>';h+='<div class="ordgrid">'+items.map(function(x){return '<button class="ordit" onclick="this.classList.toggle(\'done\')">'+esc(x)+'</button>';}).join('')+'</div>';});v.innerHTML=h;}
 function render(){
   var v=document.getElementById('view');
   if(curTab==='mezza'){renderMezza(v);return;}
+  if(curTab==='ordini'){renderOrdini(v);return;}
   renderSection(v,curTab);
 }
 function renderMezza(v){
@@ -189,6 +198,6 @@ function copyCorr(){var t=document.getElementById('corrModal').querySelector('te
 </script>
 <div id="lightbox" onclick="this.style.display='none'"><img alt=""></div>
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Modifiche da inviare</h3><p>Copia questo testo e mandalo a Gigio (o incollalo a Claude in chat).</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/06 11:31</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 20:30</div>
 </body>
 </html>
