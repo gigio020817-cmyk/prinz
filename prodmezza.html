@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="it"><head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Produzione"><meta name="theme-color" content="#111111"><meta name="robots" content="noindex, nofollow">
+<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+<title>Prinz Rudolf · Produzione Mezza Pensione</title>
+<style>
+ :root{--nero:#1c1c1c;--nero-d:#000;--cream:#faf8f2;--paper:#fff;--ink:#1a1a1a;--muted:#8a8378;--line:#ececec;--gold:#c9a227;--yellow:#f5c518;--verde:#2e9c5f;--rosso:#c0392b}
+ *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}html,body{margin:0;padding:0}
+ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--cream);color:var(--ink);line-height:1.4;padding-bottom:env(safe-area-inset-bottom)}
+ #lock{position:fixed;inset:0;z-index:50;background:linear-gradient(160deg,var(--nero),var(--nero-d));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;color:#fff;text-align:center}
+ #lock .mark{width:74px;height:74px;border-radius:18px;border:2px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:30px;margin-bottom:18px}
+ #lock h1{font-size:22px;margin:0 0 4px;font-weight:700}#lock p{opacity:.85;font-size:13px;margin:0 0 22px;letter-spacing:1px}#lock .box{width:100%;max-width:320px}
+ #lock input{width:100%;border:none;border-radius:13px;padding:15px;font-size:17px;text-align:center;color:var(--ink);margin-bottom:12px}
+ #lock button{width:100%;border:none;border-radius:13px;padding:15px;font-size:17px;font-weight:800;background:linear-gradient(135deg,var(--yellow),var(--gold));color:#1a1400;cursor:pointer}
+ #lock .err{color:#ffd2d2;font-size:13px;height:18px;margin-top:8px}#lock label{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;opacity:.9;margin-top:14px;cursor:pointer}#lock label input{width:auto;margin:0}
+ header{position:sticky;top:0;z-index:20;background:linear-gradient(160deg,var(--nero),var(--nero-d));color:#fff;padding:calc(env(safe-area-inset-top) + 14px) 14px 10px}
+ .brand{display:flex;align-items:center;gap:10px}.brand .mark{width:34px;height:34px;border-radius:9px;border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:18px;flex:none}
+ .brand h1{font-size:16px;margin:0;font-weight:800}.brand small{display:block;font-size:9.5px;opacity:.85;letter-spacing:1.3px;text-transform:uppercase;font-weight:700}
+ .days{display:flex;gap:5px;overflow-x:auto;margin-top:10px}.days::-webkit-scrollbar{display:none}
+ .day{flex:1;min-width:42px;border:none;background:rgba(255,255,255,.14);color:#fff;border-radius:10px;padding:8px 4px;font-size:13px;font-weight:800;cursor:pointer}.day.on{background:linear-gradient(135deg,var(--yellow),var(--gold));color:#1a1400}
+ .subbar{display:flex;gap:6px;margin-top:8px;align-items:center}
+ .wk{display:flex;gap:4px}.wkb{border:none;background:rgba(255,255,255,.14);color:#fff;border-radius:20px;padding:7px 12px;font-size:12.5px;font-weight:800;cursor:pointer}.wkb.on{background:var(--gold);color:#1a1400}
+ .modeb{margin-left:auto;border:none;border-radius:20px;padding:7px 12px;font-size:12.5px;font-weight:800;cursor:pointer;background:rgba(255,255,255,.14);color:#fff}.modeb.on{background:var(--rosso);color:#fff}
+ main{max-width:820px;margin:0 auto;padding:14px}
+ #status{font-size:12px;color:var(--muted);margin-bottom:10px;text-align:center;font-weight:600}
+ .liberobox{background:#fff4e6;border:2px solid var(--rosso);border-radius:14px;padding:12px 14px;margin-bottom:14px;color:#8a2b1f;font-weight:700;font-size:13.5px}
+ .sec{font-size:13px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:var(--nero);margin:18px 4px 9px;display:flex;align-items:center;gap:8px}
+ .sec::after{content:"";flex:1;height:3px;border-radius:3px;background:var(--gold)}
+ .secnote{font-size:12px;color:var(--muted);margin:-4px 4px 10px;font-style:italic}
+ .pcard{background:var(--paper);border:1px solid var(--line);border-radius:13px;margin-bottom:9px;padding:11px 12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+ .pcard.done{background:#f3faf5;border-color:#cfe9d8}
+ .phead{display:flex;align-items:flex-start;gap:10px}
+ .pnm{flex:1;font-size:14.5px;font-weight:700;line-height:1.25}
+ .pcard.done .pnm{color:#2e7d32}
+ .fbtn{flex:none;border:2px solid var(--verde);background:#fff;color:var(--verde);border-radius:10px;padding:8px 12px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
+ .fbtn.on{background:var(--verde);color:#fff}
+ .pstock{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+ .pstock .lab{font-size:11.5px;color:var(--muted);font-weight:700}
+ .pstock button.mn,.pstock button.pl{width:34px;height:34px;border-radius:50%;border:none;font-size:20px;font-weight:900;cursor:pointer;line-height:1}
+ .pstock .mn{background:#fff;color:var(--rosso);border:2px solid var(--rosso)}.pstock .pl{background:var(--nero);color:#fff}
+ .pstock .qn{min-width:26px;text-align:center;font-size:17px;font-weight:900}
+ .pstock .prod{border:none;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:800;background:var(--nero);color:#fff;cursor:pointer}
+ .pstock .lp{font-size:11px;color:var(--muted);font-weight:700;width:100%}
+ #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#15201a;color:#fff;padding:11px 16px;border-radius:12px;font-size:13.5px;font-weight:700;opacity:0;transition:opacity .2s;z-index:80;pointer-events:none}#toast.show{opacity:.97}
+ #verbadge{position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none}
+</style></head>
+<body>
+<div id="lock"><div class="mark">\U0001F373</div><h1>Produzione Mezza Pensione</h1><p>PRINZ RUDOLF</p>
+ <div class="box"><input id="pw" type="password" placeholder="Password" autocomplete="current-password" enterkeyhint="go"><button id="enter">Entra</button><div class="err" id="err"></div>
+ <label><input type="checkbox" id="remember" checked> Ricorda su questo dispositivo</label></div></div>
+<div id="app" style="display:none">
+ <header><div class="brand"><div class="mark">\U0001F373</div><div><small>Prinz Rudolf · Mattia & Badr</small><h1>Produzione Mezza Pensione</h1></div></div>
+  <div class="days" id="days"></div>
+  <div class="subbar"><div class="wk" id="wk"></div><button class="modeb" id="modeb" onclick="toggleMode()">\U0001F513 Prima del libero</button></div>
+ </header>
+ <main><div id="status">Caricamento…</div><div id="view"></div></main>
+</div>
+<div id="toast"></div>
+<div id="verbadge">v 28/06 13:30</div>
+<script>
+const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
+const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
+const APP_PW="lavoroprinz";
+const APP_VER='28/06 13:30';
+const PRIMI={"1": {"Lun": ["Maccheroncino all'uovo con salsa al brie, pinoli tostati e polvere di pomodoro", "Schlutzer altoatesini di segale ripieni di ricotta e spinaci con burro nocciola e spuma all'erba cipollina", "Crema di broccolo e spuma di mandorle tostate"], "Mar": ["Fusilli all'uovo all'amatriciana con spuma di prezzemolo, cipolla e guanciale croccante", "Canederlo di formaggio di malga piastrato con crema di zucca, amaretto e insalata di crescione agrodolce", "Drink di melone e arancia su spuma di mela verde e sedano"], "Mer": ["Risotto Carnaroli al radicchio, salsiccia e gorgonzola", "Mezze maniche all'uovo con broccoli, mandorle tostate e neve all'arancia amara", "Crema di zucca, latte di cocco e curry"], "Gio": ["Gnocchi di ricotta al burro acido con cime di rapa, peperoncino e acciughe", "Rigatone nero su crema di zucchine, pecorino, lime e menta", "Essenza frizzante di ananas, cetrioli e basilico"], "Ven": ["Fagottino di crespella ripieno di stracchino, frigitello verde, croccante di prosciutto crudo e basilico", "Spaghettone al nero di seppia su crema di piselli, salsa all'aglio dolce e calamari CBT marinati al lime", "Crema di patate, pane venostano e rosmarino"], "Sab": ["Lasagna alla bolognese a modo nostro", "Spätzle alle erbe di montagna su fonduta di formaggio di malga, pancetta affumicata, funghi e nocciole", "Essenza al lampone, timo e pepe nero"], "Dom": ["Pipe lisce all'uovo con pesto di pistacchio, guanciale croccante e basilico", "Riso al salto croccante con ragù di funghi di montagna, spuma al parmigiano e croccante di speck", "Spuma di fagioli borlotti, cipolla rossa e timo"]}, "2": {"Lun": ["Maccheroncino all'uovo al ragù di polpo, crema di pomodoro affumicato e origano", "Tortelloni all'uovo ripieni di zucca con parmigiano, pepe nero, amaretto e rucola", "Crema di carote, zucca e arancia"], "Mar": ["Fusilli all'uovo al burro acido, limone, gamberi e spuma di bisque di gamberi", "Canederlo agli spinaci al burro marrone su salsa al formaggio di malga e spinacino marinato", "Mojito analcolico (tonica e zenzero) su spuma alla menta"], "Mer": ["Risotto Carnaroli alla barbabietola, aceto balsamico e gelato salato al caprino", "Mezze maniche al burro affumicato su crema di topinambur, pancetta croccante e neve al limone", "Minestrone di verdura a modo nostro"], "Gio": ["Gnocchi di pane nero su salsa al gorgonzola, composta di mele golden e spuma di nocciole al rosmarino", "Rigatone nero su salsa al limone, gamberi argentini brasati, zucchine e menta", "Drink di anguria, fragole e pepe nero"], "Ven": ["Parmigiana di melanzane a modo nostro", "Pappardelle all'acqua e farina con carne al sugo, pecorino toscano e olio piccante fatto in casa", "Spuma di lenticchie al rosmarino con croccante di patata"], "Sab": ["Lasagna croccante con ragù di ossobuco di vitello e zafferano", "Spätzle alla maggiorana con porcini, spuma di castagne e riduzione al Lagrein riserva", "Drink ai frutti di bosco con spuma di latte di mandorla e vaniglia"], "Dom": ["Pipe lisce all'uovo al pesto di basilico con insalata di fagiolini, spuma di patate e pinoli", "Riso al salto croccante con ragù di coniglio bianco, salsa allo zafferano e polvere di olive nere", "Vellutata di pomodoro arrosto su spuma di panna acida e croccante di pane venostano"]}};
+const SECONDI={"1": {"Lun": ["Filetto di maiale con crosta alla senape su gratin di patate, crema di zucca al forno e porro brasato", "Steak di tacchino alla piastra con purea di carote, zucchine marinate e chips di patate croccanti", "[VEG] Bulgur alle erbe su crema di carciofi, funghi e carciofi fritti"], "Mar": ["Filetto di branzino alla piastra su spuma di patate a sifone e julienne di zucchine, carote e peperoni gialli e rossi profumati al limone", "Petto d'anatra all'arancia su polenta fritta croccante, mele caramellate e indivia belga alla piastra", "[VEG] Cavolfiore arrosto con la sua purea, pinoli e olio tartufato"], "Mer": ["Guancia di manzo brasata su purea di patate, cardoncello fritto, gremolada di prezzemolo al limone e chips di pane", "Petto di pollo al mais alla griglia con salsa alla scamorza, crema di broccolo, rosti di patate e broccolo croccante", "[VEG] Tortino di patate e funghi su fonduta di formaggio di malga"], "Gio": ["Petto di faraona alla piastra con finocchio arrosto agli agrumi, patate novelle al forno e spuma di mandorle tostate", "Salsiccia di suino nero siciliano alla brace con purea di patate, funghi trifolati e salsa tartufata", "[VEG] Quinoa alla curcuma con carote caramellate, spuma di mandorle tostate e cialda di mandorle"], "Ven": ["Filetto di salmone in crosta alle erbe con julienne di verdure saltate e spuma di patate al curry", "Flan di manzo alla piastra su purea di patate, sedano rapa BBQ e cipolla rossa caramellata", "[VEG] Gratin di patate con funghi saltati e fritti e spuma al parmigiano"], "Sab": ["Tagliata di agnello alla piastra con composta di melanzane e patate, spuma di basilico, pomodoro confit e nuvola di ricotta affumicata", "Spalla di maiale alla piastra su insalata di cappuccio verde allo speck, patate al forno e salsa alla pancetta", "[VEG] Cous cous alla marocchina con tomino alla griglia e gazpacho verde"], "Dom": ["Brasato di manzo su parmigiana di melanzane, spuma di basilico e salsa al parmigiano", "Filetto di orata alla piastra con guazzetto alla mediterranea, patate prezzemolate e salsa al prosecco", "[VEG] Melanzana al forno con caponata di verdure e polvere di olive nere"]}, "2": {"Lun": ["Filetto di maiale alla piastra su crema di castagne, patate al rosmarino, cappuccio verde saltato e speck", "Steak di tacchino con salsa ai funghi, crema di cipolle, purè di patate al prezzemolo e chips di porro", "[VEG] Bulgur alle erbe su crema di carciofi, funghi e carciofi fritti"], "Mar": ["Filetto di sgombro con purè di sedano rapa, gel e tartare di barbabietola affumicata e salsa al lemongrass", "Petto d'anatra alla piastra su purea di pastinaca, gel di lampone e indivia belga piastrata", "[VEG] Cavolfiore arrosto con la sua purea, pinoli e olio tartufato"], "Mer": ["Guancia di manzo brasata con purea di patate, spinaci al parmigiano, gremolada di prezzemolo e limone e chips di patata trasparente", "Petto di pollo al mais con crosta tartufata, millefoglie di patata e mini pakchoi al burro nocciola", "[VEG] Tortino di patate e funghi su fonduta di formaggio di malga"], "Gio": ["Petto di faraona alla piastra su purè di carote e le sue chips, beurre blanc all'arancia, soncino marinato e riduzione al marsala", "Salsiccia di suino nero siciliano alla piastra con patate dolci, insalata di cavolo rosso, spuma di cavolo rosso, cipollotto agrodolce e chips di cipolla", "[VEG] Quinoa alla curcuma con carote caramellate, spuma di mandorle tostate e cialda di mandorle"], "Ven": ["Filetto di salmone gratinato alle mandorle su salsa al cocco e miso, bietola saltata e cialda di tapioca croccante", "Flan di manzo alla piastra con carciofi fritti, salsa al cavolo romanesco e patate al forno", "[VEG] Gratin di patate con funghi saltati e fritti e spuma al parmigiano"], "Sab": ["Tagliata di agnello alla piastra su gratin di patata, composta di albicocche, spinacino fresco e riduzione di demi-glace al rosmarino", "Spalla di maiale glassata su crema di melanzane affumicate, ceci stufati alla soia e bulgur al timo", "[VEG] Cous cous alla marocchina con tomino alla griglia e gazpacho verde"], "Dom": ["Goulash di manzo alla tirolese con canederlo al formaggio piastrato, cipolla croccante e spuma alle erbe", "Filetto di orata alla piastra su crema di piselli e piselli saltati con scalogno caramellato, pomodoro confit, patate al forno e chips di polenta soffiata", "[VEG] Melanzana al forno con caponata di verdure e polvere di olive nere"]}};
+const ANTIP={"Lun": {"tit": "Bun ai 5 cereali, mousse di mortadella, gelato burrata, pomodori confit", "items": ["Mini bun ai 5 cereali", "Mousse di mortadella", "Glassa al pistacchio", "Gelato alla burrata", "Crumble di taralli sbriciolati", "Pomodori confit", "Assemblaggio + impiatto"]}, "Mar": {"tit": "Flan di carciofi su rösti, carciofo grigliato, salsa parmigiano, cialda di polenta", "items": ["Flan di carciofi", "Rösti di patata", "Carciofo grigliato", "Salsa al parmigiano", "Cialda / chips di polenta", "Polvere di pepe nero", "Assemblaggio + impiatto"]}, "Mer": {"tit": "Vitello tonnato, spuma tonnata, cipolle agrodolci, polvere di olive", "items": ["Girello di vitello CBT", "Spuma tonnata", "Cipolle agrodolci al lampone", "Polvere di olive nere", "Riduzione di demi-glace (aglio e timo)", "Foglie di cappero", "Germogli di cipolla", "Assemblaggio + impiatto"]}, "Gio": {"tit": "Tartelletta babaganush, ricotta mantecata, pomodori confit, basilico", "items": ["Frolla per tartellette", "Babaganush di melanzane", "Ricotta mantecata", "Ricotta al basilico (verde)", "Insalata riccia e crescione (mix)", "Pomodori confit", "Corallo nero"]}, "Ven": {"tit": "Cheesecake gorgonzola e miele, spuma di arachidi, chutney di pera", "items": ["Base cheesecake gorgonzola e miele", "Crumble di taralli (base)", "Spuma di arachidi salati", "Croccante di arachidi tritati", "Chutney di pere speziate", "Tuile di cioccolato fondente salato", "Gel di pera", "Crescione"]}, "Sab": {"tit": "Mini bignè di feta, barbabietola al balsamico, spuma di barbabietola", "items": ["Bignè salati", "Crema di feta", "Cubi di barbabietola (balsamico)", "Spuma alla barbabietola", "Salsa di rucola", "Cialda di rucola", "Germogli di barbabietola", "Assemblaggio + impiatto"]}, "Dom": {"tit": "Gamberi al chimichurry, crema di topinambur, porro brasato", "items": ["Gamberi marinati al chimichurry", "Salsa al chimichurry", "Crema di topinambur", "Chips di topinambur", "Topinambur grigliato", "Porro brasato", "Olio al prezzemolo e limone", "Assemblaggio + impiatto"]}};
+const DAYS=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+const DAYFULL={Lun:'Lunedì',Mar:'Martedì',Mer:'Mercoledì',Gio:'Giovedì',Ven:'Venerdì',Sab:'Sabato',Dom:'Domenica'};
+function el(id){return document.getElementById(id);}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
+function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1600);}
+async function sb(path,opt){opt=opt||{};var h=Object.assign({apikey:SB_KEY,'Content-Type':'application/json'},opt.headers||{});var r=await fetch(SB_URL+'/rest/v1/'+path,Object.assign({},opt,{headers:h}));if(!r.ok)throw new Error('HTTP '+r.status);var t=await r.text();return t?JSON.parse(t):[];}
+function ymd(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+var today=ymd(new Date());
+function fmtd(iso){try{var d=new Date(iso);return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}catch(e){return'';}}
+function ciso(){return new Date().toISOString();}
+var WK='1', DAY=DAYS[(new Date().getDay()+6)%7], MODE='oggi';
+var DONE={}, SCORTA={}, PRODAT={}, NAMES={};
+function unlock(p,fs){var e=el('err');if(p!==APP_PW){e.textContent='Password errata';el('pw').value='';return;}if(el('remember').checked||fs){try{localStorage.setItem('pmz_pw','1')}catch(_){}}el('lock').style.display='none';el('app').style.display='block';loadAll();if(!window._iv)window._iv=setInterval(loadAll,60000);}
+el('enter').onclick=function(){unlock(el('pw').value,false);};
+el('pw').addEventListener('keydown',function(e){if(e.key==='Enter')unlock(e.target.value,false);});
+(async function selfUpdate(){try{if(sessionStorage.getItem('upd_pmz'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_pmz','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
+(function(){try{if(localStorage.getItem('pr_av_pmz')!==APP_VER){localStorage.removeItem('pmz_pw');localStorage.setItem('pr_av_pmz',APP_VER);}}catch(_e){}var s=null;try{s=localStorage.getItem('pmz_pw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(function(){el('pw').focus();},300);})();
+async function loadAll(){el('status').textContent='Caricamento dal cloud…';try{
+  var dn=await sb('kitchen_meta?k=like.pmzchk|'+today+'|*&select=k');DONE={};(dn||[]).forEach(function(r){DONE[r.k.slice(('pmzchk|'+today+'|').length)]=true;});
+  var st=await sb('kitchen_meta?k=like.pmz|*&select=*');SCORTA={};PRODAT={};(st||[]).forEach(function(r){var id=r.k.slice(4);SCORTA[id]=(r.v&&typeof r.v.q==='number')?r.v.q:0;PRODAT[id]=(r.v&&r.v.prod)||null;});
+  el('status').textContent='✓ Collegato · '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});render();
+ }catch(e){el('status').textContent='⚠️ Problema di collegamento. Controlla internet e riapri.';console.error(e);}}
+function isDone(id){return !!DONE[id];}
+function getQ(id){return SCORTA[id]||0;}
+function daysBar(){el('days').innerHTML=DAYS.map(function(d){return '<button class="day'+(DAY===d?' on':'')+'" onclick="setDay(\''+d+'\')">'+d+'</button>';}).join('');}
+function wkBar(){el('wk').innerHTML=[['1','Sett. 1'],['2','Sett. 2']].map(function(w){return '<button class="wkb'+(WK===w[0]?' on':'')+'" onclick="setWk(\''+w[0]+'\')">'+w[1]+'</button>';}).join('');}
+function setDay(d){DAY=d;render();window.scrollTo(0,0);}
+function setWk(w){WK=w;render();}
+function toggleMode(){MODE=(MODE==='oggi')?'libero':'oggi';el('modeb').classList.toggle('on',MODE==='libero');render();window.scrollTo(0,0);}
+async function toggleDone(id){var on=!isDone(id);if(on)DONE[id]=true;else delete DONE[id];render();
+  try{var k='pmzchk|'+today+'|'+id;if(on)await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:k,v:{done:true,at:ciso()}})});else await sb('kitchen_meta?k=eq.'+encodeURIComponent(k),{method:'DELETE',headers:{Prefer:'return=minimal'}});}catch(e){toast('⚠️ Non salvato');}}
+async function saveQ(id){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pmz|'+id,v:{q:getQ(id),prod:PRODAT[id]||null}})});}catch(e){toast('⚠️ Non salvato');}}
+function chg(id,d){var q=getQ(id)+d;SCORTA[id]=q<0?0:q;saveQ(id);render();}
+function hoprod(id){var nm=NAMES[id]||'';var n=prompt('Quanto hai prodotto di "'+nm+'"? (lo aggiungo alla scorta)','');if(n===null)return;n=parseFloat((''+n).replace(',','.'));if(isNaN(n)||n<=0)return;SCORTA[id]=getQ(id)+n;PRODAT[id]=ciso();saveQ(id);render();toast('Aggiunto');}
+function itemRow(id,name,extra){NAMES[id]=name;var done=isDone(id),q=getQ(id),pr=PRODAT[id];
+  return '<div class="pcard'+(done?' done':'')+'"><div class="phead"><div class="pnm">'+esc(name)+'</div><button class="fbtn'+(done?' on':'')+'" onclick="toggleDone(\''+id+'\')">'+(done?'✓ Fatto':'Segna fatto')+'</button></div>'+
+    (extra?'<div class="secnote" style="margin:6px 0 0">'+esc(extra)+'</div>':'')+
+    '<div class="pstock"><span class="lab">scorta</span><button class="mn" onclick="chg(\''+id+'\',-1)">–</button><span class="qn">'+q+'</span><button class="pl" onclick="chg(\''+id+'\',1)">+</button><button class="prod" onclick="hoprod(\''+id+'\')">＋ Ho prodotto…</button>'+(pr?'<span class="lp">ult. produzione '+fmtd(pr)+'</span>':'')+'</div></div>';
+}
+function render(){daysBar();wkBar();
+  var h='';
+  if(MODE==='libero'){h+='<div class="liberobox">⚠️ Prima del tuo libero: lascia pronta TUTTA la linea del/i giorno/i che manchi (Primi + Secondi + Antipasti), perché non c\'è nessun altro a coprirti. Scegli il giorno qui sopra e prepara tutto.</div>';}
+  // PRIMI
+  var primi=(PRIMI[WK]&&PRIMI[WK][DAY])||[];
+  h+='<div class="sec">🍝 Primi — '+DAYFULL[DAY]+' · Sett. '+WK+'</div>';
+  h+=primi.length?primi.map(function(t,i){return itemRow('pr|'+WK+'|'+DAY+'|'+i,t);}).join(''):'<div class="secnote">Nessun primo per questo giorno.</div>';
+  // SECONDI
+  var sec=(SECONDI[WK]&&SECONDI[WK][DAY])||[];
+  h+='<div class="sec">🥩 Secondi — '+DAYFULL[DAY]+' · Sett. '+WK+'</div>';
+  h+=sec.length?sec.map(function(t,i){return itemRow('se|'+WK+'|'+DAY+'|'+i,t);}).join(''):'<div class="secnote">Nessun secondo per questo giorno.</div>';
+  // ANTIPASTI
+  var a=ANTIP[DAY];
+  h+='<div class="sec">🥗 Antipasti (mise en place) — '+DAYFULL[DAY]+'</div>';
+  h+='<div class="secnote">Solo la mise en place del giorno — la sera la eroga Banu per il servizio.</div>';
+  if(a){h+=(a.tit?'<div class="secnote" style="color:var(--ink);font-style:normal;font-weight:700;margin:-2px 4px 8px">'+esc(a.tit)+'</div>':'')+a.items.map(function(t,i){return itemRow('an|'+DAY+'|'+i,t);}).join('');}
+  else h+='<div class="secnote">Nessun antipasto per questo giorno.</div>';
+  el('view').innerHTML=h;
+}
+</script>
+</body></html>
