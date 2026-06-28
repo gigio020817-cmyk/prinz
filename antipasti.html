@@ -85,6 +85,11 @@
   .corrmbox h3{margin:0 0 4px}.corrmbox p{margin:0 0 8px;font-size:13px;color:#777}
   .corrmbox textarea{width:100%;height:280px;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:12.5px;font-family:ui-monospace,Menlo,monospace;box-sizing:border-box}
   .corrmrow{display:flex;gap:8px;margin-top:10px}.corrmrow button{flex:1}
+
+  #atabs{display:flex;gap:8px;padding:10px 14px;background:linear-gradient(160deg,var(--bordeaux),var(--bordeaux-d))}
+  #atabs .atab{flex:1;border:none;background:rgba(255,255,255,.14);color:#fff;border-radius:30px;padding:10px;font-size:14px;font-weight:700;cursor:pointer}
+  #atabs .atab.on{background:linear-gradient(135deg,var(--yellow),var(--gold));color:#1a1400}
+  #prodwrap iframe{display:block}
 </style>
 </head>
 <body>
@@ -107,7 +112,9 @@
     <input id="q" type="search" placeholder="Cerca piatto o ingrediente&hellip;" autocomplete="off">
   </div>
 </header>
+<div id="atabs"><button id="atRic" class="atab on" onclick="showAntiView('ric')">📖 Ricette</button><button id="atProd" class="atab" onclick="showAntiView('prod')">🍅 Produzioni</button></div>
 <main><div id="list"></div><div id="detail"></div></main>
+<div id="prodwrap" style="display:none"><iframe id="prodframe" title="Produzioni Antipasti" style="width:100%;height:calc(100vh - 118px);border:0"></iframe></div>
 <footer>Prinz Rudolf &middot; Ricettario Antipasti — uso interno cucina</footer>
 </div>
 <div id="viewer" onclick="this.style.display='none'"><img id="vimg" src=""></div>
@@ -139,10 +146,10 @@ async function tryUnlock(password,fromStore){
 }
 document.getElementById('enter').onclick=()=>tryUnlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(pw.value,false)});
-const APP_VER='25/06 17:20';
+const APP_VER='28/06 14:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_anti'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_anti','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){if(!window.crypto||!crypto.subtle){err.textContent="Apri l'app dal sito (https), non come file locale.";return;}
-  try{if(localStorage.getItem('pr_av_anti')!=='24/06 15:00'){localStorage.removeItem('pr_pw');localStorage.setItem('pr_av_anti','24/06 15:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_pw')}catch(e){}
+  try{if(localStorage.getItem('pr_av_anti')!=='28/06 14:00'){localStorage.removeItem('pr_pw');localStorage.setItem('pr_av_anti','28/06 14:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_pw')}catch(e){}
   if(s){document.getElementById('remember').checked=true;tryUnlock(s,true);}else{setTimeout(()=>pw.focus(),300);}})();
 function freqBadge(fr){if(!fr||fr==="—")return '';return `<span class="badge ${FREQ[fr]||'b-na'}">${fr}</span>`;}
 function renderList(filter){
@@ -178,8 +185,12 @@ function corrBox(cid){return '<div class="corrbox"><div class="corrlbl">✏️ M
 function saveCorr(cid,btn){var ta=btn.closest('.corrbox').querySelector('textarea');var v=ta.value;CORR['anticorr|'+cid]=v;var _lab='';try{_lab=(DISHES[parseInt(cid.split('|')[1],10)]||{}).title||'';}catch(e){}sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'anticorr|'+cid,v:{text:v,label:_lab,at:new Date().toISOString()}})}).catch(function(e){console.error(e);});var t=btn.textContent;btn.textContent='✓ Salvato';setTimeout(function(){btn.textContent=t;},1500);}
 function exportCorr(){var out='MODIFICHE ANTIPASTI — Prinz Rudolf\n\n';var any=false;DISHES.forEach(function(d,i){var c=getCorr('anti|'+i);if(c&&c.trim()){any=true;out+='• ['+(d.giorno||'')+'] '+(d.title||'')+'\n  → '+c.trim()+'\n\n';}});if(!any)out+='(nessuna modifica scritta)';var m=document.getElementById('corrModal');m.querySelector('textarea').value=out;m.style.display='flex';}
 function copyCorr(){var t=document.getElementById('corrModal').querySelector('textarea');t.select();t.setSelectionRange(0,99999);try{navigator.clipboard.writeText(t.value);}catch(e){try{document.execCommand('copy')}catch(_){}}var b=event&&event.target;if(b){var x=b.textContent;b.textContent='✓ Copiato';setTimeout(function(){b.textContent=x;},1500);}}
+
+function showAntiView(v){var s=document.querySelector('.search'),m=document.querySelector('main'),pw=document.getElementById('prodwrap'),fr=document.getElementById('prodframe'),tr=document.getElementById('atRic'),tp=document.getElementById('atProd');
+ if(v==='prod'){if(fr&&!fr.getAttribute('src'))fr.setAttribute('src','antiprod.html?embed=1');if(s)s.style.display='none';if(m)m.style.display='none';if(pw)pw.style.display='block';tr.classList.remove('on');tp.classList.add('on');window.scrollTo(0,0);}
+ else{if(s)s.style.display='';if(m)m.style.display='';if(pw)pw.style.display='none';tr.classList.add('on');tp.classList.remove('on');}}
 </script>
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Modifiche da inviare</h3><p>Copia questo testo e mandalo a Gigio (o incollalo a Claude in chat).</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 25/06 17:20</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 14:00</div>
 </body>
 </html>
