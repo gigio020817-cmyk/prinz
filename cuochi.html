@@ -174,9 +174,9 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='28/06 12:30';
+const APP_VER='28/06 13:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
-(function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 12:30'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 12:30');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
+(function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 
 async function loadAll(){
   document.getElementById('status').textContent='Caricamento dal cloud…';
@@ -408,13 +408,20 @@ function penaleBanner(cook){
   return '<div class="penalebar"><div class="pb-t">⚠️ '+esc(cook)+' — TI MANCANO '+miss.length+' COSE</div><div class="pb-s">Completale subito: lo chef vede chi non ha finito · rischio PENALE</div><ul class="pb-l">'+lis+'</ul></div>';
 }
 function consegneCard(){
-  var openL=PASSL.filter(function(x){return !x.done;});
-  var doneL=PASSL.filter(function(x){return x.done;});
-  function row(x){var dn=!!x.done;var _d=(x.at||'').slice(0,10);var dtag=(_d&&_d!==today)?(' · '+_d.split('-').reverse().slice(0,2).join('/')):'';return '<div class="it"><div class="chk'+(dn?' on':'')+'" onclick="togglePass(\''+x.id+'\')">'+(dn?'✓':'')+'</div><div class="lab"'+(dn?' style="text-decoration:line-through;color:var(--muted)"':'')+'>'+esc(x.t)+'<span class="sig">'+(dn?('✓ fatto da '+esc(x.doneBy||'')+' · '+tloc(x.doneAt)):('da '+esc(x.by||'')+dtag+' · '+tloc(x.at)))+'</span></div></div>';}
-  var rows=openL.map(row).join('')+doneL.map(row).join('');
-  if(!PASSL.length)rows='<div class="readbox">Nessuna consegna. Il capo partita scrive qui le cose da fare per chi entra.</div>';
-  return '<div class="card open" id="ccons" style="border-color:var(--gold)"><div class="card-h" onclick="toggleCard(\'ccons\')"><div class="t">📋 Consegne / cose da fare</div><div class="meta">'+openL.length+'</div><svg class=\"tog\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\"><path d=\"M9 6l6 6-6 6\"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">Il capo partita scrive le cose da fare (anche prima del riposo); restano qui finché non vengono spuntate, così chi entra anche il giorno dopo le trova.</div>'+rows+'<label class="fl">Aggiungi una cosa da fare</label><input class="txt" id="consIn" placeholder="es. Finire la mise en place dei flan"><button class="btn" onclick="addPass()">+ Aggiungi alla lista</button>'+(doneL.length?'<button class="btn" style="background:#fff;color:var(--bordeaux);border:1px solid var(--line);margin-top:8px" onclick="clearDonePass()">🗑 Pulisci le fatte</button>':'')+'</div></div>';
+  var c=getCook();var isG=(c==='Gianluca');
+  var src=isG?PASSL.slice():PASSL.filter(function(x){return x.by===c;});
+  var openL=src.filter(function(x){return !x.done;});var doneL=src.filter(function(x){return x.done;});
+  function dtagOf(x){var _d=(x.at||'').slice(0,10);return (_d&&_d!==today)?(' · '+_d.split('-').reverse().slice(0,2).join('/')):'';}
+  function rowG(x){var dn=!!x.done;return '<div class="it"><div class="chk'+(dn?' on':'')+'" onclick="togglePass(\''+x.id+'\')">'+(dn?'✓':'')+'</div><div class="lab"'+(dn?' style="text-decoration:line-through;color:var(--muted)"':'')+'>'+esc(x.t)+'<span class="sig">'+(dn?('✓ fatto da '+esc(x.doneBy||'')+' · '+tloc(x.doneAt)):('da '+esc(x.by||'')+dtagOf(x)+' · '+tloc(x.at)))+'</span></div></div>';}
+  function rowMine(x){return '<div class="it"><div class="lab" style="flex:1">'+esc(x.t)+'<span class="sig">'+(x.done?('✓ fatto da '+esc(x.doneBy||'')):'in attesa')+dtagOf(x)+'</span></div><button class="ctrlbtn" style="width:auto;padding:6px 10px" onclick="removePass(\''+x.id+'\')">Rimuovi</button></div>';}
+  var rows;
+  if(isG){rows=(openL.map(rowG).join('')+doneL.map(rowG).join(''))||'<div class="readbox">Nessuna consegna da fare al momento.</div>';}
+  else{rows=src.length?src.map(rowMine).join(''):'<div class="readbox">Non hai lasciato consegne. Scrivi qui sotto cosa deve fare chi copre la tua partita.</div>';}
+  var title=isG?'📋 Consegne da fare (per te)':'📋 Lascia una consegna';
+  var intro=isG?'Le cose lasciate dai capi partita: falle e spuntale.':'Scrivi le cose da fare per chi copre la tua partita. Le vedono Gianluca e lo chef.';
+  return '<div class="card open" id="ccons" style="border-color:var(--gold)"><div class="card-h" onclick="toggleCard(\'ccons\')"><div class="t">'+title+'</div>'+(isG?'<div class="meta">'+openL.length+'</div>':'')+'<svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">'+intro+'</div>'+rows+'<label class="fl">Aggiungi una cosa da fare</label><input class="txt" id="consIn" placeholder="es. Finire la mise en place dei flan"><button class="btn" onclick="addPass()">+ Aggiungi</button>'+(isG&&doneL.length?'<button class="btn" style="background:#fff;color:var(--bordeaux);border:1px solid var(--line);margin-top:8px" onclick="clearDonePass()">🗑 Pulisci le fatte</button>':'')+'</div></div>';
 }
+function removePass(id){var c=getCook();var x=PASSL.find(function(y){return y.id===id;});if(!x)return;if(x.by!==c){alert('Puoi togliere solo le consegne che hai scritto tu.');return;}if(!confirm('Togliere questa consegna?'))return;PASSL=PASSL.filter(function(y){return y.id!==id;});savePassList();render();openCard('ccons');}
 async function savePassList(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'passlist',v:{items:PASSL}})});}catch(e){toast('⚠️ Non salvato');console.error(e);}}
 function addPass(){var c=getCook();if(!c){alert('Prima scegli il tuo nome.');return;}var el=document.getElementById('consIn');var t=(el.value||'').trim();if(!t)return;PASSL.push({id:'p'+Date.now()+Math.floor(Math.random()*1000),t:t,by:c,at:new Date().toISOString(),done:false});savePassList();render();openCard('ccons');setTimeout(function(){var i=document.getElementById('consIn');if(i)i.focus();},50);}
 function togglePass(id){var c=getCook();if(!c){alert('Prima scegli il tuo nome.');return;}var x=PASSL.find(function(y){return y.id===id;});if(!x)return;x.done=!x.done;if(x.done){x.doneBy=c;x.doneAt=new Date().toISOString();}else{delete x.doneBy;delete x.doneAt;}savePassList();render();openCard('ccons');}
@@ -443,6 +450,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 12:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 13:00</div>
 </body>
 </html>

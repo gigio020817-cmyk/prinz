@@ -180,9 +180,9 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{if(document.getElementById('datePick').value===todayStr())loadAll(true)},30000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='28/06 12:30';
+const APP_VER='28/06 13:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
-(function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 12:30'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 12:30');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
+(function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
 function shiftDay(n){var d=new Date(document.getElementById('datePick').value+'T00:00:00');d.setDate(d.getDate()+n);document.getElementById('datePick').value=ymd(d);loadAll();}
 window.FOLD=window.FOLD||{};
@@ -216,6 +216,7 @@ async function loadAll(silent){
     window.PANESC={};(pane||[]).forEach(function(r){var id=r.k.slice(5);window.PANESC[id]=(r.v&&typeof r.v.scorta==='number')?r.v.scorta:0;});
     window.COOKNOTES=(cnote||[]).map(function(r){var p=(r.k||'').split('|');return {cook:p[1],day:p[2],text:(r.v&&r.v.text)||'',at:(r.v&&r.v.at)||null};}).filter(function(x){return x.day===day && x.text && x.text.trim();});
     window.RECMODS=(recmods||[]).map(function(r){var k=r.k||'';var app=k.indexOf('anticorr|')===0?'Antipasti':k.indexOf('primicorr|')===0?'Primi':k.indexOf('dcorr|')===0?'Pasticceria':k.indexOf('panecorr|')===0?'Pane':'?';return {key:k,app:app,label:(r.v&&r.v.label)||'',text:(r.v&&r.v.text)||'',at:(r.v&&r.v.at)||null};}).filter(function(x){return x.text && x.text.trim();});
+    try{var _pl=await sb('kitchen_meta?k=eq.passlist&select=*');window.PASSL=(_pl&&_pl[0]&&_pl[0].v&&_pl[0].v.items)?_pl[0].v.items:[];}catch(e){window.PASSL=[];}
     render(day,ck,ckw,ent,(meta&&meta[0])?meta[0].v:null,presa);
     renderNote();
     document.getElementById('status').textContent='✓ Aggiornato alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
@@ -424,6 +425,12 @@ function pausaCardDash(){
   var pill=out.length?'<span class="pill no">'+out.length+' fuori</span>':'<span class="pill ok">tutti dentro</span>';
   return '<div class="card"><div class="card-h"><div class="t">Pause<div class="sub">chi esce in pausa durante il servizio</div></div>'+pill+'</div><div class="card-b">'+h+(totRows?'<div style="margin-top:6px;border-top:1px solid #ececec;padding-top:6px">'+totRows+'</div>':'')+'</div></div>';
 }
+function consegneDashCard(){
+  var L=window.PASSL||[];var openL=L.filter(function(x){return !x.done;}),doneL=L.filter(function(x){return x.done;});
+  function row(x){var dn=!!x.done;var _d=(x.at||'').slice(0,10);var dt=_d?(' · '+_d.split('-').reverse().slice(0,2).join('/')):'';return '<div class="row"><span>'+(dn?'✅ ':'⬜ ')+esc(x.t)+' <span class="muted">— '+esc(x.by||'')+dt+(dn?(' · fatto da '+esc(x.doneBy||'')):'')+'</span></span></div>';}
+  var body=L.length?(openL.map(row).join('')+doneL.map(row).join('')):'<div class="muted">Nessuna consegna.</div>';
+  return '<div class="card"><div class="card-h"><div class="t">\ud83d\udccb Consegne / cose da fare</div><span class="pill '+(openL.length?'mid':'ok')+'">'+(openL.length?(openL.length+' da fare'):'tutte fatte')+'</span></div><div class="card-b">'+body+'</div></div>';
+}
 function liberiCard(day){
   var off=TEAM.map(function(t){return t[0];}).filter(function(c){return isOff(c,day);});
   var rows;
@@ -435,7 +442,7 @@ function render(day,ck,ckw,ent,meta,presa){
   window.LAST={day:day,ck:ck,ckw:ckw,ent:ent,meta:meta,presa:presa};
   const resp=(meta&&meta.name)?meta.name:'';
   const scheda=ent.filter(e=>e.type==='scheda');const pass=ent.filter(e=>e.type==='passaggio');
-  let h=liberiCard(day)+riepilogoCard()+chefCard(ck,day)+recModsCard()+cookNotesCard();
+  let h=liberiCard(day)+consegneDashCard()+riepilogoCard()+chefCard(ck,day)+recModsCard()+cookNotesCard();
   h+=timbraCardDash();
   h+=pausaCardDash();
   h+='<div class="card"><div class="card-h"><div class="t">Responsabile della settimana</div></div><div class="card-b">'+(resp?'<div class="row"><span><b>'+esc(resp)+'</b></span><span class="muted">'+((meta.dal)||'?')+' → '+((meta.al)||'?')+'</span></div>':'<div class="muted">Non impostato.</div>')+'</div></div>';
@@ -578,6 +585,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 12:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 13:00</div>
 </body>
 </html>
