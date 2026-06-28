@@ -124,6 +124,7 @@
 .preqn{flex:1;min-width:0;font-size:14px;color:#1a1a1a}
 .preqwk{color:#8a8378;font-size:12px;font-weight:600}
 .preqok{flex:none;border:none;background:#25d366;color:#fff;border-radius:9px;padding:8px 11px;font-size:13px;font-weight:800;cursor:pointer}
+.preqx{flex:none;border:1px solid #ccc;background:#fff;color:#999;border-radius:9px;width:34px;height:34px;font-size:18px;font-weight:800;cursor:pointer}
 .preqclear{width:100%;margin-top:10px;border:1px solid #c9a227;background:#fff;color:#5a4600;border-radius:10px;padding:9px;font-size:13px;font-weight:700;cursor:pointer}
 </style>
 </head>
@@ -212,10 +213,10 @@ async function tryUnlock(password,fromStore){
 }
 document.getElementById('enter').onclick=()=>tryUnlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(pw.value,false)});
-const APP_VER='28/06 21:00';
+const APP_VER='28/06 21:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_ordini'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_ordini','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){if(!window.crypto||!crypto.subtle){err.textContent="Apri l'app dal sito (https).";return;}
-  try{if(localStorage.getItem('pr_av_ordini')!=='28/06 21:00'){localStorage.removeItem('ord_pw');localStorage.setItem('pr_av_ordini','28/06 21:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('ord_pw')}catch(e){}
+  try{if(localStorage.getItem('pr_av_ordini')!=='28/06 21:30'){localStorage.removeItem('ord_pw');localStorage.setItem('pr_av_ordini','28/06 21:30');}}catch(_e){}let s=null;try{s=localStorage.getItem('ord_pw')}catch(e){}
   if(s){document.getElementById('remember').checked=true;tryUnlock(s,true);}else{setTimeout(()=>pw.focus(),300);}})();
 function jget(k,d){try{return JSON.parse(localStorage.getItem(k)||d)}catch(e){return JSON.parse(d)}}
 function customSup(){return jget('ord_sup','[]')}
@@ -226,9 +227,11 @@ function telFor(s){const o=telMap();return o[s.name]||s.tel||''}
 function productsFor(name){const s=allSuppliers().find(x=>x.name===name)||{products:[]};return (s.products||[]).concat(customProd()[name]||[]);}
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
 var PASTREQ=[];
+function reqFindMatch(reqName){var n=norm2(reqName).replace(/^prova\s*[-—]\s*/,'');var words=n.split(' ').filter(function(w){return w.length>=3;});if(!words.length)return null;var first=words[0];var best=null,bs=0,sup=null;allSuppliers().forEach(function(s){productsFor(s.name).forEach(function(p){var d=norm2(p.n);if(d.indexOf(first)<0)return;var sc=0;words.forEach(function(w){if(d.indexOf(w)>=0)sc++;});if(sc>bs){bs=sc;best=p;sup=s.name;}});});return best?{sup:sup,prod:best}:null;}
+function addReqToOrder(i){var it=PASTREQ[i];if(!it)return;var m=reqFindMatch(it.n);if(!m){alert('Non ho trovato «'+it.n+'» tra i prodotti dei fornitori. Aprilo nel fornitore giusto e aggiungilo a mano.');return;}var dr=getDraft();dr[m.sup]=dr[m.sup]||{items:{},altro:''};dr[m.sup].items[m.prod.n]={q:(''+it.q),u:it.u||''};saveDraft(dr);PASTREQ.splice(i,1);savePastReq();renderPastReq();alert('✓ Aggiunto a '+m.sup+': '+m.prod.n+' — '+it.q+' '+(it.u||''));}
 async function loadPastReq(){try{var r=await sb('kitchen_meta?k=eq.pastreq&select=v');PASTREQ=(r&&r[0]&&r[0].v&&r[0].v.items)?r[0].v.items:[];}catch(e){PASTREQ=[];}renderPastReq();}
 function renderPastReq(){var box=document.getElementById('pastinbox');if(!box)return;if(!PASTREQ.length){box.innerHTML='';return;}
- var rows=PASTREQ.map(function(x,i){var d=x.at?new Date(x.at):null;var ds=d?(' · '+('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)):'';return '<div class="preqrow"><span class="preqn">'+esc(x.n)+' <b>'+esc(''+x.q)+' '+esc(x.u||'')+'</b> <span class="preqwk">'+esc(x.wk||'')+ds+'</span></span><button class="preqok" onclick="clearPastItem('+i+')">✓ fatto</button></div>';}).join('');
+ var rows=PASTREQ.map(function(x,i){var d=x.at?new Date(x.at):null;var ds=d?(' · '+('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)):'';return '<div class="preqrow"><span class="preqn">'+esc(x.n)+' <b>'+esc(''+x.q)+' '+esc(x.u||'')+'</b> <span class="preqwk">'+esc(x.wk||'')+ds+'</span></span><button class="preqok" onclick="addReqToOrder('+i+')">✓ in ordine</button><button class="preqx" onclick="clearPastItem('+i+')">×</button></div>';}).join('');
  box.innerHTML='<div class="preqcard"><div class="preqhead">📥 Richieste pasticceria ('+PASTREQ.length+')</div>'+rows+'<button class="preqclear" onclick="clearPastAll()">Pulisci tutto</button></div>';}
 async function savePastReq(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pastreq',v:{items:PASTREQ}})});}catch(e){}}
 function clearPastItem(i){PASTREQ.splice(i,1);savePastReq();renderPastReq();}
@@ -341,7 +344,7 @@ function exportAdds(){const t=buildExport();if(!t){alert("Non hai aggiunte da es
 function copyExp(){const ta=document.getElementById('exptxt');ta.select();ta.setSelectionRange(0,99999);try{navigator.clipboard.writeText(ta.value);}catch(e){try{document.execCommand('copy');}catch(_){}}alert("Copiato! Ora incollalo a Claude in chat.");}
 document.getElementById('q').addEventListener('input',function(){renderList(this.value)});
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 21:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 21:30</div>
 <div id="bollamodal"></div>
 </body>
 </html>
