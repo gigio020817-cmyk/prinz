@@ -132,6 +132,8 @@ const PROD=[
   ric:"5 kg Vegipan + 5 l acqua. Impastare, formare le stecche, lievitare e cuocere; raffreddare e congelare impellicolati singolarmente."},
  {id:"panini_latte",cat:"COLAZIONI — buffet",nm:"Panini al latte",pz:"Produzione settimanale",unit:"GN",soglia:2,sminTxt:"settimanale · quando restano 2 gastronorm acciaio, produrre l'altra ricetta",cott:COTT,
   ric:"RICETTA ×4: 16 kg Manitoba + 400 g sale + 800 g zucchero + 10 l latte + 400 g lievito di birra + 2 l olio di semi + 160 g enzimatico (1% del peso della farina). Porzionare piccolo (~50 g), lievitare, cuocere; raffreddare e congelare."},
+ {id:"dark_salus",cat:"COLAZIONI — buffet",nm:"Dark Salus",pz:"Stampo plum cake ~700 g",unit:"pz",soglia:null,cott:"210°C · 25/30 min · a metà cottura aprire la valvola",
+  ric:"10 kg Dark Salus + 8,5 l acqua + 300 g lievito di birra. Unire farina e lievito e 3/4 dell'acqua e impastare 5 minuti a bassa velocità. Avviare a velocità più elevata e aggiungere la restante acqua e impastare 10 minuti. Mettere negli stampi da plum cake a 700 g a forma e lasciar lievitare fino al raddoppio. Cuocere a 210°C per 25/30 minuti e a metà cottura aprire la valvola."},
  {id:"pan_gocciole",cat:"PANE FUORI PRODUZIONE — quando serve",nm:"Pan gocciole al cioccolato",pz:"Pezzo (placca)",unit:"placca",soglia:null,cott:COTT,
   ric:"3 kg farina Rieper blu + 700 g zucchero + 600 g uova + 1,5 l latte + 75 g lievito di birra (150 g se senza lievito madre) + 200 g lievito madre + 800 g gocce di cioccolato. Impastare, formare i pezzi, lievitare, cuocere; congelare."},
  {id:"baguette_int",cat:"COLAZIONI — buffet",nm:"Baguette integrale",pz:"Filone",unit:"pz",soglia:10,cott:COTT,
@@ -159,7 +161,7 @@ const CATS=["COLAZIONI — buffet","PANE SERALE — bistro / ristorante","PANE F
 const CATSHORT={"COLAZIONI — buffet":"Colazioni","PANE SERALE — bistro / ristorante":"Pane serale","PANE FUORI PRODUZIONE — quando serve":"Quando serve"};
 const CATNOTE={"PANE FUORI PRODUZIONE — quando serve":"Ricette di pane non in produzione fissa: si fanno quando c'è tempo o all'occorrenza."};
 
-let SCORTA={},PRODAT={},CORR={},FILT="da";const OPEN=new Set();
+let SCORTA={},PRODAT={},CORR={},FILT="all";const OPEN=new Set();
 const esc=s=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),1800);}
 function sb(path,opt){opt=opt||{};const h=Object.assign({apikey:SB_KEY,'Content-Type':'application/json'},opt.headers||{});return fetch(SB_URL+'/rest/v1/'+path,Object.assign({},opt,{headers:h})).then(async r=>{if(!r.ok){const t=await r.text();throw new Error('HTTP '+r.status+' '+t);}const t=await r.text();return t?JSON.parse(t):[];});}
@@ -175,9 +177,9 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(document.getElementById('pw').value,false);
 document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')unlock(e.target.value,false)});
-const APP_VER='28/06 11:00';
+const APP_VER='28/06 11:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_pane'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_pane','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
-(function(){try{if(localStorage.getItem('pr_av_pane')!=='28/06 11:00'){localStorage.removeItem('pr_panepw');localStorage.setItem('pr_av_pane','28/06 11:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_panepw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>document.getElementById('pw').focus(),300);})();
+(function(){try{if(localStorage.getItem('pr_av_pane')!=='28/06 11:30'){localStorage.removeItem('pr_panepw');localStorage.setItem('pr_av_pane','28/06 11:30');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_panepw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>document.getElementById('pw').focus(),300);})();
 
 async function loadAll(){
   document.getElementById('status').textContent='Caricamento dal cloud…';
@@ -199,23 +201,15 @@ async function setScorta(id,val){
 }
 function badgeHTML(p,prod){return p.soglia==null?'<span class="badge req">A richiesta</span>':(prod?'<span class="badge prod">▶ PRODURRE</span>':'<span class="badge ok">OK</span>');}
 function updateCardUI(id){
-  const p=PROD.find(x=>x.id===id);if(!p)return;
-  const prod=daProdurre(p),sc=getScorta(id),c=document.getElementById('c_'+id);
-  if(c){
-    const n=c.querySelector('.val .n');if(n)n.textContent=sc;
-    c.classList.remove('prod','okc');if(prod)c.classList.add('prod');else if(p.soglia!=null)c.classList.add('okc');
-    const b=c.querySelector('.badge');if(b)b.outerHTML=badgeHTML(p,prod);
-  }
-  const al=document.getElementById('alertSlot');if(al)al.innerHTML=alertCard();
-  tabsBar();
+  const sc=getScorta(id),c=document.getElementById('c_'+id);
+  if(c){const n=c.querySelector('.val .n');if(n)n.textContent=sc;}
 }
 function step(id,d){setScorta(id,getScorta(id)+d);}
 function toggleRec(id){const c=document.getElementById('c_'+id);if(!c)return;c.classList.toggle('open');if(c.classList.contains('open'))OPEN.add(id);else OPEN.delete(id);}
 function setFilt(f){FILT=f;render();}
 
 function tabsBar(){
-  const due=PROD.filter(daProdurre).length;
-  const T=[['da','▶ Da produrre'+(due?' ('+due+')':'')],['all','Tutti']].concat(CATS.map(c=>[c,CATSHORT[c]]));
+  const T=[['all','Tutti']].concat(CATS.map(c=>[c,CATSHORT[c]]));
   document.getElementById('tabs').innerHTML=T.map(t=>'<button class="tab'+(FILT===t[0]?' on':'')+'" onclick="setFilt(\''+t[0].replace(/'/g,"\\'")+'\')">'+esc(t[1])+'</button>').join('');
 }
 function alertCard(){
@@ -234,31 +228,21 @@ function fmtd(iso){try{var d=new Date(iso);return ('0'+d.getDate()).slice(-2)+'/
 function lastProdHtml(id){return PRODAT[id]?('<div class="lastprod">ultima produzione: '+fmtd(PRODAT[id])+'</div>'):'';}
 function hoProdotto(id){var p=PROD.find(function(x){return x.id===id;});var u=p?p.unit:'';var n=prompt('Quanti '+u+' di "'+(p?p.nm:'')+'" hai prodotto? (li aggiungo alla scorta)','');if(n===null)return;n=parseFloat((''+n).replace(',','.'));if(isNaN(n)||n<=0)return;PRODAT[id]=new Date().toISOString();setScorta(id,getScorta(id)+n);render();toast('Aggiunto alla scorta');}
 function prodCard(p){
-  const sc=getScorta(p.id),prod=daProdurre(p);
-  let badge=p.soglia==null?'<span class="badge req">A richiesta</span>':(prod?'<span class="badge prod">▶ PRODURRE</span>':'<span class="badge ok">OK</span>');
-  let sogliaTxt=p.sminTxt?p.sminTxt:(p.soglia==null?'A richiesta':('soglia: '+p.soglia+' '+p.unit));
+  const sc=getScorta(p.id);
+  let sub=esc(p.pz)+(p.sminTxt?(' · '+esc(p.sminTxt)):'');
   const R=splitRic(p.ric);
   const ingr=R.ingr.map(x=>'<div class="ing">'+esc(x)+'</div>').join('');
   const procH=R.proc?'<div class="k">Procedimento</div><div class="v">'+esc(R.proc)+'</div>':'';
-  return '<div class="card'+(prod?' prod':(p.soglia==null?'':' okc'))+(OPEN.has(p.id)?' open':'')+'" id="c_'+p.id+'">'
-   +'<div class="card-h" onclick="toggleRec(\''+p.id+'\')"><div class="info"><div class="nm">'+esc(p.nm)+'</div><div class="pz">'+esc(p.pz)+' · '+esc(sogliaTxt)+'</div></div>'+badge+'<span class="chev">▸</span></div>'
+  return '<div class="card'+(OPEN.has(p.id)?' open':'')+'" id="c_'+p.id+'">'
+   +'<div class="card-h" onclick="toggleRec(\''+p.id+'\')"><div class="info"><div class="nm">'+esc(p.nm)+'</div><div class="pz">'+sub+'</div></div><span class="chev">▸</span></div>'
    +'<div class="stockbar"><span class="lab">In magazzino</span><div class="stepper"><button class="minus" onclick="step(\''+p.id+'\',-1)">–</button><div class="val"><span class="n">'+sc+'</span><small>'+esc(p.unit)+'</small></div><button class="plus" onclick="step(\''+p.id+'\',1)">+</button></div><button class="prodbtn" onclick="hoProdotto(\''+p.id+'\')">＋ Ho prodotto…</button>'+lastProdHtml(p.id)+'</div>'
-   +'<div class="rec">'
-     +'<div class="k">📖 Ricetta</div><div class="ingbox">'+ingr+'</div>'
-     +procH
-     +'<div class="k">Anticipo / cottura</div><div class="v">'+esc(p.cott)+'</div>'+corrBox(p.id)
-   +'</div>'
+   +'<div class="rec"><div class="k">📖 Ricetta</div><div class="ingbox">'+ingr+'</div>'+procH+'<div class="k">Anticipo / cottura</div><div class="v">'+esc(p.cott)+'</div>'+corrBox(p.id)+'</div>'
    +'</div>';
 }
 function render(){
   tabsBar();
   let h='';
-  if(FILT==='da'){
-    h+='<div id="alertSlot">'+alertCard()+'</div>';
-    const due=PROD.filter(daProdurre);
-    if(due.length)h+=due.map(prodCard).join('');
-  }else if(FILT==='all'){
-    h+='<div id="alertSlot">'+alertCard()+'</div>';
+  if(FILT==='all'){
     CATS.forEach(cat=>{const items=PROD.filter(p=>p.cat===cat);if(items.length)h+='<div class="sec">'+esc(CATSHORT[cat])+'</div>'+(CATNOTE[cat]?'<div class="readbox" style="margin:-2px 4px 10px">'+esc(CATNOTE[cat])+'</div>':'')+items.map(prodCard).join('');});
   }else{
     const items=PROD.filter(p=>p.cat===FILT);
@@ -273,6 +257,6 @@ function exportCorr(){var out='MODIFICHE PANE — Prinz Rudolf\n\n';var any=fals
 function copyCorr(){var t=document.getElementById('corrModal').querySelector('textarea');t.select();t.setSelectionRange(0,99999);try{navigator.clipboard.writeText(t.value);}catch(e){try{document.execCommand('copy')}catch(_){}}var b=event&&event.target;if(b){var x=b.textContent;b.textContent='✓ Copiato';setTimeout(function(){b.textContent=x;},1500);}}
 </script>
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Modifiche da inviare</h3><p>Copia questo testo e mandalo a Gigio (o incollalo a Claude in chat).</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 11:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 11:30</div>
 </body>
 </html>
