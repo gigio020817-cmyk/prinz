@@ -10,12 +10,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pane">
-<meta name="theme-color" content="#DA291C">
+<meta name="theme-color" content="#111111">
 <meta name="robots" content="noindex, nofollow">
 <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
 <title>Prinz Rudolf · Panificazione</title>
 <style>
-  :root{--red:#DA291C;--red-d:#A81C13;--yellow:#FFC72C;--yellow-d:#E6A700;--dark:#292929;--bg:#fff7e8;--paper:#fff;--ink:#1d1d1d;--muted:#7a7268;--line:#f0e6d2;--ok:#2e9c5f;--ok-d:#1e7a47;--warn:#DA291C}
+  :root{--red:#1c1c1c;--red-d:#000;--yellow:#c9a227;--yellow-d:#a8841f;--dark:#1c1c1c;--bg:#faf8f2;--paper:#fff;--ink:#1a1a1a;--muted:#8a8378;--line:#ececec;--ok:#2e9c5f;--ok-d:#1e7a47;--warn:#c0392b}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   html,body{margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.4;padding-bottom:env(safe-area-inset-bottom)}
@@ -58,7 +58,7 @@
   .badge.ok{background:#e7f3ec;color:var(--ok-d)}
   .badge.prod{background:var(--red);color:#fff}
   .badge.req{background:#fff3cf;color:#8a6d00}
-  .stock{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff7e8;margin:6px 0 0;border-radius:16px;padding:12px 14px}
+  .stock{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#faf7f0;margin:6px 0 0;border-radius:16px;padding:12px 14px}
   .stock .lbl{font-size:13px;color:var(--muted);font-weight:700}
   .stock .lbl b{display:block;color:var(--ink);font-size:15px}
   .stepper{display:flex;align-items:center;gap:12px}
@@ -75,14 +75,14 @@
   .card.open .rec{display:block}
   .rec .k{font-weight:900;color:var(--red);margin-top:14px;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
   .rec .v{margin-top:3px;line-height:1.5}
-  .ingbox{margin-top:6px;background:#fff7e8;border-radius:12px;overflow:hidden}
+  .ingbox{margin-top:6px;background:#faf7f0;border-radius:12px;overflow:hidden}
   .ing{padding:9px 13px;border-bottom:1px solid #f0e6d2;font-size:14.5px;font-weight:600}
   .ing:last-child{border-bottom:none}
   .ing:first-letter{text-transform:uppercase}
   #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--dark);color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;font-weight:700;opacity:0;transition:opacity .2s;z-index:80;pointer-events:none;max-width:90%}
   #toast.show{opacity:.97}
   footer{text-align:center;font-size:11px;color:var(--muted);padding:18px;font-weight:600}
-  .corrbox{margin-top:14px;background:#fff7e8;border:1px dashed var(--red);border-radius:12px;padding:10px;text-transform:none}
+  .corrbox{margin-top:14px;background:#faf7f0;border:1px dashed var(--red);border-radius:12px;padding:10px;text-transform:none}
   .corrlbl{font-size:12px;font-weight:800;color:var(--red);margin-bottom:6px;text-transform:none}
   .corrta{width:100%;border:1px solid #f0d9b0;border-radius:8px;padding:9px;font-size:14px;font-family:inherit;min-height:54px;box-sizing:border-box;text-transform:none}
   .corrrow{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
@@ -134,7 +134,15 @@ const PROD=[
   ric:"RICETTA ×4: 16 kg Manitoba + 400 g sale + 800 g zucchero + 10 l latte + 400 g lievito di birra + 2 l olio di semi + 160 g enzimatico (1% del peso della farina). Porzionare piccolo (~50 g), lievitare, cuocere; raffreddare e congelare."},
  {id:"dark_salus",cat:"COLAZIONI — buffet",nm:"Dark Salus",pz:"Stampo plum cake ~700 g",unit:"pz",soglia:null,cott:"210°C · 25/30 min · a metà cottura aprire la valvola",
   ric:"10 kg Dark Salus + 8,5 l acqua + 300 g lievito di birra. Unire farina e lievito e 3/4 dell'acqua e impastare 5 minuti a bassa velocità. Avviare a velocità più elevata e aggiungere la restante acqua e impastare 10 minuti. Mettere negli stampi da plum cake a 700 g a forma e lasciar lievitare fino al raddoppio. Cuocere a 210°C per 25/30 minuti e a metà cottura aprire la valvola."},
- {id:"pan_gocciole",cat:"PANE FUORI PRODUZIONE — quando serve",nm:"Pan gocciole al cioccolato",pz:"Pezzo (placca)",unit:"placca",soglia:null,cott:COTT,
+ {id:"protein30",cat:"PANE SERALE — bistro / ristorante",nm:"Protein 30",pz:"Filone",unit:"pz",soglia:null,cott:"210°C 18 min combinato, poi 180°C 10 min statico",
+  ric:"10 kg farina Protein 30 + 8,5 l acqua + 260 g lievito di birra. Unire tutto e impastare 5 minuti a velocità bassa. Poi impastare a velocità 2 per altri 8 minuti. Far lievitare 30 minuti, formare dei filoni e far lievitare altri 15 minuti. Cuocere a 210°C per 18 minuti in combinato, poi a 180°C per 10 minuti con forno statico."},
+ {id:"vitakorn",cat:"COLAZIONI — buffet",nm:"Vitakorn (completo)",pz:"Stampo plum cake ~700 g",unit:"pz",soglia:null,cott:"210°C 20 min combinato, poi 10 min statico",
+  ric:"10 kg completo Vitakorn + 5,5 l acqua + 300 g lievito di birra + 200 g sale. Unire gli ingredienti (senza il sale) e impastare 5 minuti a velocità 1. Aggiungere il sale e impastare ancora 3 minuti, poi mettere negli stampi da plum cake a 700 g e far lievitare fino al raddoppio. Cuocere a 210°C per 20 minuti in forno combinato, poi 10 minuti a statico."},
+ {id:"pane_patate",cat:"PANE SERALE — bistro / ristorante",nm:"Pane alle patate",pz:"Filone",unit:"pz",soglia:null,cott:"220°C per 10 minuti",
+  ric:"8 kg farina tipo 0 per pane Do gusto + 2 kg nucleo patata + 5,5 l acqua + 300 g lievito di birra + 200 g sale. Unire farina, nucleo, acqua e lievito e impastare 5 minuti a velocità 1. Aggiungere il sale e impastare a velocità 2 per altri 5 minuti. Far lievitare 30 minuti, formare i filoni e far lievitare ancora 15 minuti, poi cuocere a 220°C per 10 minuti."},
+ {id:"pizza_roma",cat:"RICETTE UTILI — quando serve",nm:"Pizza in teglia Roma",pz:"Placca · stesa diretta",unit:"placche",soglia:null,cott:"Lievitazione in placca 3 h · cottura 230°C combinato 13 min",
+  ric:"10 kg completo Roma + 8 l acqua + 100 g lievito di birra + 250 g sale + 800 ml olio evo. Unire tutto lasciando da parte 2 litri di acqua e il sale. Impastare 5 minuti a velocità 1. Aggiungere i restanti 2 l di acqua e impastare a velocità più elevata per 8 minuti, aggiungendo nell'ultimo minuto il sale e l'olio. Stendere in placca direttamente e far lievitare 3 ore. Schiacciare se necessario, poi cuocere a 230°C in combinato per 13 minuti."},
+ {id:"pan_gocciole",cat:"RICETTE UTILI — quando serve",nm:"Pan gocciole al cioccolato",pz:"Pezzo (placca)",unit:"placca",soglia:null,cott:COTT,
   ric:"3 kg farina Rieper blu + 700 g zucchero + 600 g uova + 1,5 l latte + 75 g lievito di birra (150 g se senza lievito madre) + 200 g lievito madre + 800 g gocce di cioccolato. Impastare, formare i pezzi, lievitare, cuocere; congelare."},
  {id:"baguette_int",cat:"COLAZIONI — buffet",nm:"Baguette integrale",pz:"Filone",unit:"pz",soglia:10,cott:COTT,
   ric:"3 kg Manitoba + 1 kg farina integrale + 500 g mix cereali Caputo + 100 g sale + 200 g zucchero + 2,8 l acqua + 500 ml olio di semi + 150 g lievito di birra. Formare i filoni, lievitare, cuocere; congelare."},
@@ -152,14 +160,14 @@ const PROD=[
   ric:"200 g lievito di birra + 700 g parmigiano + 2 l latte + 80 g sale + 1,2 kg uova intere + 1 kg farina di kamut + 3,2 kg farina 0 Do gusto pane + 180 g zucchero + 500 g burro. Formare le stecche, lievitare, cuocere; congelare."},
  {id:"pane_cipolla",cat:"PANE SERALE — bistro / ristorante",nm:"Pane alla cipolla",pz:"A stecca",unit:"GN",soglia:1,sminTxt:"min: 1 gastronorm acciaio piena",cott:COTT,
   ric:"200 g lievito di birra + 700 g cipolle secche + 2 l latte + 80 g sale + 1,2 kg uova intere + 1 kg farina di kamut + 3,2 kg farina 0 Do gusto pane + 180 g zucchero + 500 g burro. Formare le stecche, lievitare, cuocere; congelare."},
- {id:"pizza_teglia",cat:"PANE SERALE — bistro / ristorante",nm:"Pizza in teglia",pz:"Placca 60×40 · 1,2 kg impasto",unit:"placche",soglia:2,sminTxt:"min: 2 placche precotte e abbattute",cott:"All'utilizzo: condire a piacere e cuocere a 250°C per circa 8–10 minuti. Per la massima croccantezza, appena fatta l'ultima cottura mettila su una griglia per farle lasciare l'umidità, poi taglia e servi.",
+ {id:"pizza_teglia",cat:"RICETTE UTILI — quando serve",nm:"Pizza in teglia",pz:"Placca 60×40 · 1,2 kg impasto",unit:"placche",soglia:2,sminTxt:"min: 2 placche precotte e abbattute",cott:"All'utilizzo: condire a piacere e cuocere a 250°C per circa 8–10 minuti. Per la massima croccantezza, appena fatta l'ultima cottura mettila su una griglia per farle lasciare l'umidità, poi taglia e servi.",
   ric:"PREIMPASTO — 1,4 kg farina 00 con germe + 600 g semola + 1 l acqua fredda + 20 g lievito di birra + 14 g enzimatico + IMPASTO (da aggiungere al preimpasto) — 600 g acqua fredda + 60 g sale + 90 g olio extravergine d'oliva. Mescolare velocemente il preimpasto in planetaria e farlo riposare fino a 24 ore in frigorifero. Aggiungere al preimpasto acqua fredda, sale e olio e impastare bene finché diventa elastico, poi fare due pieghe ogni 30 minuti. Pesare 1,2 kg di impasto in placca da pasticceria 60×40 e stendere con le dita fino a completare la placca. Lasciar raddoppiare, poi cuocere a 100°C per 15 minuti a vapore e abbattere subito."},
- {id:"pane_naan",cat:"PANE FUORI PRODUZIONE — quando serve",nm:"Pane naan",pz:"A richiesta",unit:"pz",soglia:null,cott:"Poolish 6-8 h; lievita 3 h; piastra",
+ {id:"pane_naan",cat:"RICETTE UTILI — quando serve",nm:"Pane naan",pz:"A richiesta",unit:"pz",soglia:null,cott:"Poolish 6-8 h; lievita 3 h; piastra",
   ric:"POOLISH: 250 g farina + 5 g lievito + 250 g acqua → fermentare 6-8 h. IMPASTO: 150 g poolish + 100 g semola + 200 g farina di farro + 100 g farina 00 + 10 g lievito di birra + 20 g olio evo + 200 ml acqua + 10 g sale. Formare 8 pagnotte, lievitare 3 h, stendere e cuocere in piastra."}
 ];
-const CATS=["COLAZIONI — buffet","PANE SERALE — bistro / ristorante","PANE FUORI PRODUZIONE — quando serve"];
-const CATSHORT={"COLAZIONI — buffet":"Colazioni","PANE SERALE — bistro / ristorante":"Pane serale","PANE FUORI PRODUZIONE — quando serve":"Quando serve"};
-const CATNOTE={"PANE FUORI PRODUZIONE — quando serve":"Ricette di pane non in produzione fissa: si fanno quando c'è tempo o all'occorrenza."};
+const CATS=["COLAZIONI — buffet","PANE SERALE — bistro / ristorante","RICETTE UTILI — quando serve"];
+const CATSHORT={"COLAZIONI — buffet":"Colazioni","PANE SERALE — bistro / ristorante":"Pane serale","RICETTE UTILI — quando serve":"Ricette utili"};
+const CATNOTE={"RICETTE UTILI — quando serve":"Ricette di pane non in produzione fissa: si fanno quando c'è tempo o all'occorrenza."};
 
 let SCORTA={},PRODAT={},CORR={},FILT="all";const OPEN=new Set();
 const esc=s=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -177,9 +185,9 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(document.getElementById('pw').value,false);
 document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')unlock(e.target.value,false)});
-const APP_VER='28/06 11:30';
+const APP_VER='28/06 12:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_pane'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_pane','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
-(function(){try{if(localStorage.getItem('pr_av_pane')!=='28/06 11:30'){localStorage.removeItem('pr_panepw');localStorage.setItem('pr_av_pane','28/06 11:30');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_panepw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>document.getElementById('pw').focus(),300);})();
+(function(){try{if(localStorage.getItem('pr_av_pane')!=='28/06 12:00'){localStorage.removeItem('pr_panepw');localStorage.setItem('pr_av_pane','28/06 12:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_panepw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>document.getElementById('pw').focus(),300);})();
 
 async function loadAll(){
   document.getElementById('status').textContent='Caricamento dal cloud…';
@@ -257,6 +265,6 @@ function exportCorr(){var out='MODIFICHE PANE — Prinz Rudolf\n\n';var any=fals
 function copyCorr(){var t=document.getElementById('corrModal').querySelector('textarea');t.select();t.setSelectionRange(0,99999);try{navigator.clipboard.writeText(t.value);}catch(e){try{document.execCommand('copy')}catch(_){}}var b=event&&event.target;if(b){var x=b.textContent;b.textContent='✓ Copiato';setTimeout(function(){b.textContent=x;},1500);}}
 </script>
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Modifiche da inviare</h3><p>Copia questo testo e mandalo a Gigio (o incollalo a Claude in chat).</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 11:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 12:00</div>
 </body>
 </html>
