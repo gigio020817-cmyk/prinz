@@ -66,6 +66,14 @@
   #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s;z-index:80;pointer-events:none;max-width:90%}
   #toast.show{opacity:.95}
   footer{text-align:center;font-size:11px;color:var(--muted);padding:18px}
+
+ .penalebar{background:#c0392b;color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:0 3px 14px rgba(192,57,43,.4);animation:pblink 1.1s ease-in-out infinite}
+ @keyframes pblink{0%,100%{box-shadow:0 3px 14px rgba(192,57,43,.30)}50%{box-shadow:0 0 0 4px rgba(192,57,43,.35),0 3px 20px rgba(192,57,43,.65)}}
+ .penalebar .pb-t{font-size:18px;font-weight:900;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+ .penalebar .pb-s{font-size:12.5px;opacity:.96;margin:4px 0 8px;font-weight:600}
+ .penalebar .pb-l{margin:0;padding-left:20px;font-size:14.5px;font-weight:700}
+ .penalebar .pb-l li{margin:4px 0}
+ .okbar{background:#eaf7ee;color:#1e6b46;border:1px solid #bfe6cd;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-weight:800;font-size:14px}
 </style>
 </head>
 <body>
@@ -165,9 +173,9 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='25/06 19:15';
+const APP_VER='28/06 09:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
-(function(){try{if(localStorage.getItem('pr_av_cuochi')!=='24/06 18:45'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','24/06 18:45');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
+(function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 09:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 09:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 
 async function loadAll(){
   document.getElementById('status').textContent='Caricamento dal cloud…';
@@ -359,6 +367,44 @@ async function saveNota(){
   var v=document.getElementById('notaTxt').value;var key='notacuoco|'+cook+'|'+today;NOTECUOCO[key]=v;
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:key,v:{text:v,cook:cook,at:new Date().toISOString()}})});toast('Nota salvata');}catch(e){toast('⚠️ Non salvata');console.error(e);}
 }
+function countDone(group){var d=0;Object.keys(CK).forEach(function(k){if(k.indexOf(group+'_')===0)d++;});return d;}
+function missingFor(cook){
+  if(!cook)return null;
+  if(isOff(cook))return [];
+  if(CHIUSI.indexOf(cook)>=0)return [];
+  var miss=[];
+  if(!(TIMBRA[cook]&&TIMBRA[cook].in))miss.push("Segnare l'orario di arrivo");
+  var tour=PEOPLE[cook]&&PEOPLE[cook].tournant;
+  var cov=tour?(getCover()||badrCovers()):'';
+  if(tour&&cov){var g='pulizia#'+cov,tot=puliziaFor(cov).length,d=countDone(g);if(d<tot)miss.push("Pulizia partita di "+cov+" ("+d+"/"+tot+")");}
+  else{var g2='pulizia#'+cook,tot2=puliziaFor(cook).length,d2=countDone(g2);if(d2<tot2)miss.push((tour?"Compiti tournant":"La mia pulizia")+" ("+d2+"/"+tot2+")");var wd=weeklyDue(cook);if(wd.length)miss.push("Pulizia settimanale di oggi ("+wd.length+")");}
+  var RN=(META&&META.name)?META.name:'';
+  var showApe=RN?(cook===RN):!(PEOPLE[cook]&&PEOPLE[cook].noApe);
+  var showChiu=RN?(cook===RN):!(PEOPLE[cook]&&PEOPLE[cook].noChiu);
+  if(showApe){var da=countDone('apertura');if(da<APERTURA.length)miss.push("Check-list apertura ("+da+"/"+APERTURA.length+")");}
+  if(showChiu){var dc=countDone('chiusura');if(dc<CHIUSURA.length)miss.push("Check-list chiusura ("+dc+"/"+CHIUSURA.length+")");}
+  var nsch=ENT.filter(function(e){return e.type==='scheda'&&e.cook===cook;}).length;
+  if(nsch===0)miss.push("Scrivere cosa hai preparato (scheda di servizio)");
+  return miss;
+}
+var _penSig=null;
+function updatePenale(cook,miss){try{
+  var sig=cook+'#'+((miss||[]).join('||'));if(sig===_penSig)return;_penSig=sig;
+  var k='penale|'+today+'|'+cook,sk='pen_since_'+cook+'_'+today;
+  if(miss&&miss.length){var since=null;try{since=localStorage.getItem(sk);}catch(e){}if(!since){since=new Date().toISOString();try{localStorage.setItem(sk,since);}catch(e){}}
+    sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:k,v:{cook:cook,n:miss.length,missing:miss,since:since,at:new Date().toISOString(),done:false}})}).catch(function(){});
+  }else{try{localStorage.removeItem(sk);}catch(e){}
+    sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:k,v:{cook:cook,n:0,missing:[],done:true,at:new Date().toISOString()}})}).catch(function(){});
+  }
+}catch(e){}}
+function penaleBanner(cook){
+  var miss=missingFor(cook);
+  if(miss===null)return '';
+  updatePenale(cook,miss);
+  if(!miss.length)return '<div class="okbar">✅ '+esc(cook)+', hai completato tutto. Grazie!</div>';
+  var lis=miss.map(function(m){return '<li>'+esc(m)+'</li>';}).join('');
+  return '<div class="penalebar"><div class="pb-t">⚠️ '+esc(cook)+' — TI MANCANO '+miss.length+' COSE</div><div class="pb-s">Completale subito: lo chef vede chi non ha finito · rischio PENALE</div><ul class="pb-l">'+lis+'</ul></div>';
+}
 function render(){
   whoBar();
   var ME=getCook();
@@ -368,6 +414,7 @@ function render(){
   var apeTitle = RN ? 'Check-list apertura (responsabile della settimana)' : 'Check-list apertura';
   var chiTitle = RN ? 'Check-list chiusura (responsabile della settimana)' : 'Check-list chiusura';
   document.getElementById('view').innerHTML=
+    penaleBanner(ME)+
     timbraCard()+
     pausaCard()+
     ((PEOPLE[ME]&&PEOPLE[ME].noResp)?'':respCard())
@@ -383,6 +430,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 25/06 19:15</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 09:00</div>
 </body>
 </html>
