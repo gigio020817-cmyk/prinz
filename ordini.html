@@ -118,6 +118,13 @@
 .ppu{color:var(--muted);font-weight:500;font-size:10px}
 .pline{color:var(--ink);font-weight:800}
 .totord{font-weight:600;color:var(--ink);text-align:right;padding:6px 2px 10px;font-size:15px}
+.preqcard{background:#fff6da;border:1px solid #c9a227;border-radius:14px;padding:12px 14px;margin-bottom:14px}
+.preqhead{font-weight:800;color:#5a4600;margin-bottom:8px;font-size:15px}
+.preqrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid rgba(201,162,39,.3)}
+.preqn{flex:1;min-width:0;font-size:14px;color:#1a1a1a}
+.preqwk{color:#8a8378;font-size:12px;font-weight:600}
+.preqok{flex:none;border:none;background:#25d366;color:#fff;border-radius:9px;padding:8px 11px;font-size:13px;font-weight:800;cursor:pointer}
+.preqclear{width:100%;margin-top:10px;border:1px solid #c9a227;background:#fff;color:#5a4600;border-radius:10px;padding:9px;font-size:13px;font-weight:700;cursor:pointer}
 </style>
 </head>
 <body>
@@ -138,7 +145,7 @@
     <input id="q" type="search" placeholder="Cerca fornitore o prodotto&hellip;" autocomplete="off">
   </div>
 </header>
-<main><div id="reminder"></div><div id="list"></div><div id="detail"></div></main>
+<main><div id="reminder"></div><div id="pastinbox"></div><div id="list"></div><div id="detail"></div></main>
 <footer>Prinz Rudolf &middot; Ordini &mdash; uso interno</footer>
 </div>
 <div id="exp"><div class="expbox"><h3>Le tue aggiunte</h3><p>Copia questo testo e incollalo a Claude: aggiorner&agrave; app ed Excel.</p><textarea id="exptxt" readonly></textarea><div class="row"><button class="copy" onclick="copyExp()">Copia</button><button class="close" onclick="document.getElementById('exp').style.display='none'">Chiudi</button></div></div></div>
@@ -200,15 +207,15 @@ async function tryUnlock(password,fromStore){
   try{BASE=await decrypt(password);
     if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('ord_pw',password)}catch(e){}}
     document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';
-    renderList();checkReminder();if(!window._remInt)window._remInt=setInterval(checkReminder,30000);
+    renderList();loadPastReq();checkReminder();if(!window._remInt)window._remInt=setInterval(checkReminder,30000);
   }catch(e){err.textContent="Password errata";pw.value="";pw.focus();try{localStorage.removeItem('ord_pw')}catch(_){}}
 }
 document.getElementById('enter').onclick=()=>tryUnlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(pw.value,false)});
-const APP_VER='28/06 20:10';
+const APP_VER='28/06 21:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_ordini'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_ordini','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){if(!window.crypto||!crypto.subtle){err.textContent="Apri l'app dal sito (https).";return;}
-  try{if(localStorage.getItem('pr_av_ordini')!=='28/06 20:10'){localStorage.removeItem('ord_pw');localStorage.setItem('pr_av_ordini','28/06 20:10');}}catch(_e){}let s=null;try{s=localStorage.getItem('ord_pw')}catch(e){}
+  try{if(localStorage.getItem('pr_av_ordini')!=='28/06 21:00'){localStorage.removeItem('ord_pw');localStorage.setItem('pr_av_ordini','28/06 21:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('ord_pw')}catch(e){}
   if(s){document.getElementById('remember').checked=true;tryUnlock(s,true);}else{setTimeout(()=>pw.focus(),300);}})();
 function jget(k,d){try{return JSON.parse(localStorage.getItem(k)||d)}catch(e){return JSON.parse(d)}}
 function customSup(){return jget('ord_sup','[]')}
@@ -218,9 +225,17 @@ function allSuppliers(){return BASE.concat(customSup())}
 function telFor(s){const o=telMap();return o[s.name]||s.tel||''}
 function productsFor(name){const s=allSuppliers().find(x=>x.name===name)||{products:[]};return (s.products||[]).concat(customProd()[name]||[]);}
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+var PASTREQ=[];
+async function loadPastReq(){try{var r=await sb('kitchen_meta?k=eq.pastreq&select=v');PASTREQ=(r&&r[0]&&r[0].v&&r[0].v.items)?r[0].v.items:[];}catch(e){PASTREQ=[];}renderPastReq();}
+function renderPastReq(){var box=document.getElementById('pastinbox');if(!box)return;if(!PASTREQ.length){box.innerHTML='';return;}
+ var rows=PASTREQ.map(function(x,i){var d=x.at?new Date(x.at):null;var ds=d?(' · '+('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)):'';return '<div class="preqrow"><span class="preqn">'+esc(x.n)+' <b>'+esc(''+x.q)+' '+esc(x.u||'')+'</b> <span class="preqwk">'+esc(x.wk||'')+ds+'</span></span><button class="preqok" onclick="clearPastItem('+i+')">✓ fatto</button></div>';}).join('');
+ box.innerHTML='<div class="preqcard"><div class="preqhead">📥 Richieste pasticceria ('+PASTREQ.length+')</div>'+rows+'<button class="preqclear" onclick="clearPastAll()">Pulisci tutto</button></div>';}
+async function savePastReq(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pastreq',v:{items:PASTREQ}})});}catch(e){}}
+function clearPastItem(i){PASTREQ.splice(i,1);savePastReq();renderPastReq();}
+function clearPastAll(){if(!confirm('Pulire tutte le richieste pasticceria?'))return;PASTREQ=[];savePastReq();renderPastReq();}
 function renderList(filter){
   filter=filter||"";const list=document.getElementById('list'),detail=document.getElementById('detail');
-  detail.style.display='none';list.style.display='block';document.getElementById('searchwrap').style.display='block';
+  detail.style.display='none';list.style.display='block';document.getElementById('searchwrap').style.display='block';var _pb=document.getElementById('pastinbox');if(_pb)_pb.style.display='';
   const f=filter.trim().toLowerCase();let sup=allSuppliers();
   if(f){sup=sup.filter(s=>(s.name+' '+productsFor(s.name).map(p=>p.n).join(' ')).toLowerCase().includes(f));}
   let html=sup.map(s=>{const np=productsFor(s.name).length;const hastel=!!telFor(s);const pend=hasDraft(s.name);
@@ -251,7 +266,7 @@ function openSup(enc,pfilter){
   const name=decodeURIComponent(enc);const s=allSuppliers().find(x=>x.name===name);if(!s)return;
   curSupplier=name;
   const list=document.getElementById('list'),detail=document.getElementById('detail');
-  list.style.display='none';detail.style.display='block';document.getElementById('searchwrap').style.display='none';
+  list.style.display='none';detail.style.display='block';document.getElementById('searchwrap').style.display='none';var _pb2=document.getElementById('pastinbox');if(_pb2)_pb2.style.display='none';
   const tel=telFor(s);let prods=productsFor(name);
   const pf=(pfilter||'').trim().toLowerCase();
   let shown=pf?prods.filter(p=>p.n.toLowerCase().includes(pf)):prods;
@@ -326,7 +341,7 @@ function exportAdds(){const t=buildExport();if(!t){alert("Non hai aggiunte da es
 function copyExp(){const ta=document.getElementById('exptxt');ta.select();ta.setSelectionRange(0,99999);try{navigator.clipboard.writeText(ta.value);}catch(e){try{document.execCommand('copy');}catch(_){}}alert("Copiato! Ora incollalo a Claude in chat.");}
 document.getElementById('q').addEventListener('input',function(){renderList(this.value)});
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 20:10</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 21:00</div>
 <div id="bollamodal"></div>
 </body>
 </html>
