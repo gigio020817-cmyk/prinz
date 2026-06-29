@@ -93,9 +93,9 @@ async function sb(path,opt){opt=opt||{};const h=Object.assign({apikey:SB_KEY,'Co
 function unlock(p,fs){const err=document.getElementById('err');if(p!==APP_PW){err.textContent='Password errata';document.getElementById('pw').value='';return;}if(document.getElementById('remember').checked||fs){try{localStorage.setItem('ap_pw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';loadAll();if(!window._iv)window._iv=setInterval(loadAll,45000);}
 document.getElementById('enter').onclick=()=>unlock(document.getElementById('pw').value,false);
 document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')unlock(e.target.value,false)});
-const APP_VER='28/06 17:30';
+const APP_VER='29/06 18:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('apupd'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('apupd','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
-(function(){if(window.self!==window.top){unlock(APP_PW,true);return;}try{if(localStorage.getItem('pr_av_antiprod')!=='28/06 17:30'){localStorage.removeItem('ap_pw');localStorage.setItem('pr_av_antiprod','28/06 15:30');}}catch(_e){}let s=null;try{s=localStorage.getItem('ap_pw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>document.getElementById('pw').focus(),300);})();
+(function(){if(window.self!==window.top){unlock(APP_PW,true);return;}try{if(localStorage.getItem('pr_av_antiprod')!=='29/06 18:30'){localStorage.removeItem('ap_pw');localStorage.setItem('pr_av_antiprod','28/06 15:30');}}catch(_e){}let s=null;try{s=localStorage.getItem('ap_pw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>document.getElementById('pw').focus(),300);})();
 async function loadAll(){var st=document.getElementById('status');if(st)st.textContent='Caricamento dal cloud…';
  try{WK=isoWeek(new Date());
   var rows=await sb('kitchen_meta?k=like.apstat|'+WK+'|*&select=*');STAT={};(rows||[]).forEach(function(r){STAT[r.k.slice(('apstat|'+WK+'|').length)]=r.v;});
@@ -105,7 +105,7 @@ async function loadAll(){var st=document.getElementById('status');if(st)st.textC
 var GGF={LUN:'Lunedì',MAR:'Martedì',MER:'Mercoledì',GIO:'Giovedì',VEN:'Venerdì',SAB:'Sabato',DOM:'Domenica'};
 function normName(s){return (s||'').replace(/\s+/g,' ').trim().toLowerCase();}
 var RECIPES={
- 'spuma di pistacchio':{ing:['250 ml latte','150 g panna','80 g pasta di pistacchio','30 g parmigiano','2 g sale','30 g gelatina in polvere'],steps:['Scaldare il tutto nel Bimby.','Aggiungere la gelatina in polvere.','Passare al cinese.','Caricare nel sifone.','Mantenere a 54 °C nel roner.']},
+ 'spuma di pistacchio':{ing:['250 ml latte','150 g panna','80 g pasta di pistacchio','30 g parmigiano','2 g sale','4 g agar agar (regola 3-5 g)'],steps:['Scaldare nel Bimby latte, panna, pasta di pistacchio, parmigiano e sale.','Aggiungere l\'agar agar e portare a bollore (≈90 °C) per 1-2 min mescolando.','Passare al cinese.','Far gelificare, poi frullare fino a gel liscio (così è siringabile).','Caricare nel sifone e mantenere a 54 °C nel roner (l\'agar tiene anche a caldo).']},
  'chips di pistacchio':{ing:['1 L acqua','200 g amido di riso','200 g zucchero','sale q.b.','granella di pistacchio (dopo la stesura)'],steps:['Mescolare a freddo acqua, sale, zucchero e amido.','Portare a calore finché diventa densa e liscia.','Stendere la cialda in placca.','Adagiare sopra la granella di pistacchio.','Essiccare a 100 °C con 0 FAST DRY finché completamente secca.']}
 };
 function hasRec(name){return !!RECIPES[normName(name)];}
@@ -159,6 +159,6 @@ function render(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 17:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 29/06 18:30</div>
 <div id="recmodal" class="recmodal" onclick="if(event.target===this)closeRec()"></div>
 </body></html>
