@@ -75,6 +75,9 @@
  #viewer{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:60;padding:14px}#viewer img{max-width:100%;max-height:100%;border-radius:8px}
  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#15201a;color:#fff;padding:11px 16px;border-radius:12px;font-size:13.5px;font-weight:700;opacity:0;transition:opacity .2s;z-index:80;pointer-events:none}#toast.show{opacity:.97}
  #verbadge{position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none}
+html,body{overflow-x:hidden;max-width:100%}
+body{overscroll-behavior:contain;-webkit-text-size-adjust:100%}
+img{max-width:100%;height:auto}
 </style></head>
 <body>
 <div id="lock"><div class="mark">PR</div><h1>Manutenzione Cucina</h1><p>PRINZ RUDOLF · RISERVATO CHEF</p>
@@ -99,13 +102,13 @@
 </div></div>
 <div id="viewer" onclick="this.style.display='none'"><img id="vimg" src=""></div>
 <div id="toast"></div>
-<div id="verbadge">v 28/06 07:00</div>
+<div id="verbadge">v 29/06 18:00</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 const CHEF_CODE="Capo2026";
-const APP_VER='28/06 07:00';
+const APP_VER='29/06 18:00';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
@@ -163,7 +166,7 @@ function renderForm(isNew){CUR._isnew=isNew;el('detail').style.display='block';e
  h+='<div class="field"><label>Stato</label><div class="statosel">'+['da','corso','ok'].map(function(s){return '<button class="'+STATI[s].s+(CUR.stato===s?' on':'')+'" onclick="setStato(\''+s+'\')">'+STATI[s].t+'</button>';}).join('')+'</div></div>';
  h+='<div class="field"><label>Fornitore</label><select id="f_fornsel" onchange="pickForn()">'+fopts+'</select></div>';
  h+='<div class="row2"><div class="field"><label>Nome ditta</label><input id="f_ditta" placeholder="chi interviene" value="'+esc(CUR.ditta)+'"></div><div class="field"><label>Telefono</label><input id="f_tel" type="tel" placeholder="numero" value="'+esc(CUR.tel||'')+'"></div></div>';
- h+='<div class="callrow"><a class="callbtn call" onclick="doCall()">📞 Chiama</a><a class="callbtn wa" onclick="doWa()">💬 WhatsApp</a><a class="callbtn share" onclick="doShare()">📤 Invia con foto</a></div>';
+ h+='<div class="callrow"><a class="callbtn call" onclick="doCall()">📞 Chiama</a><a class="callbtn wa" onclick="doWa()">💬 WhatsApp</a><a class="callbtn share" onclick="doShare()">📤 Invia scheda al capo</a></div>';
  h+='<div class="row2"><div class="field"><label>Data segnalazione</label><input id="f_segn" type="date" value="'+esc(CUR.dataSegn)+'"></div><div class="field"><label>Data riparazione</label><input id="f_rip" type="date" value="'+esc(CUR.dataRip)+'"></div></div>';
  h+='<div class="field"><label>Costo</label><input id="f_costo" placeholder="es. 120 €" value="'+esc(CUR.costo)+'"></div>';
  h+='<div class="field"><label>Note</label><textarea id="f_note" placeholder="dettagli, garanzia, contatti…">'+esc(CUR.note)+'</textarea></div>';
@@ -180,11 +183,12 @@ function macSuggest(){var set={};ITEMS.forEach(function(i){if(i.macchinario)set[
 function pickForn(){var v=el('f_fornsel').value;if(v==='__manual'){el('f_ditta').value='';el('f_tel').value='';el('f_ditta').focus();return;}if(!v)return;var f=FORN.find(function(x){return x.id===v;});if(f){el('f_ditta').value=f.nome||'';el('f_tel').value=f.tel||'';}}
 function doCall(){var t=el('f_tel').value.trim();if(!t){toast('Aggiungi un numero');return;}location.href='tel:'+t.replace(/\s/g,'');}
 function doWa(){var t=el('f_tel').value.trim();var d=waDigits(t);if(!d){toast('Aggiungi un numero');return;}window.open('https://wa.me/'+d+'?text='+waMsg(),'_blank');}
-async function doShare(){grab();var msg='Prinz Rudolf – Manutenzione\nMacchinario: '+(CUR.macchinario||'')+'\nProblema: '+(CUR.problema||'')+(CUR.ditta?'\nFornitore: '+CUR.ditta:'');
- var files=[];var imgs=(CUR.allegati||[]).filter(function(a){return (a.mime||'').indexOf('image')===0;});
- try{for(var i=0;i<imgs.length;i++){var r=await fetch(imgs[i].data);var b=await r.blob();files.push(new File([b],'foto'+(i+1)+'.jpg',{type:imgs[i].mime||'image/jpeg'}));}}catch(e){}
- if(navigator.share){try{var data={text:msg};if(files.length&&navigator.canShare&&navigator.canShare({files:files}))data.files=files;await navigator.share(data);return;}catch(e){if(e&&e.name==='AbortError')return;}}
- var d=waDigits(CUR.tel);if(d){window.open('https://wa.me/'+d+'?text='+encodeURIComponent(msg),'_blank');toast('Su questo dispositivo allega la foto a mano');}else{toast('Condivisione non disponibile qui');}}
+async function doShare(){grab();
+ var msg='Prinz Rudolf – Scheda manutenzione\nMacchinario: '+(CUR.macchinario||'-')+'\nProblema: '+(CUR.problema||'-')+(CUR.stato?'\nStato: '+CUR.stato:'')+(CUR.dataSegn?'\nSegnalato: '+dShow(CUR.dataSegn):'')+(CUR.dataRip?'\nRiparato: '+dShow(CUR.dataRip):'')+(CUR.ditta?'\nFornitore: '+CUR.ditta:'')+(CUR.costo?'\nCosto: '+CUR.costo:'')+(CUR.note?'\nNote: '+CUR.note:'');
+ var files=[];var at=(CUR.allegati||[]);
+ try{for(var i=0;i<at.length;i++){var a=at[i];var r=await fetch(a.data);var b=await r.blob();var mime=a.mime||b.type||'application/octet-stream';var nm=a.name||'';if(!/\.(jpe?g|png|pdf)$/i.test(nm)){nm='allegato'+(i+1)+(mime.indexOf('pdf')>=0?'.pdf':'.jpg');}files.push(new File([b],nm,{type:mime}));}}catch(e){}
+ if(navigator.share){try{var data={text:msg,title:'Scheda manutenzione'};if(files.length&&navigator.canShare&&navigator.canShare({files:files}))data.files=files;await navigator.share(data);return;}catch(e){if(e&&e.name==='AbortError')return;}}
+ var d=waDigits(CUR.tel);if(d){window.open('https://wa.me/'+d+'?text='+encodeURIComponent(msg),'_blank');toast('Allega le foto a mano');}else{toast('Condivisione non disponibile qui');}}
 function grab(){if(!el('f_mac'))return;CUR.macchinario=el('f_mac').value.trim();CUR.problema=el('f_prob').value.trim();CUR.dataSegn=el('f_segn').value;CUR.dataRip=el('f_rip').value;CUR.ditta=el('f_ditta').value.trim();CUR.tel=el('f_tel').value.trim();CUR.costo=el('f_costo').value.trim();CUR.note=el('f_note').value.trim();}
 function compress(file){return new Promise(function(res){
  if((file.type||'').indexOf('image')!==0){var fr=new FileReader();fr.onload=function(){res({mime:file.type||'application/octet-stream',data:fr.result,name:file.name});};fr.readAsDataURL(file);return;}
