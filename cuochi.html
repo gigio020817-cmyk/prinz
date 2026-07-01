@@ -124,16 +124,17 @@ const PEOPLE={
 PEOPLE.Banu={noResp:true,noApe:true};RIPOSO.Banu=[1];
 const MENU_INFO='Pranzo ~30 pax · Cena ~25 pax · quantità accanto a ogni piatto';
 const MENU_PRANZO=[
- ['Lun','Pasta al pomodoro e basilico (~1,2 kg)','Collo di maiale CBT in salsa (~1,6 kg)','Pollo alla cacciatora (~0,7 kg)','Parmigiana di verdure (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg'],
- ['Mar','Pasta al ragù di manzo (~1,2 kg)','Pollo al curry (~1,8 kg)','—','Curry di verdure e ceci (~0,9 kg)','Patate ~1,5 kg + verdure surg. ~2 kg'],
- ['Mer','Pasta al forno (~1,2 kg)','Brasato di manzo CBT (~1,6 kg)','Bocconcini di pollo (~0,7 kg)','Sformato di verdure (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg'],
- ['Gio','Riso / risotto (~1,5 kg)','Spezzatino di tacchino (~1,8 kg)','—','Pasta al forno veg (~1 kg)','Patate al forno ~1,8 kg + verdure surg. ~2 kg'],
- ['Ven','Pasta al tonno (~1,2 kg)','Pesce fritto (~1,8 kg)','Pollo in umido (~0,7 kg)','Couscous con verdure (~0,9 kg)','Patate prezzemolate ~1,8 kg + verdure ~2 kg'],
- ['Sab','Pasta all\'arrabbiata (~1,2 kg)','Collo di maiale CBT, salsa funghi (~1,6 kg)','Pollo in umido (~0,7 kg)','Verdure gratinate (~0,8 kg)','Polenta/patate ~1,8 kg + verdure surg. ~2 kg'],
- ['Dom','Riso ai funghi (~1,5 kg)','Arrosto di manzo in salsa (~1,6 kg)','Pollo arrosto (~0,8 kg)','Verdure gratinate (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg']
+ ['Lun','Pasta al pomodoro e basilico (~1,2 kg) · 1,5 kg riso in bianco','Collo di maiale CBT in salsa (~1,6 kg)','Pollo alla cacciatora (~0,7 kg)','Parmigiana di verdure (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg'],
+ ['Mar','Pasta al pesto di zucchine (~1,2 kg) · 1,5 kg riso in bianco','Pollo al curry (~1,8 kg)','—','Curry di verdure e ceci (~0,9 kg)','Patate ~1,5 kg + verdure surg. ~2 kg'],
+ ['Mer','Pasta al forno (~1,2 kg) · 1,5 kg riso in bianco','Brasato di manzo CBT (~1,6 kg)','Bocconcini di pollo (~0,7 kg)','Sformato di verdure (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg'],
+ ['Gio','Risotto a scelta (~1,5 kg) · 1,5 kg riso in bianco','Spezzatino di tacchino (~1,8 kg)','—','Pasta al forno veg (~1 kg)','Patate al forno ~1,8 kg + verdure surg. ~2 kg'],
+ ['Ven','Pasta al tonno (~1,2 kg) · 1,5 kg riso in bianco','Pesce fritto (~1,8 kg)','Pollo in umido (~0,7 kg)','Couscous con verdure (~0,9 kg)','Patate prezzemolate ~1,8 kg + verdure ~2 kg'],
+ ['Sab','Pasta all\'arrabbiata (~1,2 kg) · 1,5 kg riso in bianco','Collo di maiale CBT, salsa funghi (~1,6 kg)','Pollo in umido (~0,7 kg)','Verdure gratinate (~0,8 kg)','Polenta/patate ~1,8 kg + verdure surg. ~2 kg'],
+ ['Dom','Pasta al pesto di pomodoro secco (~1,2 kg) · 1,5 kg riso in bianco','Arrosto di manzo in salsa (~1,6 kg)','Pollo arrosto (~0,8 kg)','Verdure gratinate (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg']
 ];
-const MENU_PRANZO_NOTE='Sempre presenti: riso bianco bollito (1 kg) · insalata del giorno (~1 kg) · freddo extra: tonno (~0,8 kg) o 12 uova sode · formaggio grattugiato. Placche sotto il pass: 6 calde (sopra: primo · secondo · alternativa/veg — sotto: riso bianco · verdure · patate/purè) + banco freddo a parte (insalata · freddo extra).';
+const MENU_PRANZO_NOTE='Sempre presenti: insalata del giorno (~1 kg) · freddo extra: tonno (~0,8 kg) o 12 uova sode · formaggio grattugiato. Placche sotto il pass: 6 calde (sopra: primo · secondo · alternativa/veg — sotto: riso bianco · verdure · patate/purè) + banco freddo a parte (insalata · freddo extra).';
 const MENU_PRANZO_PREP='👥 Chi prepara (la mattina): PRIMI → <b>Mattia</b> · SECONDI (piatti principali) → <b>Badr</b> · INSALATE e VERDURE/contorni → <b>Manjeet e Alex</b> (al bistro).';
+const MENU_PRANZO_AVANZO='♻️ Ogni mattina: tirare fuori l\'avanzo della mezza pensione, sistemarlo e aggiungerlo al pasto del personale — così non si spreca niente.';
 const MENU_CENA=[
  ['Lun','Insalata di pasta ~1,5 kg (tonno, mais, mozzarella)','Insalata verde + pane','Senza tonno, con formaggio','Mattia o Badr'],
  ['Mar','Pasta al forno (~1,5 kg)','Insalata + pane','Pasta al forno vegetariana','Mattia'],
@@ -176,7 +177,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='01/07 14:45';
+const APP_VER='01/07 15:15';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 
@@ -358,7 +359,7 @@ function puliziaSection(){
 function menuCard(){
   var p=MENU_PRANZO.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — <b>Primo:</b> '+esc(d[1])+' · <b>Secondo:</b> '+esc(d[2])+(d[3]&&d[3]!=='—'?' · <b>Alt. carne:</b> '+esc(d[3]):'')+' · <b>Veg:</b> '+esc(d[4])+' · <b>Contorni:</b> '+esc(d[5])+'</div>';}).join('');
   var c=MENU_CENA.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — '+esc(d[1])+' · <b>Contorno:</b> '+esc(d[2])+' · <b>Veg:</b> '+esc(d[3])+(d[4]?' · <b>Prepara:</b> '+esc(d[4]):'')+'</div>';}).join('');
-  return '<div class="card" id="cmenu"><div class="card-h" onclick="toggleCard(\'cmenu\')"><div class="t">📋 Menu del personale</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">'+MENU_INFO+'</div><div style="font-weight:700;margin:4px 0 2px">PRANZO (~30 pax)</div><div class="readbox" style="margin:4px 0;background:#fff6da;border:1px solid var(--gold)">'+MENU_PRANZO_PREP+'</div>'+p+'<div class="readbox" style="margin-top:8px">'+MENU_PRANZO_NOTE+'</div><div style="font-weight:700;margin:12px 0 2px">CENA (~25 pax)</div>'+c+'<div class="readbox" style="margin-top:8px">'+MENU_CENA_NOTE+'</div></div></div>';
+  return '<div class="card" id="cmenu"><div class="card-h" onclick="toggleCard(\'cmenu\')"><div class="t">📋 Menu del personale</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">'+MENU_INFO+'</div><div class="readbox" style="margin:6px 0;background:#eafaf0;border:1px solid #2e7d5b;font-weight:600">'+MENU_PRANZO_AVANZO+'</div><div style="font-weight:700;margin:4px 0 2px">PRANZO (~30 pax)</div><div class="readbox" style="margin:4px 0;background:#fff6da;border:1px solid var(--gold)">'+MENU_PRANZO_PREP+'</div>'+p+'<div class="readbox" style="margin-top:8px">'+MENU_PRANZO_NOTE+'</div><div style="font-weight:700;margin:12px 0 2px">CENA (~25 pax)</div>'+c+'<div class="readbox" style="margin-top:8px">'+MENU_CENA_NOTE+'</div></div></div>';
 }
 function notaCard(){
   var cook=getCook();
@@ -467,6 +468,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 01/07 14:45</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 01/07 15:15</div>
 </body>
 </html>
