@@ -171,10 +171,11 @@ function unlock(p,fromStore){
   if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_kpw','1')}catch(e){}}
   document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';
   loadAll();
+  if(!window._tick)window._tick=setInterval(function(){try{var a=document.getElementById('app');if(a&&a.style.display!=='none'&&getCook())render();}catch(e){}},60000);
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='28/06 13:00';
+const APP_VER='01/07 12:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 
@@ -370,23 +371,29 @@ async function saveNota(){
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:key,v:{text:v,cook:cook,at:new Date().toISOString()}})});toast('Nota salvata');}catch(e){toast('⚠️ Non salvata');console.error(e);}
 }
 function countDone(group){var d=0;Object.keys(CK).forEach(function(k){if(k.indexOf(group+'_')===0)d++;});return d;}
+// Fasce orarie: l'allarme conta una cosa come "mancante" solo dalla sua ora in poi (minuti dalla mezzanotte)
+var DUE_APERTURA=600;   // 10:00
+var DUE_PULIZIA=900;    // 15:00
+var DUE_CHIUSURA=1260;  // 21:00
+function nowMin(){var d=new Date();return d.getHours()*60+d.getMinutes();}
+function hhmm(m){return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2);}
 function missingFor(cook){
   if(!cook)return null;
   if(isOff(cook))return [];
   if(CHIUSI.indexOf(cook)>=0)return [];
   var miss=[];
-  if(!(TIMBRA[cook]&&TIMBRA[cook].in))miss.push("Segnare l'orario di arrivo");
+  if(!(TIMBRA[cook]&&TIMBRA[cook].in))miss.push({t:"Segnare l'orario di arrivo",from:0});
   var tour=PEOPLE[cook]&&PEOPLE[cook].tournant;
   var cov=tour?(getCover()||badrCovers()):'';
-  if(tour&&cov){var g='pulizia#'+cov,tot=puliziaFor(cov).length,d=countDone(g);if(d<tot)miss.push("Pulizia partita di "+cov+" ("+d+"/"+tot+")");}
-  else{var g2='pulizia#'+cook,tot2=puliziaFor(cook).length,d2=countDone(g2);if(d2<tot2)miss.push((tour?"Compiti tournant":"La mia pulizia")+" ("+d2+"/"+tot2+")");var wd=weeklyDue(cook);if(wd.length)miss.push("Pulizia settimanale di oggi ("+wd.length+")");}
+  if(tour&&cov){var g='pulizia#'+cov,tot=puliziaFor(cov).length,d=countDone(g);if(d<tot)miss.push({t:"Pulizia partita di "+cov+" ("+d+"/"+tot+")",from:DUE_PULIZIA});}
+  else{var g2='pulizia#'+cook,tot2=puliziaFor(cook).length,d2=countDone(g2);if(d2<tot2)miss.push({t:(tour?"Compiti tournant":"La mia pulizia")+" ("+d2+"/"+tot2+")",from:DUE_PULIZIA});var wd=weeklyDue(cook);if(wd.length)miss.push({t:"Pulizia settimanale di oggi ("+wd.length+")",from:DUE_PULIZIA});}
   var RN=(META&&META.name)?META.name:'';
   var showApe=RN?(cook===RN):!(PEOPLE[cook]&&PEOPLE[cook].noApe);
   var showChiu=RN?(cook===RN):!(PEOPLE[cook]&&PEOPLE[cook].noChiu);
-  if(showApe){var da=countDone('apertura');if(da<APERTURA.length)miss.push("Check-list apertura ("+da+"/"+APERTURA.length+")");}
-  if(showChiu){var dc=countDone('chiusura');if(dc<CHIUSURA.length)miss.push("Check-list chiusura ("+dc+"/"+CHIUSURA.length+")");}
+  if(showApe){var da=countDone('apertura');if(da<APERTURA.length)miss.push({t:"Check-list apertura ("+da+"/"+APERTURA.length+")",from:DUE_APERTURA});}
+  if(showChiu){var dc=countDone('chiusura');if(dc<CHIUSURA.length)miss.push({t:"Check-list chiusura ("+dc+"/"+CHIUSURA.length+")",from:DUE_CHIUSURA});}
   var nsch=ENT.filter(function(e){return e.type==='scheda'&&e.cook===cook;}).length;
-  if(nsch===0)miss.push("Scrivere cosa hai preparato (scheda di servizio)");
+  if(nsch===0)miss.push({t:"Scrivere cosa hai preparato (scheda di servizio)",from:DUE_PULIZIA});
   return miss;
 }
 var _penSig=null;
@@ -400,12 +407,21 @@ function updatePenale(cook,miss){try{
   }
 }catch(e){}}
 function penaleBanner(cook){
-  var miss=missingFor(cook);
-  if(miss===null)return '';
-  updatePenale(cook,miss);
-  if(!miss.length)return '<div class="okbar">✅ '+esc(cook)+', hai completato tutto. Grazie!</div>';
-  var lis=miss.map(function(m){return '<li>'+esc(m)+'</li>';}).join('');
-  return '<div class="penalebar"><div class="pb-t">⚠️ '+esc(cook)+' — TI MANCANO '+miss.length+' COSE</div><div class="pb-s">Completale subito: lo chef vede chi non ha finito · rischio PENALE</div><ul class="pb-l">'+lis+'</ul></div>';
+  var raw=missingFor(cook);
+  if(raw===null)return '';
+  var nm=nowMin();
+  var due=raw.filter(function(m){return nm>=m.from;});
+  var pending=raw.filter(function(m){return nm<m.from;});
+  updatePenale(cook,due.map(function(m){return m.t;}));
+  if(due.length){
+    var lis=due.map(function(m){return '<li>'+esc(m.t)+'</li>';}).join('');
+    return '<div class="penalebar"><div class="pb-t">⚠️ '+esc(cook)+' — TI MANCANO '+due.length+' COSE</div><div class="pb-s">Completale subito: lo chef vede chi non ha finito · rischio PENALE</div><ul class="pb-l">'+lis+'</ul></div>';
+  }
+  if(pending.length){
+    var nxt=pending.slice().sort(function(a,b){return a.from-b.from;})[0];
+    return '<div class="okbar" style="background:#fff6da;color:#5a4600;border-color:#e7cf87">⏳ '+esc(cook)+', per ora niente in scadenza. Buon lavoro! (prossima cosa da segnare verso le '+hhmm(nxt.from)+')</div>';
+  }
+  return '<div class="okbar">✅ '+esc(cook)+', hai completato tutto. Grazie!</div>';
 }
 function consegneCard(){
   var c=getCook();var isG=(c==='Gianluca');
@@ -450,6 +466,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 13:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 01/07 12:30</div>
 </body>
 </html>
