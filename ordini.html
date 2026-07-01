@@ -213,7 +213,7 @@ async function tryUnlock(password,fromStore){
 }
 document.getElementById('enter').onclick=()=>tryUnlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(pw.value,false)});
-const APP_VER='28/06 22:15';
+const APP_VER='01/07 10:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_ordini'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_ordini','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){if(!window.crypto||!crypto.subtle){err.textContent="Apri l'app dal sito (https).";return;}
   try{if(localStorage.getItem('pr_av_ordini')!=='28/06 22:15'){localStorage.removeItem('ord_pw');localStorage.setItem('pr_av_ordini','28/06 22:15');}}catch(_e){}let s=null;try{s=localStorage.getItem('ord_pw')}catch(e){}
@@ -298,8 +298,7 @@ function openSup(enc,pfilter){
     +'<div class="dhead"><h2>'+esc(s.name)+'</h2><div class="tel">'+telLine+'</div></div>'
     +'<div class="bollesec"><div class="bolletit">📷 Bolle di consegna</div>'
     +'<input type="file" id="bollafile" accept="image/*" capture="environment" style="display:none" onchange="addBolla(\''+encodeURIComponent(name)+'\',this)">'
-    +'<button class="bollabtn" onclick="document.getElementById(\'bollafile\').click()">📷 Aggiungi foto bolla</button>'
-    +'<button class="bollatoggle" id="bollatoggle" onclick="toggleBolle()">📁 Archivio bolle ▸</button><div id="bollelist" style="display:none"></div><button class="bollatoggle" id="prezzitoggle" onclick="togglePrezzi()">💶 Prezzi da bolle ▸</button><div id="prezzilist" style="display:none"></div></div>'
+    +'<button class="bollabtn" onclick="document.getElementById(\'bollafile\').click()">📷 Aggiungi foto bolla</button></div>'
     +pfBox
     +'<div id="prows">'+rows+'</div>'
     +'<button class="addbtn" onclick="addProduct(\''+encodeURIComponent(name)+'\')">&#65291; Aggiungi prodotto</button>'
@@ -308,7 +307,8 @@ function openSup(enc,pfilter){
     +'<div class="bar"><div id="totord" class="totord"></div><button class="wa" onclick="inviaOrdine(\''+encodeURIComponent(name)+'\')">'
     +'<svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 00-8.6 15l-1.4 5 5.1-1.3A10 10 0 1012 2zm0 2a8 8 0 11-4.1 14.9l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 0112 4z"/></svg>'
     +'Crea ordine e invia su WhatsApp</button>'
-    +'<button class="reset" onclick="azzera(\''+encodeURIComponent(name)+'\')">Azzera ordine</button></div>';
+    +'<button class="reset" onclick="azzera(\''+encodeURIComponent(name)+'\')">Azzera ordine</button></div>'
+    +'<div class="bollesec" style="margin-top:16px"><div class="bolletit">🗂️ Archivio &amp; prezzi bolle</div><button class="bollatoggle" id="bollatoggle" onclick="toggleBolle()">📁 Archivio bolle ▸</button><div id="bollelist" style="display:none"></div><button class="bollatoggle" id="prezzitoggle" onclick="togglePrezzi()">💶 Prezzi da bolle ▸</button><div id="prezzilist" style="display:none"></div></div>';
   // ripristina quantità salvate (bozza)
   const dr=getDraft()[name]||{items:{},altro:''};
   document.querySelectorAll('#prows .prow').forEach(r=>{const d=dr.items[r.dataset.name];if(d){r.querySelector('.qty').value=d.q;const ub=r.querySelector('.unit');ub.dataset.u=d.u||'';ub.textContent=d.u||'unità';ub.classList.toggle('set',!!d.u);r.classList.add('filled');}});
@@ -345,7 +345,7 @@ function exportAdds(){const t=buildExport();if(!t){alert("Non hai aggiunte da es
 function copyExp(){const ta=document.getElementById('exptxt');ta.select();ta.setSelectionRange(0,99999);try{navigator.clipboard.writeText(ta.value);}catch(e){try{document.execCommand('copy');}catch(_){}}alert("Copiato! Ora incollalo a Claude in chat.");}
 document.getElementById('q').addEventListener('input',function(){renderList(this.value)});
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 28/06 22:15</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 01/07 10:30</div>
 <div id="bollamodal"></div>
 </body>
 </html>
