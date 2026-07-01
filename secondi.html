@@ -113,6 +113,28 @@
   .mcprod:active{transform:scale(.97)}
 
   .dayhdr{font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin:18px 4px 8px;border-bottom:2px solid rgba(0,0,0,.08);padding-bottom:5px}
+
+/* --- Ordini (lista spesa) --- */
+#ordfab{position:fixed;right:16px;bottom:16px;z-index:60;background:linear-gradient(135deg,#c9a227,#a8841a);color:#1a1400;border:none;border-radius:28px;padding:14px 20px;font-size:16px;font-weight:800;box-shadow:0 4px 16px rgba(0,0,0,.3);cursor:pointer}
+#ordov{position:fixed;inset:0;z-index:120;background:#faf7f0;display:none;flex-direction:column}
+.ordtop{display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;background:linear-gradient(160deg,#6a1f2b,#4a1720);color:#fff}
+.ordtop h2{font-size:17px;margin:0;flex:1;font-weight:700}
+.ordclose{background:rgba(255,255,255,.16);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:14px;font-weight:700;cursor:pointer}
+.ordwrap{max-width:760px;margin:0 auto;padding:14px 16px 90px}
+.ordintro{font-size:13px;color:#7a6f5c;margin:6px 0}
+.ordcat{width:100%;text-align:left;background:#fff;border:1px solid #e6ddc8;border-radius:12px;padding:12px 14px;margin:8px 0 0;font-size:15px;font-weight:700;color:#5b3a2e;cursor:pointer;display:flex;align-items:center;gap:8px}
+.ordcat .catn{margin-left:auto;background:#efe7d3;border-radius:20px;padding:2px 9px;font-size:12px;font-weight:700}
+.ordcatbox{padding:2px 0 4px}
+.ordrow{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #f0ead9}
+.ordrow.on{background:#fbf3d6}
+.ordrow .ordnm{flex:1;font-size:14px}
+.ostep{display:flex;align-items:center;gap:8px}
+.ostep button{width:30px;height:30px;border-radius:8px;border:1px solid #d8cba8;background:#fff;font-size:18px;font-weight:700;cursor:pointer;line-height:1}
+.ostep span{min-width:22px;text-align:center;font-weight:700}
+.ounit{border:1px solid #d8cba8;background:#fff;border-radius:8px;padding:5px 8px;font-size:12px;font-weight:700;cursor:pointer;min-width:46px}
+.ordnote{width:100%;min-height:60px;border:1px solid #e0d9c8;border-radius:9px;padding:10px;margin-top:8px;font-size:14px;box-sizing:border-box}
+.ordsend{display:block;width:100%;margin:16px 0 0;background:#25D366;color:#fff;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:800;cursor:pointer}
+
 </style>
 </head>
 <body>
@@ -139,6 +161,8 @@
 <main><div id="list"></div><div id="detail"></div></main>
 <div id="meatview" style="display:none"></div>
 <footer>Prinz Rudolf &middot; Ricettario Secondi — uso interno cucina</footer>
+<button id="ordfab" onclick="openOrd()">🛒 Ordini</button>
+<div id="ordov"><div class="ordtop"><h2>🛒 Lista della spesa — Secondi</h2><button class="ordclose" onclick="closeOrd()">✕ Chiudi</button></div><div id="ordbody" style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch"></div></div>
 </div>
 <div id="viewer" onclick="this.style.display='none'"><img id="vimg" src=""></div>
 <script>
@@ -169,7 +193,7 @@ async function tryUnlock(password,fromStore){
 }
 document.getElementById('enter').onclick=()=>tryUnlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(pw.value,false)});
-const APP_VER='29/06 19:00';
+const APP_VER='01/07 11:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_sec'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_sec','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){if(!window.crypto||!crypto.subtle){err.textContent="Apri l'app dal sito (https), non come file locale.";return;}
   try{if(localStorage.getItem('pr_av_sec')!=='28/06 08:00'){localStorage.removeItem('pr_pw');localStorage.setItem('pr_av_sec','28/06 08:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_pw')}catch(e){}
@@ -243,6 +267,42 @@ function showSecView(v){if(v!=='carne')SECVIEW=v;
 
 </script>
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Modifiche da inviare</h3><p>Copia questo testo e mandalo a Gigio (o incollalo a Claude in chat).</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 29/06 19:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 01/07 11:00</div>
+
+<script>
+/* Sezione Ordini — Secondi (indipendente, dati in chiaro) */
+var ORDLIST={"Lista della spesa": ["Filetto di maiale", "Spalla di maiale", "Salsiccia di suino nero", "Steak di tacchino", "Petto d'anatra", "Petto di pollo", "Petto di faraona", "Guancia di manzo", "Manzo a fette (flan/brasato)", "Spezzatino di manzo (goulash)", "Tagliata di agnello", "Filetto di branzino", "Filetto di salmone", "Filetto di orata", "Filetto di sgombro", "Speck", "Pancetta affumicata", "Latte", "Panna", "Burro", "Parmigiano", "Formaggio di malga", "Scamorza", "Tomino", "Ricotta affumicata", "Uova (tetrapack)", "Patate", "Patate dolci", "Patate novelle", "Carote", "Sedano rapa", "Zucca", "Zucchine", "Peperoni gialli", "Peperoni rossi", "Cipolla dorata", "Cipolla rossa", "Cipollotto", "Porro", "Broccoli", "Cavolfiore", "Cavolo romanesco", "Cavolo cappuccio verde", "Cavolo rosso", "Melanzane", "Carciofi", "Finocchio", "Indivia belga", "Pak choi", "Bietola", "Spinaci", "Soncino", "Pastinaca", "Barbabietola", "Funghi cardoncello", "Pomodori ramato", "Cetrioli", "Aglio", "Limoni", "Arance", "Mele", "Albicocche", "Lamponi", "Farina 00", "Panko", "Polenta istantanea", "Tapioca in perle", "Bulgur", "Quinoa", "Cous cous", "Riso Vialone Nano", "Amido di mais (maizena)", "Ceci", "Pane raffermo", "Mandorle", "Pinoli", "Nocciole", "Uvetta", "Concentrato di pomodoro", "Passata Mutti", "Pelati San Marzano", "Olive taggiasche", "Olive nere", "Capperi", "Pomodori confit", "Pomodori secchi", "Miele", "Zucchero", "Sale", "Olio EVO", "Olio di semi", "Olio tartufato", "Crema tartufata", "Aceto di vino", "Aceto balsamico", "Senape di Digione", "Salsa di soia", "Miso", "Demi-glace / fondo bruno", "Brodo vegetale (dado)", "Curcuma", "Curry", "Basilico", "Prezzemolo", "Timo", "Rosmarino", "Salvia", "Alloro", "Erbe miste", "Paprika affumicata", "Pepe nero", "Noce moscata", "Zafferano", "Lemongrass", "Cannella", "Agar agar", "Xantano", "Lecitina di soia", "Maltosec", "Gelatina in polvere", "Vino bianco", "Vino rosso", "Marsala", "Prosecco", "Funghi misti", "Piselli", "Frutti di bosco"]};
+var CATEG={"p2c": {"Filetto di maiale": "Carne e pollame", "Spalla di maiale": "Carne e pollame", "Salsiccia di suino nero": "Carne e pollame", "Steak di tacchino": "Carne e pollame", "Petto d'anatra": "Carne e pollame", "Petto di pollo": "Carne e pollame", "Petto di faraona": "Carne e pollame", "Guancia di manzo": "Carne e pollame", "Manzo a fette (flan/brasato)": "Carne e pollame", "Spezzatino di manzo (goulash)": "Carne e pollame", "Tagliata di agnello": "Carne e pollame", "Filetto di branzino": "Pesce", "Filetto di salmone": "Pesce", "Filetto di orata": "Pesce", "Filetto di sgombro": "Pesce", "Speck": "Salumi", "Pancetta affumicata": "Salumi", "Latte": "Latticini e uova", "Panna": "Latticini e uova", "Burro": "Latticini e uova", "Parmigiano": "Latticini e uova", "Formaggio di malga": "Latticini e uova", "Scamorza": "Latticini e uova", "Tomino": "Latticini e uova", "Ricotta affumicata": "Latticini e uova", "Uova (tetrapack)": "Latticini e uova", "Patate": "Verdura fresca", "Patate dolci": "Verdura fresca", "Patate novelle": "Verdura fresca", "Carote": "Verdura fresca", "Sedano rapa": "Verdura fresca", "Zucca": "Verdura fresca", "Zucchine": "Verdura fresca", "Peperoni gialli": "Verdura fresca", "Peperoni rossi": "Verdura fresca", "Cipolla dorata": "Verdura fresca", "Cipolla rossa": "Verdura fresca", "Cipollotto": "Verdura fresca", "Porro": "Verdura fresca", "Broccoli": "Verdura fresca", "Cavolfiore": "Verdura fresca", "Cavolo romanesco": "Verdura fresca", "Cavolo cappuccio verde": "Verdura fresca", "Cavolo rosso": "Verdura fresca", "Melanzane": "Verdura fresca", "Carciofi": "Verdura fresca", "Finocchio": "Verdura fresca", "Indivia belga": "Verdura fresca", "Pak choi": "Verdura fresca", "Bietola": "Verdura fresca", "Spinaci": "Verdura fresca", "Soncino": "Verdura fresca", "Pastinaca": "Verdura fresca", "Barbabietola": "Verdura fresca", "Funghi cardoncello": "Verdura fresca", "Pomodori ramato": "Verdura fresca", "Cetrioli": "Verdura fresca", "Aglio": "Verdura fresca", "Limoni": "Frutta fresca", "Arance": "Frutta fresca", "Mele": "Frutta fresca", "Albicocche": "Frutta fresca", "Lamponi": "Frutta fresca", "Farina 00": "Cereali, farine e legumi", "Panko": "Cereali, farine e legumi", "Polenta istantanea": "Cereali, farine e legumi", "Tapioca in perle": "Cereali, farine e legumi", "Bulgur": "Cereali, farine e legumi", "Quinoa": "Cereali, farine e legumi", "Cous cous": "Cereali, farine e legumi", "Riso Vialone Nano": "Cereali, farine e legumi", "Amido di mais (maizena)": "Cereali, farine e legumi", "Ceci": "Cereali, farine e legumi", "Pane raffermo": "Cereali, farine e legumi", "Mandorle": "Frutta secca e semi", "Pinoli": "Frutta secca e semi", "Nocciole": "Frutta secca e semi", "Uvetta": "Frutta secca e semi", "Concentrato di pomodoro": "Dispensa e conserve", "Passata Mutti": "Dispensa e conserve", "Pelati San Marzano": "Dispensa e conserve", "Olive taggiasche": "Dispensa e conserve", "Olive nere": "Dispensa e conserve", "Capperi": "Dispensa e conserve", "Pomodori confit": "Dispensa e conserve", "Pomodori secchi": "Dispensa e conserve", "Miele": "Dispensa e conserve", "Zucchero": "Dispensa e conserve", "Sale": "Dispensa e conserve", "Olio EVO": "Dispensa e conserve", "Olio di semi": "Dispensa e conserve", "Olio tartufato": "Dispensa e conserve", "Crema tartufata": "Dispensa e conserve", "Aceto di vino": "Dispensa e conserve", "Aceto balsamico": "Dispensa e conserve", "Senape di Digione": "Dispensa e conserve", "Salsa di soia": "Dispensa e conserve", "Miso": "Dispensa e conserve", "Demi-glace / fondo bruno": "Dispensa e conserve", "Brodo vegetale (dado)": "Dispensa e conserve", "Curcuma": "Dispensa e conserve", "Curry": "Dispensa e conserve", "Basilico": "Erbe e spezie", "Prezzemolo": "Erbe e spezie", "Timo": "Erbe e spezie", "Rosmarino": "Erbe e spezie", "Salvia": "Erbe e spezie", "Alloro": "Erbe e spezie", "Erbe miste": "Erbe e spezie", "Paprika affumicata": "Erbe e spezie", "Pepe nero": "Erbe e spezie", "Noce moscata": "Erbe e spezie", "Zafferano": "Erbe e spezie", "Lemongrass": "Erbe e spezie", "Cannella": "Erbe e spezie", "Agar agar": "Additivi e texture (Sosa)", "Xantano": "Additivi e texture (Sosa)", "Lecitina di soia": "Additivi e texture (Sosa)", "Maltosec": "Additivi e texture (Sosa)", "Gelatina in polvere": "Additivi e texture (Sosa)", "Vino bianco": "Vino e alcolici", "Vino rosso": "Vino e alcolici", "Marsala": "Vino e alcolici", "Prosecco": "Vino e alcolici", "Funghi misti": "Surgelati", "Piselli": "Surgelati", "Frutti di bosco": "Surgelati"}, "order": ["Carne e pollame", "Pesce", "Salumi", "Latticini e uova", "Verdura fresca", "Frutta fresca", "Cereali, farine e legumi", "Frutta secca e semi", "Dispensa e conserve", "Erbe e spezie", "Additivi e texture (Sosa)", "Vino e alcolici", "Surgelati"]};
+var _REC='secondiord',_SRC='Secondi';
+var ORD={},ORDNOTE='',_ordT=null,_ordLoaded=false;var OUNITS=['pz','kg','cart'];
+function _esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+function ordKey(p){return p.toLowerCase().replace(/[^a-z0-9]+/g,'_');}
+async function loadOrd(){try{var r=await sb('kitchen_meta?k=eq.'+_REC+'&select=v');var v=(r&&r[0]&&r[0].v)?r[0].v:{};ORD=v.items||{};ORDNOTE=v.note||'';}catch(e){ORD={};ORDNOTE='';}_ordLoaded=true;}
+function ordSave(){clearTimeout(_ordT);_ordT=setTimeout(function(){sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:_REC,v:{items:ORD,note:ORDNOTE}})}).catch(function(){});},600);}
+function ordGet(k){return ORD[k]||{q:0,u:'pz'};}
+function ordChg(k,d){var o=ordGet(k);var q=Math.max(0,(o.q||0)+d);ORD[k]={q:q,u:o.u||'pz'};var el=document.getElementById('oq_'+k);if(el)el.textContent=q;var row=document.getElementById('or_'+k);if(row)row.classList.toggle('on',q>0);ordSave();}
+function ordUnit(k){var o=ordGet(k);var i=OUNITS.indexOf(o.u||'pz');var u=OUNITS[(i+1)%OUNITS.length];ORD[k]={q:o.q||0,u:u};var b=document.getElementById('ou_'+k);if(b)b.textContent=u;ordSave();}
+function ordNote(t){ORDNOTE=t;ordSave();}
+function ordToggleCat(btn){var box=btn.nextElementSibling;if(!box)return;var open=box.style.display!=='none';box.style.display=open?'none':'block';var ar=btn.querySelector('.catar');if(ar)ar.textContent=open?'\u25b8':'\u25be';}
+function openOrd(){document.getElementById('ordov').style.display='flex';renderOrd();}
+function closeOrd(){document.getElementById('ordov').style.display='none';}
+function renderOrd(){var v=document.getElementById('ordbody');if(!_ordLoaded){v.innerHTML='<div class="ordwrap">Carico\u2026</div>';loadOrd().then(function(){renderOrd();});return;}
+ var items=ORDLIST['Lista della spesa']||[];
+ var h='<div class="ordwrap"><div class="ordintro">Tocca una categoria per aprirla e segna le quantit\u00e0 con le freccette (pz/kg/cart). In fondo scrivi i prodotti dimenticati, poi invia allo chef.</div>';
+ CATEG.order.forEach(function(cat){var inCat=items.filter(function(p){return CATEG.p2c[p]===cat;});if(!inCat.length)return;
+  h+='<button class="ordcat" onclick="ordToggleCat(this)"><span class="catar">\u25b8</span> '+_esc(cat)+' <span class="catn">'+inCat.length+'</span></button>';
+  h+='<div class="ordcatbox" style="display:none">'+inCat.map(function(p){var k=ordKey(p);var o=ordGet(k);return '<div class="ordrow'+(o.q>0?' on':'')+'" id="or_'+k+'"><span class="ordnm">'+_esc(p)+'</span><div class="ostep"><button onclick="ordChg(\''+k+'\',-1)">\u2212</button><span id="oq_'+k+'">'+(o.q||0)+'</span><button onclick="ordChg(\''+k+'\',1)">+</button></div><button class="ounit" id="ou_'+k+'" onclick="ordUnit(\''+k+'\')">'+(o.u||'pz')+'</button></div>';}).join('')+'</div>';});
+ h+='<div class="ordintro" style="margin-top:16px">\ud83d\udcdd Note \u2014 prodotti dimenticati / da aggiungere</div><textarea class="ordnote" placeholder="Es. manca il porro\u2026" oninput="ordNote(this.value)">'+_esc(ORDNOTE||'')+'</textarea>';
+ h+='<button class="ordsend" onclick="inviaOrdineChef()">\ud83d\udce4 Invia l\'ordine allo chef</button></div>';
+ v.innerHTML=h;}
+async function inviaOrdineChef(){var add=[];var items=ORDLIST['Lista della spesa']||[];items.forEach(function(p){var k=ordKey(p);var o=ORD[k];if(o&&o.q>0)add.push({n:p,q:o.q,u:o.u||'pz',src:_SRC});});
+ var note=(ORDNOTE||'').trim();
+ if(!add.length&&!note){alert('Segna prima le quantit\u00e0 con le freccette.');return;}
+ if(!confirm('Inviare l\'ordine allo chef? ('+add.length+' prodotti)'))return;
+ try{var r=await sb('kitchen_meta?k=eq.pastreq&select=v');var cur=(r&&r[0]&&r[0].v&&r[0].v.items)?r[0].v.items:[];var at=new Date().toISOString();add.forEach(function(x){x.at=at;cur.push(x);});if(note){cur.push({n:'\ud83d\udcdd Nota '+_SRC+': '+note,q:'',u:'',src:_SRC,at:at});}
+ await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pastreq',v:{items:cur}})});
+ ORD={};ORDNOTE='';ordSave();alert('Ordine inviato allo chef \u2713');renderOrd();}catch(e){alert('Errore invio, riprova.');}}
+</script>
+
 </body>
 </html>
