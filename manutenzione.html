@@ -37,7 +37,7 @@
  .b-da{background:var(--rosso)} .b-corso{background:var(--ambra)} .b-ok{background:var(--verde)}
  .att{display:inline-flex;align-items:center;gap:3px}
  .empty{text-align:center;color:var(--muted);padding:46px 16px;font-size:14px}
- #detail,#forn{display:none;position:fixed;inset:0;z-index:40;background:var(--cream);overflow-y:auto;-webkit-overflow-scrolling:touch}
+ #detail,#forn{display:none;position:fixed;inset:0;z-index:40;background:var(--cream);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
  .dwrap{max-width:760px;margin:0 auto;padding:14px 16px 60px}
  .dtop{position:sticky;top:0;background:var(--cream);padding:8px 0 10px;display:flex;align-items:center;gap:10px;z-index:5;border-bottom:1px solid var(--line);margin-bottom:14px}
  .dtop .back{border:none;background:none;color:var(--nero);font-size:16px;font-weight:800;cursor:pointer;padding:6px}
@@ -78,6 +78,8 @@
 html,body{overflow-x:hidden;max-width:100%}
 body{overscroll-behavior:contain;-webkit-text-size-adjust:100%}
 img{max-width:100%;height:auto}
+.dtop,.field,.row2,.atts{max-width:100%}
+.field input,.field select,.field textarea{max-width:100%;box-sizing:border-box}
 </style></head>
 <body>
 <div id="lock"><div class="mark">PR</div><h1>Manutenzione Cucina</h1><p>PRINZ RUDOLF · RISERVATO CHEF</p>
@@ -102,13 +104,13 @@ img{max-width:100%;height:auto}
 </div></div>
 <div id="viewer" onclick="this.style.display='none'"><img id="vimg" src=""></div>
 <div id="toast"></div>
-<div id="verbadge">v 29/06 18:00</div>
+<div id="verbadge">v 29/06 20:00</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 const CHEF_CODE="Capo2026";
-const APP_VER='29/06 18:00';
+const APP_VER='29/06 20:00';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
