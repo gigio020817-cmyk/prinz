@@ -106,7 +106,7 @@ const CHIUSURA=["Tutto spento (attrezzature)","Pulizia serale di tutto (microond
 const PULIZIA_SETT=["Freddo a fondo (interno banco frigo/cassetti e guarnizioni · cella di competenza + scadenze)","Cotture a fondo (forno e piastra)","Scaffali e piccoli elettrodomestici (anche quelli bassi)","Roner a fondo (acqua e aceto a 90°C per 1 ora)","Ogni 2 settimane: scongelare congelatori piccoli · filtri cappe ai lavapiatti"];
 const RESP=[["Sett. 1","Ubaldo"],["Sett. 2","Mattia"],["Sett. 3","Badr"],["Sett. 4","Alex"],["Sett. 5","Gianluca"]];
 const CHIUSI=[]; // partite chiuse: pulizie sospese, solo produzione
-const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[6],Erjola:[2],Badr:[0],Majeet:[3],Ubaldo:[4]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
+const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[5],Erjola:[2],Badr:[6],Majeet:[3],Ubaldo:[4]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
 function isOff(cook){var wd=new Date(today+"T00:00:00").getDay();return !!(RIPOSO[cook]&&RIPOSO[cook].indexOf(wd)>=0);}
 function badrCovers(){var L=["Alex","Mattia","Erjola","Ubaldo"];for(var k=0;k<L.length;k++){if(isOff(L[k]))return L[k];}return "";}
 const GTOT={apertura:APERTURA.length,chiusura:CHIUSURA.length,pulizia:PULIZIA.length};
@@ -133,13 +133,14 @@ const MENU_PRANZO=[
  ['Dom','Riso ai funghi (~1,5 kg)','Arrosto di manzo in salsa (~1,6 kg)','Pollo arrosto (~0,8 kg)','Verdure gratinate (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg']
 ];
 const MENU_PRANZO_NOTE='Sempre presenti: riso bianco bollito (1 kg) · insalata del giorno (~1 kg) · freddo extra: tonno (~0,8 kg) o 12 uova sode · formaggio grattugiato. Placche sotto il pass: 6 calde (sopra: primo · secondo · alternativa/veg — sotto: riso bianco · verdure · patate/purè) + banco freddo a parte (insalata · freddo extra).';
+const MENU_PRANZO_PREP='👥 Chi prepara (la mattina): PRIMI → <b>Mattia</b> · SECONDI (piatti principali) → <b>Badr</b> · INSALATE e VERDURE/contorni → <b>Manjeet e Alex</b> (al bistro).';
 const MENU_CENA=[
  ['Lun','Insalata di pasta ~1,5 kg (tonno, mais, mozzarella)','Insalata verde + pane','Senza tonno, con formaggio','Manjeet'],
- ['Mar','Hamburger nel pane (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Burger di verdure','Alex'],
+ ['Mar','Hamburger nel pane (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Burger di verdure','Badr'],
  ['Mer','Pasta al forno (~1,5 kg)','Insalata + pane','Pasta al forno vegetariana','Mattia'],
  ['Gio','Pizza in teglia (~2,5 kg impasto)','Insalata','Pizza di verdure','Badr'],
  ['Ven','Insalata di riso ~1,5 kg (tonno, uova, mais)','Insalata + pane','Versione veg con ceci/formaggio','Manjeet'],
- ['Sab','Wrap / kebab di pollo (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Wrap di verdure e formaggio','Badr'],
+ ['Sab','Wrap / kebab di pollo (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Wrap di verdure e formaggio','Alex'],
  ['Dom','Pita / focaccia farcita (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Versione vegetariana','Alex']
 ];
 const MENU_CENA_NOTE='Piatti composti (hamburger, wrap, pita): ~2 a testa per metà dei coperti (~38 pz su 25 pax). Cena: maiale ok, niente manzo (tranne hamburger del martedì). Insalata e riso bianco sempre presenti.';
@@ -175,7 +176,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='01/07 12:30';
+const APP_VER='01/07 13:40';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 
@@ -357,7 +358,7 @@ function puliziaSection(){
 function menuCard(){
   var p=MENU_PRANZO.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — <b>Primo:</b> '+esc(d[1])+' · <b>Secondo:</b> '+esc(d[2])+(d[3]&&d[3]!=='—'?' · <b>Alt. carne:</b> '+esc(d[3]):'')+' · <b>Veg:</b> '+esc(d[4])+' · <b>Contorni:</b> '+esc(d[5])+'</div>';}).join('');
   var c=MENU_CENA.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — '+esc(d[1])+' · <b>Contorno:</b> '+esc(d[2])+' · <b>Veg:</b> '+esc(d[3])+(d[4]?' · <b>Prepara:</b> '+esc(d[4]):'')+'</div>';}).join('');
-  return '<div class="card" id="cmenu"><div class="card-h" onclick="toggleCard(\'cmenu\')"><div class="t">📋 Menu del personale</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">'+MENU_INFO+'</div><div style="font-weight:700;margin:4px 0 2px">PRANZO (~30 pax)</div>'+p+'<div class="readbox" style="margin-top:8px">'+MENU_PRANZO_NOTE+'</div><div style="font-weight:700;margin:12px 0 2px">CENA (~25 pax)</div>'+c+'<div class="readbox" style="margin-top:8px">'+MENU_CENA_NOTE+'</div></div></div>';
+  return '<div class="card" id="cmenu"><div class="card-h" onclick="toggleCard(\'cmenu\')"><div class="t">📋 Menu del personale</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">'+MENU_INFO+'</div><div style="font-weight:700;margin:4px 0 2px">PRANZO (~30 pax)</div><div class="readbox" style="margin:4px 0;background:#fff6da;border:1px solid var(--gold)">'+MENU_PRANZO_PREP+'</div>'+p+'<div class="readbox" style="margin-top:8px">'+MENU_PRANZO_NOTE+'</div><div style="font-weight:700;margin:12px 0 2px">CENA (~25 pax)</div>'+c+'<div class="readbox" style="margin-top:8px">'+MENU_CENA_NOTE+'</div></div></div>';
 }
 function notaCard(){
   var cook=getCook();
@@ -466,6 +467,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 01/07 12:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 01/07 13:40</div>
 </body>
 </html>
