@@ -55,8 +55,8 @@
  <div class="box"><input id="pw" type="password" placeholder="Password" autocomplete="current-password" enterkeyhint="go"><button id="enter">Entra</button><div class="err" id="err"></div>
  <label><input type="checkbox" id="remember" checked> Ricorda su questo dispositivo</label></div></div>
 <div id="app" style="display:none">
- <header><div class="mark">&#127869;</div><div><small>Prinz Rudolf · Bistro</small><h1>Plastico 3D del bistro</h1></div></header>
- <div id="vtabs"><button id="tab3d" class="vt on">🍳 Plastico 3D</button><button id="tabmenu" class="vt">📋 Menu &amp; Ricette</button></div>
+ <header><div class="mark">&#127869;</div><div><small>Prinz Rudolf · Bistro</small><h1>Bistro · Menu e Plastico</h1></div></header>
+ <div id="vtabs"><button id="tabmenu" class="vt on">📋 Menu &amp; Ricette</button><button id="tab3d" class="vt">🍳 Plastico 3D</button></div>
  <div id="view3d">
  <div class="bar">
   <span class="chip"><span class="sw" style="background:#f4d6b0"></span>cottura</span>
@@ -75,7 +75,7 @@
  </div><!--/view3d-->
  <div id="menuview" style="display:none"></div>
 </div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 26/06 16:54</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 01/07 18:00</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -86,7 +86,7 @@ function el(id){return document.getElementById(id);}
 function unlock(p,fs){var e=el('err');if(p!==APP_PW){e.textContent='Password errata';el('pw').value='';return;}if(el('remember').checked||fs){try{localStorage.setItem('pr_b3d','1')}catch(_){}}el('lock').style.display='none';el('app').style.display='block';initApp();}
 el('enter').onclick=function(){unlock(el('pw').value,false);};
 el('pw').addEventListener('keydown',function(e){if(e.key==='Enter')unlock(e.target.value,false);});
-const APP_VER='26/06 16:54';
+const APP_VER='01/07 18:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_b3d'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_b3d','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_b3d')!=='26/06 16:54'){localStorage.removeItem('pr_b3d');localStorage.setItem('pr_av_b3d','26/06 16:54');}}catch(_e){}var s=null;try{s=localStorage.getItem('pr_b3d')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(function(){el('pw').focus();},300);})();
 
@@ -109,11 +109,13 @@ function buildMenu(){var host=el('menuview');if(!host)return;var h='<input class
  host.querySelectorAll('.mdish .dh').forEach(function(hd){hd.addEventListener('click',function(){hd.parentNode.classList.toggle('op');});});
  var sx=el('msearch');sx.addEventListener('input',function(){var q=sx.value.trim().toLowerCase();host.querySelectorAll('.mdish').forEach(function(d){var hit=!q||d.getAttribute('data-blob').indexOf(q)>=0;d.style.display=hit?'':'none';if(q&&hit)d.classList.add('op');if(!q)d.classList.remove('op');});host.querySelectorAll('.mcat').forEach(function(c){c.style.display=q?'none':'';});});
 }
-function showView(v){var v3=el('view3d'),mv=el('menuview'),t3=el('tab3d'),tm=el('tabmenu');if(v==='menu'){v3.style.display='none';mv.style.display='block';t3.classList.remove('on');tm.classList.add('on');}else{mv.style.display='none';v3.style.display='block';t3.classList.add('on');tm.classList.remove('on');setTimeout(function(){window.dispatchEvent(new Event('resize'));},30);}}
+var _3dinit=false;
+function ensure3D(){if(_3dinit)return;_3dinit=true;if(!window.THREE){el('status').textContent='Carico il 3D…';var w=setInterval(function(){if(window.THREE){clearInterval(w);init3D();}},80);}else init3D();}
+function showView(v){var v3=el('view3d'),mv=el('menuview'),t3=el('tab3d'),tm=el('tabmenu');if(v==='menu'){v3.style.display='none';mv.style.display='block';t3.classList.remove('on');tm.classList.add('on');}else{mv.style.display='none';v3.style.display='block';t3.classList.add('on');tm.classList.remove('on');ensure3D();setTimeout(function(){window.dispatchEvent(new Event('resize'));},30);}}
 el('tab3d').onclick=function(){showView('3d');};
 el('tabmenu').onclick=function(){showView('menu');};
 
-async function initApp(){if(inited)return;inited=true;el('status').textContent='Caricamento dal cloud…';await loadContents();buildMenu();if(!window.THREE){el('status').textContent='Carico il 3D…';var w=setInterval(function(){if(window.THREE){clearInterval(w);init3D();}},80);}else init3D();}
+async function initApp(){if(inited)return;inited=true;el('status').textContent='Caricamento dal cloud…';await loadContents();buildMenu();showView('menu');}
 
 function init3D(){
 var T=window.THREE;el('status').textContent='✓ Pronto · tocca un mobile';
