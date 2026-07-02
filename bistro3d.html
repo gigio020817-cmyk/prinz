@@ -19,7 +19,7 @@
  header h1{font-size:16px;margin:0;font-weight:800}header small{display:block;font-size:9.5px;opacity:.85;letter-spacing:1.4px;text-transform:uppercase;font-weight:700}
  .bar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 12px;font-size:11.5px;color:#5a5a5a;background:#f4f5f6}
  .chip{display:inline-flex;align-items:center;gap:4px}.sw{width:11px;height:11px;border:1px solid #00000022;border-radius:3px}
- #wrap{position:relative;width:100%;height:calc(100vh - 150px);min-height:380px;background:#eef0f2;overflow:hidden}
+ #wrap{position:relative;width:100%;height:calc(100vh - 108px);min-height:480px;background:#eef0f2;overflow:hidden}
  #panel{position:absolute;top:10px;right:10px;width:220px;background:#fff;border:1px solid #d6d6d6;border-radius:12px;padding:11px;display:none;box-shadow:0 2px 10px rgba(0,0,0,.12)}
  #panel .nm{font-size:15px;font-weight:700;margin-bottom:7px}
  #panel textarea{width:100%;min-height:70px;font-size:13px;border:1px solid #ccc;border-radius:8px;padding:7px;font-family:inherit;resize:vertical}
@@ -76,7 +76,7 @@
  </div><!--/view3d-->
  <div id="menuview" style="display:none"></div>
 </div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 01/07 18:45</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 01/07 19:00</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -87,7 +87,7 @@ function el(id){return document.getElementById(id);}
 function unlock(p,fs){var e=el('err');if(p!==APP_PW){e.textContent='Password errata';el('pw').value='';return;}if(el('remember').checked||fs){try{localStorage.setItem('pr_b3d','1')}catch(_){}}el('lock').style.display='none';el('app').style.display='block';initApp();}
 el('enter').onclick=function(){unlock(el('pw').value,false);};
 el('pw').addEventListener('keydown',function(e){if(e.key==='Enter')unlock(e.target.value,false);});
-const APP_VER='01/07 18:45';
+const APP_VER='01/07 19:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_b3d'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_b3d','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_b3d')!=='26/06 16:54'){localStorage.removeItem('pr_b3d');localStorage.setItem('pr_av_b3d','26/06 16:54');}}catch(_e){}var s=null;try{s=localStorage.getItem('pr_b3d')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(function(){el('pw').focus();},300);})();
 
@@ -128,7 +128,7 @@ scene.add(new T.HemisphereLight(0xffffff,0xa2a2a2,1.05));
 var dl=new T.DirectionalLight(0xffffff,0.62);dl.position.set(3,7,4);scene.add(dl);
 var dl2=new T.DirectionalLight(0xffffff,0.3);dl2.position.set(-4,3,-3);scene.add(dl2);
 var live=new T.Vector3(0,0.4,0),goalT=new T.Vector3(0,0.4,0);
-var DEF={rad:7.7,th:0.95,ph:0.82};var rad=DEF.rad,th=DEF.th,ph=DEF.ph,goalR=DEF.rad,anim=false;
+var DEF={rad:6.5,th:0.95,ph:0.82};var rad=DEF.rad,th=DEF.th,ph=DEF.ph,goalR=DEF.rad,anim=false;
 function place(){cam.position.set(live.x+rad*Math.sin(ph)*Math.cos(th),live.y+rad*Math.cos(ph),live.z+rad*Math.sin(ph)*Math.sin(th));cam.lookAt(live);}place();
 var floor=new T.Mesh(new T.PlaneGeometry(4.5,3.8),new T.MeshLambertMaterial({color:0xe2e5e7}));floor.rotation.x=-Math.PI/2;scene.add(floor);
 var grid=new T.GridHelper(4.5,12,0xc2c7cb,0xd6d9dc);grid.position.y=0.002;scene.add(grid);
@@ -147,7 +147,7 @@ box({n:'Frigo congelatore',x:1.65,z:-1.30,sx:0.9,sz:0.9,h:2.0,c:STEEL,rep:R.fred
 var eggBase=box({n:'Green Egg',x:-0.6,z:-1.30,sx:0.5,sz:0.9,h:0.9,c:STEEL,rep:R.cott,wall:'N'});
 var egg=new T.Mesh(new T.SphereGeometry(0.27,24,18),new T.MeshLambertMaterial({color:0x2f7d33}));egg.scale.set(1,1.25,1);egg.position.set(-0.6,1.2,-1.30);scene.add(egg);eggBase.userData.extra=egg;
 box({n:'Banco frigo antipasti',x:0.04,z:1.40,sx:3.88,sz:0.7,h:0.9,c:STEEL,rep:R.fred,wall:'S',op:true});
-box({n:'Bidoni plastica + umido',x:-1.75,z:-1.50,sx:0.7,sz:0.5,h:0.8,c:BIN,rep:R.rif,wall:'W'});
+box({n:'Frigo a colonna',x:-1.75,z:-1.50,sx:0.7,sz:0.6,h:2.0,c:STEEL,rep:R.fred,wall:'W',op:true});
 box({n:'Roner',x:-1.75,z:-0.875,sx:0.7,sz:0.65,h:0.9,c:STEEL,rep:R.attr,wall:'W'});
 box({n:'Bimby',x:-1.75,z:-0.175,sx:0.7,sz:0.65,h:0.9,c:STEEL,rep:R.attr,wall:'W'});
 box({n:'Forno combi',x:-1.75,z:0.525,sx:0.7,sz:0.65,h:1.6,c:STEEL,rep:R.forn,wall:'W',op:true});
