@@ -80,6 +80,39 @@ body{overscroll-behavior:contain;-webkit-text-size-adjust:100%}
 img{max-width:100%;height:auto}
 .dtop,.field,.row2,.atts{max-width:100%}
 .field input,.field select,.field textarea{max-width:100%;box-sizing:border-box}
+/* --- Scheda tecnica A3 --- */
+#a3wrap{position:fixed;inset:0;z-index:300;background:#4b4b4b;display:none;overflow:auto}
+#a3bar{position:sticky;top:0;display:flex;gap:10px;align-items:center;padding:10px 14px;background:#1c1c1c}
+#a3bar button{border:none;border-radius:9px;padding:10px 16px;font-size:14px;font-weight:800;cursor:pointer}
+#a3bar .prt{background:#c9a227;color:#1a1400}
+#a3bar .cls{background:rgba(255,255,255,.16);color:#fff}
+#a3{background:#fff;color:#1a1400;width:420mm;max-width:96%;margin:14px auto;padding:16mm;box-sizing:border-box;font-family:-apple-system,Helvetica,Arial,sans-serif}
+.a3-head{display:flex;align-items:center;gap:14px;border-bottom:3px solid #6a1f2b;padding-bottom:12px;margin-bottom:18px}
+.a3-mark{width:58px;height:58px;border:2.5px solid #c9a227;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#c9a227;font-size:22px;flex:none}
+.a3-tt small{letter-spacing:2px;color:#c9a227;font-weight:700;font-size:13px}
+.a3-tt h1{margin:2px 0 0;font-size:27px;color:#6a1f2b}
+.a3-grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #e2ddd0;border-radius:10px;overflow:hidden;margin-bottom:14px}
+.a3-cell{padding:10px 14px;border-bottom:1px solid #efeadd}
+.a3-cell:nth-child(odd){border-right:1px solid #efeadd}
+.a3-cell .k{font-size:12px;color:#8a7a3a;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.a3-cell .v{font-size:17px;font-weight:600;margin-top:2px}
+.a3-box{border:1px solid #e2ddd0;border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.a3-box .k{font-size:12px;color:#8a7a3a;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.a3-box .v{font-size:16px;margin-top:4px;white-space:pre-wrap;line-height:1.4}
+.a3-seclbl{font-size:14px;font-weight:800;color:#6a1f2b;margin:6px 0 8px}
+.a3-photos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.a3-photos figure{margin:0;border:1px solid #e2ddd0;border-radius:10px;overflow:hidden;background:#faf7f0}
+.a3-photos img{width:100%;max-height:130mm;object-fit:contain;display:block}
+.a3-photos figcaption{font-size:12px;padding:6px 8px;color:#777;text-align:center}
+@media print{
+ @page{size:A3;margin:12mm}
+ body *{visibility:hidden}
+ #a3wrap,#a3wrap *{visibility:visible}
+ #a3wrap{position:absolute;inset:auto;left:0;top:0;background:#fff;overflow:visible}
+ #a3bar{display:none}
+ #a3{width:auto;max-width:none;margin:0;padding:0;box-shadow:none}
+ .a3-photos img{max-height:120mm}
+}
 </style></head>
 <body>
 <div id="lock"><div class="mark">PR</div><h1>Manutenzione Cucina</h1><p>PRINZ RUDOLF · RISERVATO CHEF</p>
@@ -104,13 +137,13 @@ img{max-width:100%;height:auto}
 </div></div>
 <div id="viewer" onclick="this.style.display='none'"><img id="vimg" src=""></div>
 <div id="toast"></div>
-<div id="verbadge">v 29/06 20:00</div>
+<div id="verbadge">v 01/07 17:00</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 const CHEF_CODE="Capo2026";
-const APP_VER='29/06 20:00';
+const APP_VER='01/07 17:00';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
@@ -125,6 +158,23 @@ var ITEMS=[],FORN=[],FILT='aperti',CUR=null;
 var STATI={da:{t:'Da fare',b:'b-da',s:'s-da'},corso:{t:'In corso',b:'b-corso',s:'s-corso'},ok:{t:'Sistemato',b:'b-ok',s:'s-ok'}};
 function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
 function dShow(s){if(!s)return '';var p=s.split('-');return p.length===3?(p[2]+'/'+p[1]+'/'+p[0].slice(2)):s;}
+function a3fld(k,v){return '<div class="a3-cell"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v||'—')+'</div></div>';}
+function schedaA3(){grab();var c=CUR;var st=STATI[c.stato||'da'];
+ var imgs=(c.allegati||[]).filter(function(a){return (a.mime||'').indexOf('image')===0;});
+ var pdfs=(c.allegati||[]).filter(function(a){return (a.mime||'').indexOf('image')!==0;});
+ var photos=imgs.map(function(a){return '<figure><img src="'+a.data+'"><figcaption>'+esc(a.kind||'foto')+'</figcaption></figure>';}).join('');
+ var stcol=(c.stato==='ok')?'#1e6b46':(c.stato==='corso'?'#b06a00':'#c0392b');
+ var h='';
+ h+='<div class="a3-head"><div class="a3-mark">PR</div><div class="a3-tt"><small>PRINZ RUDOLF · CUCINA</small><h1>Scheda tecnica — Manutenzione</h1></div><div style="margin-left:auto;text-align:right"><div style="font-size:22px;font-weight:800;color:'+stcol+'">'+esc(st.t)+'</div><div style="font-size:13px;color:#777">Stampata il '+dShow(today())+'</div></div></div>';
+ h+='<div class="a3-grid">'+a3fld('Macchinario',c.macchinario)+a3fld('Stato',st.t)+a3fld('Fornitore / Ditta',c.ditta)+a3fld('Telefono',c.tel)+a3fld('Data segnalazione',dShow(c.dataSegn))+a3fld('Data riparazione',c.dataRip?dShow(c.dataRip):'—')+a3fld('Costo',c.costo)+a3fld('N. allegati',((c.allegati||[]).length)+' file')+'</div>';
+ h+='<div class="a3-box"><div class="k">Problema</div><div class="v">'+esc(c.problema||'—')+'</div></div>';
+ if(c.note)h+='<div class="a3-box"><div class="k">Note</div><div class="v">'+esc(c.note)+'</div></div>';
+ if(pdfs.length)h+='<div class="a3-box"><div class="k">Documenti allegati</div><div class="v">'+pdfs.map(function(a){return '📄 '+esc(a.kind||'allegato')+(a.name?' ('+esc(a.name)+')':'');}).join('<br>')+'</div></div>';
+ h+='<div class="a3-seclbl">📷 Foto</div>';
+ h+=photos?('<div class="a3-photos">'+photos+'</div>'):'<div style="color:#999;font-size:14px">Nessuna foto allegata.</div>';
+ el('a3').innerHTML=h;el('a3wrap').style.display='block';window.scrollTo(0,0);}
+function closeA3(){el('a3wrap').style.display='none';}
+function printA3(){window.print();}
 function waDigits(t){var d=(t||'').replace(/[^0-9]/g,'');if(!d)return '';if(d.indexOf('00')===0)d=d.slice(2);if(d.indexOf('39')!==0&&d.length<=10)d='39'+d;return d;}
 function waMsg(){var mac=el('f_mac')?el('f_mac').value:(CUR&&CUR.macchinario||'');var prob=el('f_prob')?el('f_prob').value:(CUR&&CUR.problema||'');return encodeURIComponent('Prinz Rudolf – Manutenzione\nMacchinario: '+mac+'\nProblema: '+prob);}
 async function loadAll(){el('status').textContent='Caricamento dal cloud…';try{
@@ -168,7 +218,7 @@ function renderForm(isNew){CUR._isnew=isNew;el('detail').style.display='block';e
  h+='<div class="field"><label>Stato</label><div class="statosel">'+['da','corso','ok'].map(function(s){return '<button class="'+STATI[s].s+(CUR.stato===s?' on':'')+'" onclick="setStato(\''+s+'\')">'+STATI[s].t+'</button>';}).join('')+'</div></div>';
  h+='<div class="field"><label>Fornitore</label><select id="f_fornsel" onchange="pickForn()">'+fopts+'</select></div>';
  h+='<div class="row2"><div class="field"><label>Nome ditta</label><input id="f_ditta" placeholder="chi interviene" value="'+esc(CUR.ditta)+'"></div><div class="field"><label>Telefono</label><input id="f_tel" type="tel" placeholder="numero" value="'+esc(CUR.tel||'')+'"></div></div>';
- h+='<div class="callrow"><a class="callbtn call" onclick="doCall()">📞 Chiama</a><a class="callbtn wa" onclick="doWa()">💬 WhatsApp</a><a class="callbtn share" onclick="doShare()">📤 Invia scheda al capo</a></div>';
+ h+='<div class="callrow"><a class="callbtn call" onclick="doCall()">📞 Chiama</a><a class="callbtn wa" onclick="doWa()">💬 WhatsApp</a><a class="callbtn share" onclick="doShare()">📤 Invia scheda al capo</a><a class="callbtn share" onclick="schedaA3()">📄 Scheda A3 (stampa/PDF)</a></div>';
  h+='<div class="row2"><div class="field"><label>Data segnalazione</label><input id="f_segn" type="date" value="'+esc(CUR.dataSegn)+'"></div><div class="field"><label>Data riparazione</label><input id="f_rip" type="date" value="'+esc(CUR.dataRip)+'"></div></div>';
  h+='<div class="field"><label>Costo</label><input id="f_costo" placeholder="es. 120 €" value="'+esc(CUR.costo)+'"></div>';
  h+='<div class="field"><label>Note</label><textarea id="f_note" placeholder="dettagli, garanzia, contatti…">'+esc(CUR.note)+'</textarea></div>';
@@ -229,4 +279,5 @@ function addForn(){var n=el('nf_nome').value.trim();var t=el('nf_tel').value.tri
 function editForn(id){var f=FORN.find(function(x){return x.id===id;});if(!f)return;var n=prompt('Nome fornitore:',f.nome||'');if(n===null)return;var t=prompt('Telefono:',f.tel||'');if(t===null)return;f.nome=n.trim();f.tel=t.trim();saveForn();renderForn();}
 function delForn(id){var f=FORN.find(function(x){return x.id===id;});if(!confirm('Eliminare "'+((f&&f.nome)||'')+'" dalla rubrica?'))return;FORN=FORN.filter(function(x){return x.id!==id;});saveForn();renderForn();}
 </script>
+<div id="a3wrap"><div id="a3bar"><button class="prt" onclick="printA3()">🖨️ Stampa / Salva PDF (A3)</button><button class="cls" onclick="closeA3()">✕ Chiudi</button></div><div id="a3"></div></div>
 </body></html>
