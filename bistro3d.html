@@ -76,7 +76,7 @@
  </div><!--/view3d-->
  <div id="menuview" style="display:none"></div>
 </div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 01/07 19:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 01/07 19:15</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -87,7 +87,7 @@ function el(id){return document.getElementById(id);}
 function unlock(p,fs){var e=el('err');if(p!==APP_PW){e.textContent='Password errata';el('pw').value='';return;}if(el('remember').checked||fs){try{localStorage.setItem('pr_b3d','1')}catch(_){}}el('lock').style.display='none';el('app').style.display='block';initApp();}
 el('enter').onclick=function(){unlock(el('pw').value,false);};
 el('pw').addEventListener('keydown',function(e){if(e.key==='Enter')unlock(e.target.value,false);});
-const APP_VER='01/07 19:00';
+const APP_VER='01/07 19:15';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_b3d'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_b3d','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_b3d')!=='26/06 16:54'){localStorage.removeItem('pr_b3d');localStorage.setItem('pr_av_b3d','26/06 16:54');}}catch(_e){}var s=null;try{s=localStorage.getItem('pr_b3d')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(function(){el('pw').focus();},300);})();
 
@@ -159,7 +159,7 @@ box({n:'Appoggio',x:1.75,z:0.35,sx:0.7,sz:0.5,h:0.9,c:STEELL,rep:R.prep,wall:'E'
 box({n:'Lavandino',x:1.75,z:1.2,sx:0.7,sz:1.0,h:0.9,c:STEEL,rep:R.lav,wall:'E'});
 var isolaMesh=box({n:'Isola prep',x:-0.1,z:-0.1,sx:0.9,sz:1.2,h:0.9,c:STEELL,rep:R.prep});
 var lamps=[];var lp=[[-0.4,-0.45],[-0.13,-0.45],[0.13,0.2],[0.4,0.2]];for(var i=0;i<4;i++){var lm=new T.Mesh(new T.SphereGeometry(0.075,16,12),new T.MeshLambertMaterial({color:0x1f1f1f,emissive:0x5a4800}));lm.position.set(-0.1+lp[i][0],1.85,-0.1+lp[i][1]);scene.add(lm);lamps.push(lm);}
-box({n:'Scaffale chiuso (2 scomparti)',x:-0.9,z:-1.58,sx:1.4,sz:0.28,h:0.42,by:1.5,c:STEELL,rep:R.stoc,wall:'N',op:true});
+box({n:'Scaffale chiuso (2 scomparti)',x:-0.6,z:-0.95,sx:0.55,sz:0.26,h:0.8,by:0,c:STEELL,rep:R.stoc,wall:'N',op:true});
 box({n:'Scaffale a L',x:0.2,z:1.60,sx:3.3,sz:0.28,h:0.42,by:1.5,c:STEELL,rep:R.stoc,wall:'S',op:true});
 box({n:'Scaffale sotto lavandino',x:1.62,z:1.2,sx:0.28,sz:1.0,h:0.42,by:1.5,c:STEELL,rep:R.stoc,wall:'E'});
 var extras=[];
