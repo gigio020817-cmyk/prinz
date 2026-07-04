@@ -132,7 +132,8 @@ const ITEMS={apertura:APERTURA,chiusura:CHIUSURA};
 const LABEL={apertura:'Apertura (entro 14:00)',chiusura:'Chiusura (entro 22:00)'};
 const CAPI=["Alex","Banu","Mattia","Ubaldo","Erjola","Badr","Majeet","Gianluca"];
 const CHIUSI=[]; // partite chiuse: pulizie sospese, solo produzione
-const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[5],Erjola:[2],Badr:[6],Majeet:[3],Banu:[1],Ubaldo:[4]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
+const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[5],Erjola:[2],Badr:[6],Majeet:[3],Banu:[1],Ubaldo:[4]};
+const RESPFISSI=["Gianluca","Ubaldo"]; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
 function isOff(cook,dayStr){var wd=new Date((dayStr||todayStr())+"T00:00:00").getDay();return !!(RIPOSO[cook]&&RIPOSO[cook].indexOf(wd)>=0);}
 function badrCovers(dayStr){var L=["Alex","Mattia","Erjola","Ubaldo"];for(var k=0;k<L.length;k++){if(isOff(L[k],dayStr))return L[k];}return "";}
 const CHEF=["Briefing di 5 minuti con la brigata (coperti, coperture, impiattamenti)","Verifica linea pronta entro le 18:00","Decorazioni pronte entro le 18:30","Pane pronto entro le 18:20","Controllo pulizia di fine servizio (ognuno la sua partita)"];
@@ -180,7 +181,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='03/07 14:00';
+const APP_VER='03/07 16:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -222,11 +223,11 @@ async function loadAll(silent){
     document.getElementById('status').textContent='✓ Aggiornato alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
   }catch(e){document.getElementById('status').textContent='⚠️ Problema di collegamento.';console.error(e);}
 }
-function aperturaLibera(day){var D=window.LAST;var resp=(D&&D.meta&&D.meta.name)?D.meta.name:'';return !!(resp&&isOff(resp,day));}
+function aperturaLibera(day){return RESPFISSI.length>0 && RESPFISSI.every(function(r){return isOff(r,day);});}
 function shared(grp,ck,day,resp){
   const items=ITEMS[grp];const dmap={};ck.filter(r=>r.grp===grp).forEach(r=>dmap[r.idx]=r);
   const done=Object.keys(dmap).length;const tot=items.length;
-  if((grp==='apertura'||grp==='chiusura') && resp && isOff(resp,day) && done===0){
+  if((grp==='apertura'||grp==='chiusura') && aperturaLibera(day) && done===0){
     var ttj=grp==='apertura'?'apertura':'chiusura';
     return '<div class="card"><div class="card-h"><div class="t">'+LABEL[grp]+'<div class="sub">Responsabile: '+esc(resp)+'</div></div><span class="pill mid">Libero</span></div><div class="card-b"><div class="row"><span class="muted">🟦 Oggi <b>'+esc(resp)+'</b> è libero — '+ttj+' non richiesta. Controllo nullo.</span></div></div></div>';
   }
@@ -444,12 +445,12 @@ function liberiCard(day){
 }
 function render(day,ck,ckw,ent,meta,presa){
   window.LAST={day:day,ck:ck,ckw:ckw,ent:ent,meta:meta,presa:presa};
-  const resp=(meta&&meta.name)?meta.name:'';
+  const resp='Gianluca e Ubaldo';
   const scheda=ent.filter(e=>e.type==='scheda');const pass=ent.filter(e=>e.type==='passaggio');
   let h=liberiCard(day)+consegneDashCard()+riepilogoCard()+chefCard(ck,day)+recModsCard()+cookNotesCard();
   h+=timbraCardDash();
   h+=pausaCardDash();
-  h+='<div class="card"><div class="card-h"><div class="t">Responsabile della settimana</div></div><div class="card-b">'+(resp?'<div class="row"><span><b>'+esc(resp)+'</b></span><span class="muted">'+((meta.dal)||'?')+' → '+((meta.al)||'?')+'</span></div>':'<div class="muted">Non impostato.</div>')+'</div></div>';
+  h+='<div class="card"><div class="card-h"><div class="t">Responsabili della settimana</div></div><div class="card-b"><div class="row"><span><b>Gianluca</b> e <b>Ubaldo</b></span><span class="muted">fissi · apertura e chiusura</span></div></div></div>';
   h+=shared('apertura',ck,day,resp);
   h+=puliziaCard(ck,day);
   h+=weeklyCard(ckw,day);
@@ -469,7 +470,7 @@ function render(day,ck,ckw,ent,meta,presa){
 function buildReport(){
   var D=window.LAST;if(!D)return 'Nessun dato.';
   var dd=D.day.split('-').reverse().join('/');
-  var resp=(D.meta&&D.meta.name)?D.meta.name:'—';
+  var resp='Gianluca e Ubaldo';
   function ic(dn,tot){return (tot>0&&dn>=tot)?'✅':(dn>0?'⚠️':'❌');}
   function mapg(grp){var m={};D.ck.filter(function(r){return r.grp===grp;}).forEach(function(r){m[r.idx]=r;});return m;}
   var ap=mapg('apertura'),ch=mapg('chiusura');
@@ -589,6 +590,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 03/07 14:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 03/07 16:30</div>
 </body>
 </html>

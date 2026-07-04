@@ -97,6 +97,7 @@ const APERTURA=["Turn on the morning equipment","Check the weekly ATTENDANCE","R
 const CHIUSURA=["Everything switched off (equipment)","Evening cleaning of everything (microwave, potato peeler, fryers if needed)","Cold rooms closed and tidy, products labelled","Cutting boards and containers away (plastic/organic)"];
 const PULIZIA_SETT=["Cold deep clean (inside fridge counter/drawers incl. seals · your cold room + expiry dates)","Cooking deep clean (oven and griddle)","Shelves and small appliances (including low ones)","Roner deep clean (water and vinegar at 90°C for 1 hour)","Every 2 weeks: defrost small freezers · hood filters to dishwashers"];
 const RESP=[["Week 1","Ubaldo"],["Week 2","Mattia"],["Week 3","Badr"],["Week 4","Alex"],["Week 5","Gianluca"]];
+const RESPFISSI=["Gianluca","Ubaldo"];;
 const CHIUSI=[]; // partite chiuse: pulizie sospese, solo produzione
 const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[5],Erjola:[2],Badr:[6],Majeet:[3],Ubaldo:[4]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
 function isOff(cook){var wd=new Date(today+"T00:00:00").getDay();return !!(RIPOSO[cook]&&RIPOSO[cook].indexOf(wd)>=0);}
@@ -164,7 +165,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='03/07 14:00';
+const APP_VER='03/07 16:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochien'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochien','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochien')!=='24/06 18:45'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochien','24/06 18:45');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 
@@ -246,14 +247,8 @@ function checklistCard(id,title,group,items){
   return '<div class="card" id="'+id+'"><div class="card-h" onclick="toggleCard(\''+id+'\')"><div class="t">'+title+'</div><div class="meta">'+d+'/'+items.length+'</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'+rows+ctrlFooter(group)+'</div></div>';
 }
 function respCard(){
-  const r=META||{};let opt='<option value="">—</option>'+RESP.map(x=>'<option '+(x[1]===r.name?'selected':'')+'>'+x[1]+'</option>').join('');
-  return '<div class="card open" id="cresp"><div class="card-h" onclick="toggleCard(\'cresp\')"><div class="t">Person in charge this week</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'
-    +'<div class="readbox" style="margin-bottom:8px">Shift 08:00–14:00 · deliveries, cold rooms, deep clean of mixers.</div>'
-    +'<label class="fl">In charge this week</label><select class="txt" id="respName">'+opt+'</select>'
-    +'<label class="fl">From</label><input class="txt" type="date" id="respDal" value="'+((r.dal)||'')+'">'
-    +'<label class="fl">To</label><input class="txt" type="date" id="respAl" value="'+((r.al)||'')+'">'
-    +'<button class="btn" onclick="saveResp()">Save person in charge</button>'
-    +'<div class="readbox" style="margin-top:12px"><b>Rotation:</b> '+RESP.map(x=>x[1]).join(' · ')+'</div></div></div>';
+  return '<div class="card open" id="cresp"><div class="card-h" onclick="toggleCard(\'cresp\')"><div class="t">People in charge this week</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'
+    +'<div class="readbox">Fixed: <b>Gianluca</b> and <b>Ubaldo</b>. Both do <b>opening</b> and <b>closing</b>.</div></div></div>';
 }
 async function saveResp(){const c=getCook();const v={name:document.getElementById('respName').value,dal:document.getElementById('respDal').value,al:document.getElementById('respAl').value,by:c,at:new Date().toISOString()};
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'responsabile',v:v})});META=v;toast('Person in charge saved');}catch(e){toast('⚠️ Not saved');console.error(e);}}
@@ -348,15 +343,15 @@ function menuCard(){
 function render(){
   whoBar();
   var ME=getCook();
-  var RN=(META&&META.name)?META.name:'';   // responsabile della settimana
-  var showApe = RN ? (ME && ME===RN) : !(PEOPLE[ME]&&PEOPLE[ME].noApe);
-  var showChiu = RN ? (ME && ME===RN) : !(PEOPLE[ME]&&PEOPLE[ME].noChiu);
-  var apeTitle = RN ? 'Opening checklist (person in charge this week)' : 'Opening checklist';
-  var chiTitle = RN ? 'Closing checklist (person in charge this week)' : 'Closing checklist';
+  var isResp = RESPFISSI.indexOf(ME)>=0;
+  var showApe = isResp;
+  var showChiu = isResp;
+  var apeTitle = 'Opening checklist (person in charge)';
+  var chiTitle = 'Closing checklist (person in charge)';
   document.getElementById('view').innerHTML=
     timbraCard()+
     pausaCard()+
-    ((PEOPLE[ME]&&PEOPLE[ME].noResp)?'':respCard())
+    (RESPFISSI.indexOf(ME)>=0?respCard():'')
     +(showApe?checklistCard('cap',apeTitle,'apertura',APERTURA):'')
     +puliziaSection()
     +schedaCard()
@@ -368,6 +363,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 03/07 14:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 03/07 16:30</div>
 </body>
 </html>
