@@ -177,7 +177,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='03/07 12:30';
+const APP_VER='03/07 15:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 
@@ -383,7 +383,12 @@ function notaCard(){
 async function saveNota(){
   var cook=getCook();if(!cook){alert('Prima scegli il tuo nome.');return;}
   var v=document.getElementById('notaTxt').value;var key='notacuoco|'+cook+'|'+today;NOTECUOCO[key]=v;
-  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:key,v:{text:v,cook:cook,at:new Date().toISOString()}})});toast('Nota salvata');}catch(e){toast('⚠️ Non salvata');console.error(e);}
+  var payload={k:key,v:{text:v,cook:cook,at:new Date().toISOString()}};
+  async function put(){return sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(payload)});}
+  async function verify(){try{var r=await sb('kitchen_meta?k=eq.'+encodeURIComponent(key)+'&select=v');return !!(r&&r[0]&&r[0].v&&(r[0].v.text||'')===v);}catch(e){return false;}}
+  try{await put();toast('Nota salvata');return;}catch(e){console.error(e);}
+  try{await put();toast('Nota salvata');return;}catch(e){console.error(e);}
+  if(await verify()){toast('Nota salvata');}else{toast('⚠️ Non salvata, riprova');}
 }
 function countDone(group){var d=0;Object.keys(CK).forEach(function(k){if(k.indexOf(group+'_')===0)d++;});return d;}
 // Fasce orarie: l'allarme conta una cosa come "mancante" solo dalla sua ora in poi (minuti dalla mezzanotte)
@@ -481,6 +486,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 03/07 12:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 03/07 15:30</div>
 </body>
 </html>
