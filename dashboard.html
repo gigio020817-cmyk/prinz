@@ -181,7 +181,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='03/07 21:30';
+const APP_VER='03/07 22:15';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -462,11 +462,60 @@ async function saveCO(){var day=(window.LAST&&window.LAST.day)||todayStr();try{a
 function addChefOrd(){var t=document.getElementById('coTxt'),c=document.getElementById('coCook');var txt=((t&&t.value)||'').trim();if(!txt){alert('Scrivi cosa hai chiesto.');return;}window.CHEFORD=window.CHEFORD||[];window.CHEFORD.push({id:Date.now(),txt:txt,cook:(c&&c.value)||'',at:new Date().toISOString(),done:null});if(t)t.value='';saveCO();rerenderDash();}
 function setCO(id,val){window.CHEFORD=(window.CHEFORD||[]).map(function(o){if(o.id===id){o.done=val;o.doneAt=new Date().toISOString();}return o;});saveCO();rerenderDash();}
 function delCO(id){if(!confirm('Togliere questo ordine dalla lista?'))return;window.CHEFORD=(window.CHEFORD||[]).filter(function(o){return o.id!==id;});saveCO();rerenderDash();}
+
+function _wshift(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return ymd(d);}
+function _dm(ds){return ds.split('-').reverse().slice(0,2).join('/');}
+async function loadReport(){
+  try{
+    var ws0=weekStart(todayStr());
+    var starts=[_wshift(ws0,-21),_wshift(ws0,-14),_wshift(ws0,-7),ws0];
+    var rangeStart=starts[0],rangeEnd=_wshift(ws0,6);
+    var checks=await sb('kitchen_checks?day=gte.'+rangeStart+'&day=lte.'+rangeEnd+'&select=day,grp,idx,cook');
+    var timbra=await sb('kitchen_meta?k=like.timbra|*&select=k,v');
+    var pausa=await sb('kitchen_meta?k=like.pausa|*&select=k,v');
+    window.REPORTDATA={starts:starts,checks:checks||[],timbra:timbra||[],pausa:pausa||[]};
+  }catch(e){window.REPORTDATA={error:true};console.error(e);}
+  window._reploading=false;rerenderDash();
+}
+function renderReportBody(){
+  var D=window.REPORTDATA;if(!D)return '';if(D.error)return '<div class="muted">Errore nel caricamento, riprova.</div>';
+  var cooks=TEAM.filter(function(t){return t[0]!=='Gigio';}).map(function(t){return t[0];});
+  var today=todayStr();var out='';
+  D.starts.slice().reverse().forEach(function(ws){
+    var we=_wshift(ws,6);
+    var apInc=0,chInc=0;
+    for(var i=0;i<7;i++){var day=_wshift(ws,i);if(day>today)continue;if(!aperturaLibera(day)){var apd=D.checks.filter(function(r){return r.day===day&&r.grp==='apertura';}).length;if(apd<APERTURA.length)apInc++;var chd=D.checks.filter(function(r){return r.day===day&&r.grp==='chiusura';}).length;if(chd<CHIUSURA.length)chInc++;}}
+    var rows='';
+    cooks.forEach(function(c){
+      var forgot=0,puliInc=0,pauseN=0,pauseMin=0;
+      for(var i=0;i<7;i++){var day=_wshift(ws,i);if(day>today)continue;var off=(typeof isOff==='function'&&isOff(c,day));
+        var hasIn=D.timbra.some(function(r){return r.k==='timbra|'+day+'|'+c&&r.v&&r.v.in;});
+        if(!off&&!hasIn)forgot++;
+        if(!off){var exp=(puliziaFor(c)||[]).length;if(exp){var done=D.checks.filter(function(r){return r.day===day&&r.grp==='pulizia#'+c;}).length;if(done<exp)puliInc++;}}
+      }
+      D.pausa.forEach(function(r){var p=(r.k||'').split('|');var pd=p[1];if(pd>=ws&&pd<=we){var v=r.v||{};if(v.n===c){pauseN++;if(v.out&&v.in)pauseMin+=Math.max(0,Math.round((new Date(v.in)-new Date(v.out))/60000));}}});
+      var parts=[];if(forgot)parts.push('🕐 '+forgot+' entrate dim.');if(puliInc)parts.push('🧽 pulizia '+puliInc+'gg');if(pauseN)parts.push('⏸ '+pauseN+' pause ('+pauseMin+'min)');
+      var txt=parts.length?parts.join(' · '):'✓ ok';
+      var cls=parts.length?'':'muted';
+      rows+='<div class="row"><span><b>'+esc(c)+'</b></span><span class="'+cls+'" style="text-align:right">'+txt+'</span></div>';
+    });
+    var shared=(apInc||chInc)?('<div class="row"><span class="muted">Apertura/Chiusura</span><span class="missrow" style="font-weight:600">'+(apInc?('apertura '+apInc+'gg '):'')+(chInc?('· chiusura '+chInc+'gg'):'')+'</span></div>'):'';
+    out+='<div style="margin-top:10px;font-weight:800;color:var(--wine);border-bottom:1px solid var(--gold);padding-bottom:3px">Settimana '+_dm(ws)+' – '+_dm(we)+'</div>'+rows+shared;
+  });
+  out+='<div class="muted" style="margin-top:10px;font-size:11px">Dati indicativi (entrate/pulizie contate solo nei giorni non di riposo).</div>';
+  return out;
+}
+function reportCard(){
+  var open=foldOpen('report');var body='';
+  if(open){ if(!window.REPORTDATA){ body='<div class="muted">Carico le ultime 4 settimane…</div>'; if(!window._reploading){window._reploading=true;loadReport();} } else { body=renderReportBody(); } }
+  return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:pointer" onclick="foldTP(\'report\')"><div class="t">📊 Report settimanale<div class="sub">ultime 4 settimane · chi ha dimenticato cosa</div></div><span class="muted">'+(open?'▾':'▸')+'</span></div>'+(open?('<div class="card-b">'+body+'</div>'):'')+'</div>';
+}
+
 function render(day,ck,ckw,ent,meta,presa){
   window.LAST={day:day,ck:ck,ckw:ckw,ent:ent,meta:meta,presa:presa};
   const resp='Gianluca e Ubaldo';
   const scheda=ent.filter(e=>e.type==='scheda');const pass=ent.filter(e=>e.type==='passaggio');
-  let h=liberiCard(day)+consegneDashCard()+riepilogoCard()+coCard(day)+chefCard(ck,day)+recModsCard()+cookNotesCard();
+  let h=liberiCard(day)+consegneDashCard()+riepilogoCard()+coCard(day)+reportCard()+chefCard(ck,day)+recModsCard()+cookNotesCard();
   h+=timbraCardDash();
   h+=pausaCardDash();
   h+='<div class="card"><div class="card-h"><div class="t">Responsabili della settimana</div></div><div class="card-b"><div class="row"><span><b>Gianluca</b> e <b>Ubaldo</b></span><span class="muted">fissi · apertura e chiusura</span></div></div></div>';
@@ -609,6 +658,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 03/07 21:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 03/07 22:15</div>
 </body>
 </html>
