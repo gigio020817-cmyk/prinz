@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#6b1f2a">
+<title>Bistrò · Allergeni / Allergene / Allergens</title>
+<style>
+  :root{--wine:#6b1f2a;--gold:#bd8f2a;--goldl:#d9b458;--ink:#2a2119;--mut:#6f675c;--cream:#f8f2e4;--line:#e7ddca}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.4}
+  .wrap{max-width:680px;margin:0 auto;padding:0 14px 40px}
+  header{background:var(--wine);color:#fff;text-align:center;padding:22px 14px 18px;border-bottom:4px solid var(--gold)}
+  header .t{font-size:30px;font-weight:800;color:var(--gold);letter-spacing:.02em}
+  header .s{font-size:13px;opacity:.9;margin-top:2px}
+  .langs{display:flex;gap:8px;justify-content:center;margin:14px 0 8px}
+  .langs button{border:1px solid var(--gold);background:#fff;color:var(--wine);font-weight:700;border-radius:22px;padding:7px 16px;font-size:14px;cursor:pointer}
+  .langs button.on{background:var(--wine);color:#fff;border-color:var(--wine)}
+  .note{font-size:12.5px;color:var(--mut);background:#fff;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:8px;padding:10px 12px;margin:8px 0 14px}
+  h2{font-size:16px;color:var(--wine);margin:20px 0 8px;text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--goldl);padding-bottom:4px}
+  .legend{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px}
+  .legend div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .legend b{display:inline-block;min-width:20px;color:var(--wine)}
+  .dish{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin:8px 0}
+  .dish .nm{font-weight:700;font-size:15px}
+  .chips{margin-top:6px;display:flex;flex-wrap:wrap;gap:5px}
+  .chip{background:var(--wine);color:#fff;font-weight:700;font-size:12.5px;min-width:22px;text-align:center;border-radius:6px;padding:3px 7px}
+  .dn{font-size:12px;color:var(--mut);margin-top:5px}
+  footer{text-align:center;color:var(--mut);font-size:11.5px;margin-top:24px}
+  @media(max-width:420px){.legend{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="t">BISTRÒ</div>
+  <div class="s">Prinz Rudolf · Allergeni / Allergene / Allergens</div>
+</header>
+<div class="wrap">
+  <div class="langs">
+    <button data-l="it" class="on" onclick="setLang('it')">Italiano</button>
+    <button data-l="de" onclick="setLang('de')">Deutsch</button>
+    <button data-l="en" onclick="setLang('en')">English</button>
+  </div>
+  <div class="note" id="note"></div>
+  <h2 id="legTitle"></h2>
+  <div class="legend" id="legend"></div>
+  <div id="menu"></div>
+  <footer id="foot"></footer>
+</div>
+<script>
+var UI={
+ it:{note:"Elenco allergeni secondo il Reg. UE 1169/2011. Per allergie o intolleranze chiedi al personale: in cucina è possibile la presenza di tracce per contaminazione crociata.",
+     leg:"Legenda allergeni", foot:"Hotel Prinz Rudolf · Merano"},
+ de:{note:"Allergenangaben gemäß EU-Verordnung 1169/2011. Bei Allergien oder Unverträglichkeiten wenden Sie sich bitte an unser Personal – Spuren durch Kreuzkontamination sind möglich.",
+     leg:"Allergen-Legende", foot:"Hotel Prinz Rudolf · Meran"},
+ en:{note:"Allergen information according to EU Reg. 1169/2011. For allergies or intolerances please ask our staff – traces due to cross-contamination are possible.",
+     leg:"Allergen legend", foot:"Hotel Prinz Rudolf · Merano"}
+};
+var ALLERG={
+ 1:{it:"Glutine (cereali)",de:"Glutenhaltiges Getreide",en:"Cereals with gluten"},
+ 2:{it:"Crostacei",de:"Krebstiere",en:"Crustaceans"},
+ 3:{it:"Uova",de:"Eier",en:"Eggs"},
+ 4:{it:"Pesce",de:"Fisch",en:"Fish"},
+ 5:{it:"Arachidi",de:"Erdnüsse",en:"Peanuts"},
+ 6:{it:"Soia",de:"Soja",en:"Soybeans"},
+ 7:{it:"Latte / lattosio",de:"Milch / Laktose",en:"Milk / lactose"},
+ 8:{it:"Frutta a guscio",de:"Schalenfrüchte",en:"Nuts"},
+ 9:{it:"Sedano",de:"Sellerie",en:"Celery"},
+ 10:{it:"Senape",de:"Senf",en:"Mustard"},
+ 11:{it:"Sesamo",de:"Sesam",en:"Sesame"},
+ 12:{it:"Solfiti / anidride solforosa",de:"Sulfite / Schwefeldioxid",en:"Sulphites / sulphur dioxide"},
+ 13:{it:"Lupini",de:"Lupinen",en:"Lupin"},
+ 14:{it:"Molluschi",de:"Weichtiere",en:"Molluscs"}
+};
+var CATS={ant:{it:"Antipasti",de:"Vorspeisen",en:"Starters"},
+ pri:{it:"Primi",de:"Erste Gänge",en:"First courses"},
+ gri:{it:"Grillhouse",de:"Grillhouse",en:"Grillhouse"},
+ des:{it:"Dessert",de:"Dessert",en:"Desserts"}};
+var MENU=[
+ {c:'ant',it:"Tartare di manzo",de:"Rindertatar",en:"Beef tartare",a:[1,3,7,8,6,10,12]},
+ {c:'ant',it:"Calamaro CBT",de:"Tintenfisch (Niedertemperatur)",en:"Sous-vide squid",a:[14,1,7,6,9]},
+ {c:'ant',it:"Insalata acquaponica",de:"Aquaponik-Salat",en:"Aquaponic salad",a:[10],
+   n:{it:"Con gamberi +2 · con falafel +1",de:"Mit Garnelen +2 · mit Falafel +1",en:"With prawns +2 · with falafel +1"}},
+ {c:'ant',it:"Salmone al kefir e yuzu",de:"Lachs in Kefir & Yuzu",en:"Kefir & yuzu salmon",a:[4,7,1]},
+ {c:'pri',it:"Risotto al prezzemolo",de:"Petersilien-Risotto",en:"Parsley risotto",a:[7,14,8,12]},
+ {c:'pri',it:"Raviolo alla capricciosa",de:"Raviolo „Capricciosa“",en:"“Capricciosa” raviolo",a:[1,3,7,12,4,9]},
+ {c:'pri',it:"La nostra Cacio e pepe estiva",de:"Sommerliche Cacio e Pepe",en:"Summer cacio e pepe",a:[1,3,7]},
+ {c:'pri',it:"Mezze maniche al cucchiaio",de:"Mezze maniche „al cucchiaio“",en:"Spoon mezze maniche",a:[1,3,14,2,9,12]},
+ {c:'gri',it:"Mezzo galletto alla brace",de:"Halbes Stubenküken vom Grill",en:"Grilled half poussin",a:[3,6]},
+ {c:'gri',it:"Controfiletto di manzo",de:"Rinderroastbeef",en:"Beef sirloin",a:[3,6]},
+ {c:'gri',it:"Filetto di manzo",de:"Rinderfilet",en:"Beef fillet",a:[3,6]},
+ {c:'gri',it:"Costine di maiale BBQ",de:"BBQ-Schweinerippchen",en:"BBQ pork ribs",a:[3,6,10,7]},
+ {c:'gri',it:"Patata dolce alla brace (veg)",de:"Süßkartoffel vom Grill (veg.)",en:"Grilled sweet potato (veg)",a:[7,6,8]},
+ {c:'des',it:"Tiramisù 2.0",de:"Tiramisù 2.0",en:"Tiramisù 2.0",a:[1,3,7]},
+ {c:'des',it:"Panna cotta al pomodoro",de:"Tomaten-Panna-cotta",en:"Tomato panna cotta",a:[7]},
+ {c:'des',it:"Cheesecake fredda alla vaniglia",de:"Kalter Vanille-Cheesecake",en:"Cold vanilla cheesecake",a:[7,1]}
+];
+var lang='it';
+function setLang(l){lang=l;document.documentElement.lang=l;
+  document.querySelectorAll('.langs button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-l')===l);});
+  render();}
+function render(){
+  document.getElementById('note').textContent=UI[lang].note;
+  document.getElementById('legTitle').textContent=UI[lang].leg;
+  document.getElementById('foot').textContent=UI[lang].foot;
+  var lg='';for(var i=1;i<=14;i++){lg+='<div><b>'+i+'</b> '+ALLERG[i][lang]+'</div>';}
+  document.getElementById('legend').innerHTML=lg;
+  var order=['ant','pri','gri','des'];var h='';
+  order.forEach(function(cat){
+    h+='<h2>'+CATS[cat][lang]+'</h2>';
+    MENU.filter(function(d){return d.c===cat;}).forEach(function(d){
+      var chips=d.a.map(function(n){return '<span class="chip">'+n+'</span>';}).join('');
+      h+='<div class="dish"><div class="nm">'+d[lang]+'</div><div class="chips">'+chips+'</div>'+(d.n?('<div class="dn">'+d.n[lang]+'</div>'):'')+'</div>';
+    });
+  });
+  document.getElementById('menu').innerHTML=h;
+}
+render();
+</script>
+</body>
+</html>
