@@ -181,7 +181,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='03/07 18:40';
+const APP_VER='03/07 21:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -317,7 +317,7 @@ function timbraCardDash(){
     }
     return '<div class="row"><span>'+esc(c)+'</span><span class="donerow" style="font-weight:700">'+tloc(t.in)+'</span></div>';
   }).join('');
-  return '<div class="card"><div class="card-h"><div class="t">Orari di arrivo<div class="sub">segnato a cambio fatto e in cucina, non all\'ingresso struttura</div></div></div><div class="card-b">'+rows+'</div></div>';
+  var _miss=TEAM.filter(function(x){var c=x[0];var t=T[c];var off=(typeof isOff==='function'&&isOff(c,day));return !off && !(t&&t.in);}).length;var _to=foldOpen('arrivi');var _ta=_miss>0?'<span class="pill no">⚠️ '+_miss+' non arrivati</span>':'<span class="pill ok">tutti arrivati</span>';return '<div class="card"><div class="card-h" style="cursor:pointer" onclick="foldTP(\'arrivi\')"><div class="t">Orari di arrivo</div><span>'+_ta+' <span class="muted">'+(_to?'▾':'▸')+'</span></span></div>'+(_to?('<div class="card-b">'+rows+'</div>'):'')+'</div>';
 }
 function chefCard(ck,day){
   var dm={};(ck||[]).filter(function(r){return r.grp==='chef';}).forEach(function(r){dm[r.idx]=r;});
@@ -416,7 +416,7 @@ function riepilogoCard(){
   var chIcon=lib&&chD===0?'🟦':ic(chD,CHIUSURA.length);
   var s=chip(lib&&apD===0?'Apertura (libero)':'Apertura',apIcon)+chip('Pulizie',ic(capOk,capList.length))+chip('Settimanale',ic(wOk,activeCAPI.length))+chip(lib&&chD===0?'Chiusura (libero)':'Chiusura',chIcon)+chip('Mansionario',ic(presaOk,TEAM.length));
   var a=chip(req+' da controllare',req?'🔔':'✅')+chip(arr+'/'+TEAM.length+' arrivi','🕐')+chip(hasNote?'note presenti':'nessuna nota','📝');
-  return '<div class="card" style="border-color:var(--gold)"><div class="card-h"><div class="t">📋 Riepilogo del giorno<div class="sub">riletta veloce — controlla se manca qualcosa</div></div></div><div class="card-b"><div>'+s+'</div><div style="margin-top:5px">'+a+'</div></div></div>';
+  var _rb='<div>'+s+'</div><div style="margin-top:5px">'+a+'</div>';var _ro=foldOpen('riep');var _ra=(req>0)?'<span class="pill no">🔔 '+req+'</span>':'';return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:pointer" onclick="foldTP(\'riep\')"><div class="t">📋 Riepilogo del giorno</div><span>'+_ra+' <span class="muted">'+(_ro?'▾':'▸')+'</span></span></div>'+(_ro?('<div class="card-b">'+_rb+'</div>'):'')+'</div>';
 }
 function durMinDash(a,b){try{return Math.max(0,Math.round((new Date(b)-new Date(a))/60000));}catch(e){return 0;}}
 function pausaCardDash(){
@@ -445,6 +445,8 @@ function liberiCard(day){
   return '<div class="card" style="border:2px solid #c9a227"><div class="card-h"><div class="t">\ud83d\udd13 Liberi oggi</div></div><div class="card-b">'+rows+'</div></div>';
 }
 function rerenderDash(){var L=window.LAST;if(L)render(L.day,L.ck,L.ckw,L.ent,L.meta,L.presa);}
+function foldOpen(id){try{return localStorage.getItem('dfold_'+id)==='1';}catch(e){return false;}}
+function foldTP(id){try{localStorage.setItem('dfold_'+id,foldOpen(id)?'0':'1');}catch(e){}rerenderDash();}
 function coCard(day){
   var list=window.CHEFORD||[];
   var opts=TEAM.filter(function(t){return t[0]!=='Gigio';}).map(function(t){return '<option>'+t[0]+'</option>';}).join('');
@@ -480,7 +482,7 @@ function render(day,ck,ckw,ent,meta,presa){
   function passRow(p){var d=p.data||{};var lascia=(p.day&&p.day!==day)?(' <span class="muted">(lasciato '+esc(dlab(p.day))+')</span>'):'';return '<div class="row"><span><b>'+esc(d.partita||'?')+'</b>: '+esc(d.da||'?')+' → '+esc(d.a||'?')+lascia+(d.pronto?'<div class="missrow" style="font-weight:400;color:#2e7d32">Pronto: '+esc(d.pronto)+'</div>':'')+(d.manca?'<div class="missrow" style="font-weight:400">Manca: '+esc(d.manca)+'</div>':'')+(d.dove?'<div class="missrow" style="font-weight:400">Dove: '+esc(d.dove)+'</div>':'')+(d.urgenti?'<div class="missrow" style="font-weight:400">Urgenti: '+esc(d.urgenti)+'</div>':'')+(d.note?'<div class="missrow" style="font-weight:400">Note: '+esc(d.note)+'</div>':'')+'</span><span class="muted">'+esc(p.cook)+' · '+tloc(p.at)+'</span></div>';}
   h+='<div class="card"><div class="card-h"><div class="t">Passaggi di consegne</div><span class="pill '+(allPass.length?'ok':'no')+'">'+allPass.length+'</span></div><div class="card-b">'+(allPass.length?allPass.map(passRow).join(''):'<div class="muted">Nessuno negli ultimi giorni.</div>')+'</div></div>';
   const signed={};(presa||[]).forEach(p=>signed[p.cook]=p.at);const ns=Object.keys(signed).length;
-  h+='<div class="card"><div class="card-h"><div class="t">Presa visione mansionario</div><span class="pill '+(ns>=TEAM.length?'ok':ns?'mid':'no')+'">'+ns+'/'+TEAM.length+'</span></div><div class="card-b">'+TEAM.map(t=>'<div class="row"><span>'+t[0]+' <span class="muted">· '+t[1]+'</span></span>'+(signed[t[0]]?'<span class="pill ok">✓</span>':'<span class="pill no">manca</span>')+'</div>').join('')+'</div></div>';
+  var _po=foldOpen('presa');var _pa=(ns>=TEAM.length)?'<span class="pill ok">tutti</span>':'<span class="pill no">⚠️ manca '+(TEAM.length-ns)+'</span>';h+='<div class="card"><div class="card-h" style="cursor:pointer" onclick="foldTP(\'presa\')"><div class="t">Presa visione mansionario</div><span>'+_pa+' <span class="muted">'+(_po?'▾':'▸')+'</span></span></div>'+(_po?('<div class="card-b">'+TEAM.map(t=>'<div class="row"><span>'+t[0]+' <span class="muted">· '+t[1]+'</span></span>'+(signed[t[0]]?'<span class="pill ok">✓</span>':'<span class="pill no">manca</span>')+'</div>').join('')+'</div>'):'')+'</div>';
   h+=menuCard();
   document.getElementById('view').innerHTML=h;
 }
@@ -607,6 +609,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 03/07 18:40</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 03/07 21:30</div>
 </body>
 </html>
