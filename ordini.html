@@ -217,7 +217,7 @@ async function tryUnlock(password,fromStore){
 }
 document.getElementById('enter').onclick=()=>tryUnlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(pw.value,false)});
-const APP_VER='03/07 18:15';
+const APP_VER='04/07 10:15';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_ordini'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_ordini','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){if(!window.crypto||!crypto.subtle){err.textContent="Apri l'app dal sito (https).";return;}
   try{if(localStorage.getItem('pr_av_ordini')!=='28/06 22:15'){localStorage.removeItem('ord_pw');localStorage.setItem('pr_av_ordini','28/06 22:15');}}catch(_e){}let s=null;try{s=localStorage.getItem('ord_pw')}catch(e){}
@@ -241,9 +241,18 @@ var PASTMAP={"aceto balsamico": {"sup": "IMES", "prod": "Aceto balsamico 250ml a
 function reqFindMatch(reqName){var n=norm2(reqName).replace(/^prova\s*[-—]\s*/,'');var words=n.split(' ').filter(function(w){return w.length>=3;});if(!words.length)return null;var first=words[0];var best=null,bs=0,sup=null;allSuppliers().forEach(function(s){productsFor(s.name).forEach(function(p){var d=norm2(p.n);if(d.indexOf(first)<0)return;var sc=0;words.forEach(function(w){if(d.indexOf(w)>=0)sc++;});if(sc>bs){bs=sc;best=p;sup=s.name;}});});return best?{sup:sup,prod:best}:null;}
 function addReqToOrder(i){var it=PASTREQ[i];if(!it)return;var key=norm2((it.n||'').replace(/^\s*prova\s*[-—]\s*/i,''));var m=PASTMAP[key];if(!m){alert('«'+it.n+'» non è tra i prodotti dei fornitori. Aprilo nel fornitore giusto e aggiungilo a mano.');return;}var dr=getDraft();dr[m.sup]=dr[m.sup]||{items:{},altro:''};dr[m.sup].items[m.prod]={q:(''+it.q),u:it.u||''};saveDraft(dr);PASTREQ.splice(i,1);savePastReq();renderPastReq();alert('✓ Aggiunto a '+m.sup+': '+m.prod+' — '+it.q+' '+(it.u||''));}
 async function loadPastReq(){try{var r=await sb('kitchen_meta?k=eq.pastreq&select=v');PASTREQ=(r&&r[0]&&r[0].v&&r[0].v.items)?r[0].v.items:[];}catch(e){PASTREQ=[];}renderPastReq();}
-function renderPastReq(){var box=document.getElementById('pastinbox');if(!box)return;if(!PASTREQ.length){box.innerHTML='';return;}
- var rows=PASTREQ.map(function(x,i){var d=x.at?new Date(x.at):null;var ds=d?(' · '+('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)):'';if(x.note){return '<div class="preqrow" style="background:#fff8e6;border-left:4px solid #c9a227"><span class="preqn">'+esc(x.n)+' <span class="preqwk">'+esc(x.src||x.wk||'')+ds+'</span></span><button class="preqx" onclick="clearPastItem('+i+')">×</button></div>';}return '<div class="preqrow"><span class="preqn">'+esc(x.n)+' <b>'+esc(''+x.q)+' '+esc(x.u||'')+'</b> <span class="preqwk">'+esc(x.src||x.wk||'')+ds+'</span></span><button class="preqok" onclick="addReqToOrder('+i+')">✓ in ordine</button><button class="preqx" onclick="clearPastItem('+i+')">×</button></div>';}).join('');
- box.innerHTML='<div class="preqcard"><div class="preqhead">📥 Richieste reparti ('+PASTREQ.length+')</div>'+rows+'<button class="preqclear" onclick="clearPastAll()">Pulisci tutto</button></div>';}
+function preqRowHtml(x,i){var d=x.at?new Date(x.at):null;var ds=d?(' · '+('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)):'';if(x.note){return '<div class="preqrow" style="background:#fff8e6;border-left:4px solid #c9a227"><span class="preqn">'+esc(x.n)+' <span class="preqwk">'+esc(x.src||x.wk||'')+ds+'</span></span><button class="preqx" onclick="clearPastItem('+i+')">×</button></div>';}return '<div class="preqrow"><span class="preqn">'+esc(x.n)+' <b>'+esc(''+x.q)+' '+esc(x.u||'')+'</b> <span class="preqwk">'+esc(x.src||x.wk||'')+ds+'</span></span><button class="preqok" onclick="addReqToOrder('+i+')">✓ in ordine</button><button class="preqx" onclick="clearPastItem('+i+')">×</button></div>';}
+function _preqDayKey(x){var d=x.at?new Date(x.at):null;return d?(d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)):'nodate';}
+function _preqDayLabel(dk){if(dk==='nodate')return 'Senza data';var GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];var x=new Date(dk+'T00:00:00');return GG[x.getDay()]+' '+dk.split('-').reverse().slice(0,2).join('/');}
+function togglePreqDay(dk){window.PREQFOLD=window.PREQFOLD||{};var cur=(dk in window.PREQFOLD)?window.PREQFOLD[dk]:true;window.PREQFOLD[dk]=!cur;renderPastReq();}
+function clearPastDay(dk){if(!confirm('Cancellare tutte le richieste di '+_preqDayLabel(dk)+'?'))return;PASTREQ=PASTREQ.filter(function(x){return _preqDayKey(x)!==dk;});savePastReq();renderPastReq();}
+function renderPastReq(){var box=document.getElementById('pastinbox');if(!box)return;if(!PASTREQ.length){box.innerHTML='';return;}window.PREQFOLD=window.PREQFOLD||{};
+ var groups={},order=[];PASTREQ.forEach(function(x,i){var dk=_preqDayKey(x);if(!groups[dk]){groups[dk]=[];order.push(dk);}groups[dk].push(i);});
+ order.sort(function(a,b){if(a==='nodate')return 1;if(b==='nodate')return -1;return a<b?1:-1;});
+ var html='';order.forEach(function(dk){var idxs=groups[dk];var open=(dk in window.PREQFOLD)?window.PREQFOLD[dk]:true;
+  var rows=idxs.map(function(i){return preqRowHtml(PASTREQ[i],i);}).join('');
+  html+='<div class="preqday"><div class="preqdayhead" onclick="togglePreqDay(\''+dk+'\')" style="cursor:pointer;font-weight:800;padding:9px 6px;border-top:1px solid #eee;color:#6b1f2a">📅 '+_preqDayLabel(dk)+' <span style="color:#999;font-weight:600">('+idxs.length+')</span><span style="float:right">'+(open?'▾':'▸')+'</span></div>'+(open?('<div class="preqdaybody">'+rows+'<button class="preqclear" onclick="clearPastDay(\''+dk+'\')" style="background:#fff;border:1px solid #c0392b;color:#c0392b">🗑 Cancella '+_preqDayLabel(dk)+'</button></div>'):'')+'</div>';});
+ box.innerHTML='<div class="preqcard"><div class="preqhead">📥 Richieste reparti ('+PASTREQ.length+')</div>'+html+'<button class="preqclear" onclick="clearPastAll()" style="margin-top:8px">Pulisci tutto</button></div>';}
 async function savePastReq(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pastreq',v:{items:PASTREQ}})});}catch(e){}}
 function clearPastItem(i){PASTREQ.splice(i,1);savePastReq();renderPastReq();}
 function clearPastAll(){if(!confirm('Pulire tutte le richieste?'))return;PASTREQ=[];savePastReq();renderPastReq();}
@@ -356,7 +365,7 @@ function exportAdds(){const t=buildExport();if(!t){alert("Non hai aggiunte da es
 function copyExp(){const ta=document.getElementById('exptxt');ta.select();ta.setSelectionRange(0,99999);try{navigator.clipboard.writeText(ta.value);}catch(e){try{document.execCommand('copy');}catch(_){}}alert("Copiato! Ora incollalo a Claude in chat.");}
 document.getElementById('q').addEventListener('input',function(){renderList(this.value)});
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 03/07 18:15</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 04/07 10:15</div>
 <div id="bollamodal"></div>
 </body>
 </html>
