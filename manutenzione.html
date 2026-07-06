@@ -86,32 +86,32 @@ img{max-width:100%;height:auto}
 #a3bar button{border:none;border-radius:9px;padding:10px 16px;font-size:14px;font-weight:800;cursor:pointer}
 #a3bar .prt{background:#c9a227;color:#1a1400}
 #a3bar .cls{background:rgba(255,255,255,.16);color:#fff}
-#a3{background:#fff;color:#1a1400;width:420mm;max-width:96%;margin:14px auto;padding:16mm;box-sizing:border-box;font-family:-apple-system,Helvetica,Arial,sans-serif}
-.a3-head{display:flex;align-items:center;gap:14px;border-bottom:3px solid #6a1f2b;padding-bottom:12px;margin-bottom:18px}
-.a3-mark{width:58px;height:58px;border:2.5px solid #c9a227;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#c9a227;font-size:22px;flex:none}
-.a3-tt small{letter-spacing:2px;color:#c9a227;font-weight:700;font-size:13px}
-.a3-tt h1{margin:2px 0 0;font-size:27px;color:#6a1f2b}
-.a3-grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #e2ddd0;border-radius:10px;overflow:hidden;margin-bottom:14px}
-.a3-cell{padding:10px 14px;border-bottom:1px solid #efeadd}
+#a3{background:#fff;color:#1a1400;width:210mm;max-width:96%;margin:14px auto;padding:11mm;box-sizing:border-box;font-family:-apple-system,Helvetica,Arial,sans-serif}
+.a3-head{display:flex;align-items:center;gap:12px;border-bottom:2.5px solid #6a1f2b;padding-bottom:8px;margin-bottom:11px}
+.a3-mark{width:44px;height:44px;border:2px solid #c9a227;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#c9a227;font-size:17px;flex:none}
+.a3-tt small{letter-spacing:2px;color:#c9a227;font-weight:700;font-size:11px}
+.a3-tt h1{margin:1px 0 0;font-size:19px;color:#6a1f2b}
+.a3-grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #e2ddd0;border-radius:9px;overflow:hidden;margin-bottom:9px}
+.a3-cell{padding:6px 12px;border-bottom:1px solid #efeadd}
 .a3-cell:nth-child(odd){border-right:1px solid #efeadd}
-.a3-cell .k{font-size:12px;color:#8a7a3a;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-.a3-cell .v{font-size:17px;font-weight:600;margin-top:2px}
-.a3-box{border:1px solid #e2ddd0;border-radius:10px;padding:12px 14px;margin-bottom:14px}
-.a3-box .k{font-size:12px;color:#8a7a3a;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-.a3-box .v{font-size:16px;margin-top:4px;white-space:pre-wrap;line-height:1.4}
-.a3-seclbl{font-size:14px;font-weight:800;color:#6a1f2b;margin:6px 0 8px}
-.a3-photos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.a3-cell .k{font-size:10.5px;color:#8a7a3a;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.a3-cell .v{font-size:13.5px;font-weight:600;margin-top:1px}
+.a3-box{border:1px solid #e2ddd0;border-radius:9px;padding:8px 12px;margin-bottom:9px}
+.a3-box .k{font-size:10.5px;color:#8a7a3a;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.a3-box .v{font-size:13px;margin-top:3px;white-space:pre-wrap;line-height:1.35}
+.a3-seclbl{font-size:12.5px;font-weight:800;color:#6a1f2b;margin:4px 0 6px}
+.a3-photos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
 .a3-photos figure{margin:0;border:1px solid #e2ddd0;border-radius:10px;overflow:hidden;background:#faf7f0}
-.a3-photos img{width:100%;max-height:130mm;object-fit:contain;display:block}
-.a3-photos figcaption{font-size:12px;padding:6px 8px;color:#777;text-align:center}
+.a3-photos img{width:100%;max-height:46mm;object-fit:contain;display:block}
+.a3-photos figcaption{font-size:10px;padding:3px 6px;color:#777;text-align:center}
 @media print{
- @page{size:A3;margin:12mm}
+ @page{size:A4;margin:9mm}
  body *{visibility:hidden}
  #a3wrap,#a3wrap *{visibility:visible}
  #a3wrap{position:absolute;inset:auto;left:0;top:0;background:#fff;overflow:visible}
  #a3bar{display:none}
  #a3{width:auto;max-width:none;margin:0;padding:0;box-shadow:none}
- .a3-photos img{max-height:120mm}
+ .a3-photos img{max-height:44mm}
 }
 </style></head>
 <body>
@@ -137,13 +137,13 @@ img{max-width:100%;height:auto}
 </div></div>
 <div id="viewer" onclick="this.style.display='none'"><img id="vimg" src=""></div>
 <div id="toast"></div>
-<div id="verbadge">v 01/07 17:00</div>
+<div id="verbadge">v 04/07 09:30</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 const CHEF_CODE="Capo2026";
-const APP_VER='01/07 17:00';
+const APP_VER='04/07 09:30';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
@@ -218,7 +218,7 @@ function renderForm(isNew){CUR._isnew=isNew;el('detail').style.display='block';e
  h+='<div class="field"><label>Stato</label><div class="statosel">'+['da','corso','ok'].map(function(s){return '<button class="'+STATI[s].s+(CUR.stato===s?' on':'')+'" onclick="setStato(\''+s+'\')">'+STATI[s].t+'</button>';}).join('')+'</div></div>';
  h+='<div class="field"><label>Fornitore</label><select id="f_fornsel" onchange="pickForn()">'+fopts+'</select></div>';
  h+='<div class="row2"><div class="field"><label>Nome ditta</label><input id="f_ditta" placeholder="chi interviene" value="'+esc(CUR.ditta)+'"></div><div class="field"><label>Telefono</label><input id="f_tel" type="tel" placeholder="numero" value="'+esc(CUR.tel||'')+'"></div></div>';
- h+='<div class="callrow"><a class="callbtn call" onclick="doCall()">📞 Chiama</a><a class="callbtn wa" onclick="doWa()">💬 WhatsApp</a><a class="callbtn share" onclick="doShare()">📤 Invia scheda al capo</a><a class="callbtn share" onclick="schedaA3()">📄 Scheda A3 (stampa/PDF)</a></div>';
+ h+='<div class="callrow"><a class="callbtn call" onclick="doCall()">📞 Chiama</a><a class="callbtn wa" onclick="doWa()">💬 WhatsApp</a><a class="callbtn share" onclick="doShare()">📤 Invia scheda al capo</a><a class="callbtn share" onclick="schedaA3()">📄 Scheda A4 (stampa/PDF)</a></div>';
  h+='<div class="row2"><div class="field"><label>Data segnalazione</label><input id="f_segn" type="date" value="'+esc(CUR.dataSegn)+'"></div><div class="field"><label>Data riparazione</label><input id="f_rip" type="date" value="'+esc(CUR.dataRip)+'"></div></div>';
  h+='<div class="field"><label>Costo</label><input id="f_costo" placeholder="es. 120 €" value="'+esc(CUR.costo)+'"></div>';
  h+='<div class="field"><label>Note</label><textarea id="f_note" placeholder="dettagli, garanzia, contatti…">'+esc(CUR.note)+'</textarea></div>';
@@ -279,5 +279,5 @@ function addForn(){var n=el('nf_nome').value.trim();var t=el('nf_tel').value.tri
 function editForn(id){var f=FORN.find(function(x){return x.id===id;});if(!f)return;var n=prompt('Nome fornitore:',f.nome||'');if(n===null)return;var t=prompt('Telefono:',f.tel||'');if(t===null)return;f.nome=n.trim();f.tel=t.trim();saveForn();renderForn();}
 function delForn(id){var f=FORN.find(function(x){return x.id===id;});if(!confirm('Eliminare "'+((f&&f.nome)||'')+'" dalla rubrica?'))return;FORN=FORN.filter(function(x){return x.id!==id;});saveForn();renderForn();}
 </script>
-<div id="a3wrap"><div id="a3bar"><button class="prt" onclick="printA3()">🖨️ Stampa / Salva PDF (A3)</button><button class="cls" onclick="closeA3()">✕ Chiudi</button></div><div id="a3"></div></div>
+<div id="a3wrap"><div id="a3bar"><button class="prt" onclick="printA3()">🖨️ Stampa / Salva PDF (A4)</button><button class="cls" onclick="closeA3()">✕ Chiudi</button></div><div id="a3"></div></div>
 </body></html>
