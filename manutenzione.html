@@ -106,11 +106,12 @@ img{max-width:100%;height:auto}
 .a3-photos figcaption{font-size:10px;padding:3px 6px;color:#777;text-align:center}
 @media print{
  @page{size:A4;margin:9mm}
- body *{visibility:hidden}
- #a3wrap,#a3wrap *{visibility:visible}
- #a3wrap{position:absolute;inset:auto;left:0;top:0;background:#fff;overflow:visible}
- #a3bar{display:none}
+ html,body{height:auto!important;margin:0!important}
+ body>*:not(#a3wrap){display:none!important}
+ #a3wrap{display:block!important;position:static!important;inset:auto;background:#fff;overflow:visible}
+ #a3bar{display:none!important}
  #a3{width:auto;max-width:none;margin:0;padding:0;box-shadow:none}
+ .a3-box,.a3-grid,.a3-photos figure{break-inside:avoid}
  .a3-photos img{max-height:44mm}
 }
 </style></head>
@@ -137,13 +138,13 @@ img{max-width:100%;height:auto}
 </div></div>
 <div id="viewer" onclick="this.style.display='none'"><img id="vimg" src=""></div>
 <div id="toast"></div>
-<div id="verbadge">v 04/07 09:30</div>
+<div id="verbadge">v 04/07 09:45</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 const CHEF_CODE="Capo2026";
-const APP_VER='04/07 09:30';
+const APP_VER='04/07 09:45';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
