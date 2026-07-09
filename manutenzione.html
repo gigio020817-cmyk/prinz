@@ -131,6 +131,13 @@ img{max-width:100%;height:auto}
 .docfilt{display:flex;gap:8px;margin:0 0 14px}
 .dfchip{border:1px solid var(--line);background:#fff;color:var(--nero);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer}
 .dfchip.on{background:var(--gold);color:#fff;border-color:var(--gold)}
+.grp{margin-bottom:14px}
+.grph{display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 4px;border-bottom:2px solid var(--gold);margin-bottom:8px}
+.grph b{font-size:15.5px;color:var(--nero)}
+.grph .ar{color:var(--gold);font-weight:800;width:14px}
+.grph .gc{background:var(--gold);color:#fff;border-radius:20px;font-size:11px;font-weight:800;padding:1px 8px}
+.grph .gopen{margin-left:auto;font-size:11.5px;color:#8a2a37;font-weight:700}
+.grpcards{display:flex;flex-direction:column;gap:10px}
 </style></head>
 <body>
 <div id="lock"><div class="mark">PR</div><h1>Manutenzione Cucina</h1><p>PRINZ RUDOLF · RISERVATO CHEF</p>
@@ -159,13 +166,13 @@ img{max-width:100%;height:auto}
 </div></div>
 <div id="viewer" onclick="this.style.display='none'"><img id="vimg" src=""></div>
 <div id="toast"></div>
-<div id="verbadge">v 09/07 11:30</div>
+<div id="verbadge">v 09/07 11:50</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 const CHEF_CODE="Capo2026";
-const APP_VER='09/07 11:30';
+const APP_VER='09/07 11:50';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
@@ -207,6 +214,8 @@ async function loadAll(){el('status').textContent='Caricamento dal cloud…';try
 function filtersBar(){var n=ITEMS.filter(function(i){return i.stato!=='ok';}).length;var T=[['aperti','🔧 Aperti'+(n?' ('+n+')':'')],['ok','✅ Sistemati'],['tutti','📋 Tutti']];el('filters').innerHTML=T.map(function(t){return '<button class="fchip'+(FILT===t[0]?' on':'')+'" onclick="setFilt(\''+t[0]+'\')">'+esc(t[1])+'</button>';}).join('');}
 function setFilt(f){FILT=f;render();window.scrollTo(0,0);}
 el('q').addEventListener('input',render);
+function supGroup(d){var x=(d||'').toLowerCase();if(x.indexOf('niederbacher')>=0)return 'Niederbacher';if(x.indexOf('simatek')>=0||x.indexOf('simatec')>=0)return 'Simatek';if(x.indexOf('simone')>=0||x.indexOf('noselli')>=0)return 'Noselli';return (d&&d.trim())?d.trim():'Senza fornitore';}
+var GRPFOLD={};function toggleGrp(eg){var g=decodeURIComponent(eg);GRPFOLD[g]=!GRPFOLD[g];render();}
 function render(){filtersBar();var q=(el('q').value||'').trim().toLowerCase();var list=el('list');
  var items=ITEMS.slice();
  if(FILT==='aperti')items=items.filter(function(i){return i.stato!=='ok';});
@@ -214,10 +223,16 @@ function render(){filtersBar();var q=(el('q').value||'').trim().toLowerCase();va
  if(q)items=items.filter(function(i){return ((i.macchinario||'')+' '+(i.problema||'')+' '+(i.ditta||'')+' '+(i.note||'')).toLowerCase().indexOf(q)>=0;});
  items.sort(function(a,b){var ao=a.stato==='ok'?1:0,bo=b.stato==='ok'?1:0;if(ao!==bo)return ao-bo;return (b.dataSegn||'').localeCompare(a.dataSegn||'');});
  if(!items.length){list.innerHTML='<div class="empty">Nessun intervento. Tocca <b>＋ Nuovo</b> per aggiungerne uno.</div>';return;}
- list.innerHTML=items.map(function(i){var st=STATI[i.stato||'da'];var na=(i.allegati||[]).length;
+ function cardHtml(i){var st=STATI[i.stato||'da'];var na=(i.allegati||[]).length;
   return '<div class="card" onclick="openEdit(\''+i._id+'\')"><div class="top"><span class="mac">'+esc(i.macchinario||'(senza nome)')+'</span><span class="badge '+st.b+'">'+st.t+'</span></div>'+
   (i.problema?'<div class="prob">'+esc(i.problema)+'</div>':'')+
-  '<div class="meta">'+(i.ditta?'<span>🛠 '+esc(i.ditta)+'</span>':'')+(i.tel?'<span>📞 '+esc(i.tel)+'</span>':'')+(i.dataSegn?'<span>📅 '+dShow(i.dataSegn)+'</span>':'')+(i.stato==='ok'&&i.dataRip?'<span>✅ '+dShow(i.dataRip)+'</span>':'')+(i.costo?'<span>💶 '+esc(i.costo)+'</span>':'')+(na?'<span class="att">📎 '+na+'</span>':'')+'</div></div>';
+  '<div class="meta">'+(i.ditta?'<span>🛠 '+esc(i.ditta)+'</span>':'')+(i.tel?'<span>📞 '+esc(i.tel)+'</span>':'')+(i.dataSegn?'<span>📅 '+dShow(i.dataSegn)+'</span>':'')+(i.stato==='ok'&&i.dataRip?'<span>✅ '+dShow(i.dataRip)+'</span>':'')+(i.costo?'<span>💶 '+esc(i.costo)+'</span>':'')+(na?'<span class="att">📎 '+na+'</span>':'')+'</div></div>';}
+ var groups={},order=[];
+ items.forEach(function(i){var g=supGroup(i.ditta);if(!groups[g]){groups[g]=[];order.push(g);}groups[g].push(i);});
+ var pri={'Niederbacher':1,'Simatek':2,'Noselli':3};
+ order.sort(function(a,b){var pa=pri[a]||(a==='Senza fornitore'?99:50),pb=pri[b]||(b==='Senza fornitore'?99:50);if(pa!==pb)return pa-pb;return a.localeCompare(b);});
+ list.innerHTML=order.map(function(g){var arr=groups[g];var open=!GRPFOLD[g];var openCnt=arr.filter(function(i){return i.stato!=='ok';}).length;
+  return '<div class="grp"><div class="grph" onclick="toggleGrp(\''+encodeURIComponent(g)+'\')"><span class="ar">'+(open?'▾':'▸')+'</span> <b>'+esc(g)+'</b> <span class="gc">'+arr.length+'</span>'+(openCnt?'<span class="gopen">'+openCnt+' da fare</span>':'')+'</div>'+(open?'<div class="grpcards">'+arr.map(cardHtml).join('')+'</div>':'')+'</div>';
  }).join('');
 }
 function openNew(){CUR={_id:'i'+Date.now(),macchinario:'',problema:'',stato:'da',ditta:'',tel:'',dataSegn:today(),dataRip:'',costo:'',note:'',allegati:[]};renderForm(true);}
