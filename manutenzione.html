@@ -37,7 +37,7 @@
  .b-da{background:var(--rosso)} .b-corso{background:var(--ambra)} .b-ok{background:var(--verde)}
  .att{display:inline-flex;align-items:center;gap:3px}
  .empty{text-align:center;color:var(--muted);padding:46px 16px;font-size:14px}
- #detail,#forn{display:none;position:fixed;inset:0;z-index:40;background:var(--cream);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+ #detail,#forn,#docs{display:none;position:fixed;inset:0;z-index:40;background:var(--cream);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
  .dwrap{max-width:760px;margin:0 auto;padding:14px 16px 60px}
  .dtop{position:sticky;top:0;background:var(--cream);padding:8px 0 10px;display:flex;align-items:center;gap:10px;z-index:5;border-bottom:1px solid var(--line);margin-bottom:14px}
  .dtop .back{border:none;background:none;color:var(--nero);font-size:16px;font-weight:800;cursor:pointer;padding:6px}
@@ -114,6 +114,20 @@ img{max-width:100%;height:auto}
  .a3-box,.a3-grid,.a3-photos figure{break-inside:avoid}
  .a3-photos img{max-height:44mm}
 }
+
+.docadd{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0 16px}
+.docadd select{padding:9px 10px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:#fff;max-width:220px}
+.docgrp{margin-bottom:16px}
+.docgrph{font-weight:800;color:var(--nero);font-size:15px;border-bottom:2px solid var(--gold);padding-bottom:4px;margin-bottom:8px}
+.docgrph .cnt{color:var(--gold);font-weight:800}
+.docgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.doccard{position:relative}
+.doccard .thumb{width:100%;height:96px;border-radius:10px;border:1px solid #ccc;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:12px;color:#8a6d00;font-weight:700}
+.doccard .thumb img{width:100%;height:100%;object-fit:cover}
+.doctipo{position:absolute;top:5px;left:5px;font-size:10px;font-weight:800;padding:2px 6px;border-radius:6px;color:#fff;text-transform:uppercase}
+.doctipo.tb{background:#6b7a2a}.doctipo.tf{background:#8a2a37}
+.docdt{font-size:11px;color:var(--muted);text-align:center;padding:3px 0;font-weight:600}
+.doccard .del{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.6);color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;line-height:1}
 </style></head>
 <body>
 <div id="lock"><div class="mark">PR</div><h1>Manutenzione Cucina</h1><p>PRINZ RUDOLF · RISERVATO CHEF</p>
@@ -122,7 +136,7 @@ img{max-width:100%;height:auto}
 <div id="app" style="display:none">
  <header><div class="brand"><div class="mark">PR</div><div><small>Prinz Rudolf · Cucina</small><h1>Manutenzione</h1></div></div></header>
  <main>
-  <div class="bar"><input id="q" type="search" placeholder="Cerca macchinario, problema, ditta…" autocomplete="off"><button class="newbtn" id="newBtn">＋ Nuovo</button><button class="newbtn fornb" id="fornBtn">📇 Fornitori</button></div>
+  <div class="bar"><input id="q" type="search" placeholder="Cerca macchinario, problema, ditta…" autocomplete="off"><button class="newbtn" id="newBtn">＋ Nuovo</button><button class="newbtn fornb" id="fornBtn">📇 Fornitori</button><button class="newbtn fornb" id="docBtn">📁 Documenti</button></div>
   <div class="filters" id="filters"></div>
   <div id="status">Caricamento…</div>
   <div id="list"></div>
@@ -132,19 +146,23 @@ img{max-width:100%;height:auto}
  <div class="dtop"><button class="back" id="dBack">‹ Indietro</button><button class="savebtn" id="dSave">Salva</button></div>
  <div id="dform"></div>
 </div></div>
+<div id="docs"><div class="dwrap">
+ <div class="dtop"><button class="back" id="docBack">‹ Indietro</button><span class="ttl">📁 Bolle &amp; Fatture</span></div>
+ <div id="docbody"></div>
+</div></div>
 <div id="forn"><div class="dwrap">
  <div class="dtop"><button class="back" id="fBack">‹ Indietro</button><span class="ttl">📇 Rubrica fornitori</span></div>
  <div id="fbody"></div>
 </div></div>
 <div id="viewer" onclick="this.style.display='none'"><img id="vimg" src=""></div>
 <div id="toast"></div>
-<div id="verbadge">v 04/07 09:45</div>
+<div id="verbadge">v 09/07 11:10</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 const CHEF_CODE="Capo2026";
-const APP_VER='04/07 09:45';
+const APP_VER='09/07 11:10';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
@@ -201,11 +219,40 @@ function render(){filtersBar();var q=(el('q').value||'').trim().toLowerCase();va
 }
 function openNew(){CUR={_id:'i'+Date.now(),macchinario:'',problema:'',stato:'da',ditta:'',tel:'',dataSegn:today(),dataRip:'',costo:'',note:'',allegati:[]};renderForm(true);}
 function openEdit(id){var it=ITEMS.find(function(i){return i._id===id;});if(!it)return;CUR=JSON.parse(JSON.stringify(it));renderForm(false);}
+var DOCS=[];
+function docFornKey(n){return (n||'altro').toLowerCase().replace(/[^a-z0-9]+/g,'_');}
+async function openDocs(){el('docs').style.display='block';el('docbody').innerHTML='<div class="status">Caricamento…</div>';window.scrollTo(0,0);
+ try{var r=await sb('kitchen_meta?k=like.mdoc|*&select=k,v');DOCS=(r||[]).map(function(x){return {k:x.k,v:x.v||{}};});}catch(e){DOCS=[];}
+ renderDocs();}
+function renderDocs(){
+ var fopts='<option value="">— fornitore —</option>'+FORN.map(function(f){return '<option value="'+esc(f.nome)+'">'+esc(f.nome)+'</option>';}).join('')+'<option value="__ALTRO__">Altro / scrivi…</option>';
+ var h='<div class="docadd"><select id="doc_forn">'+fopts+'</select>'+
+  '<label class="addbtn">📷 Bolla<input type="file" accept="image/*" capture="environment" style="display:none" onchange="addDoc(this,\'bolla\')"></label>'+
+  '<label class="addbtn">🧾 Fattura (foto/PDF)<input type="file" accept="image/*,application/pdf" style="display:none" onchange="addDoc(this,\'fattura\')"></label></div>';
+ var groups={};DOCS.forEach(function(d){var f=d.v.forn||'Altro';(groups[f]=groups[f]||[]).push(d);});
+ var names=Object.keys(groups).sort(function(a,b){return a.localeCompare(b);});
+ if(!DOCS.length){h+='<div class="empty">Ancora nessun documento. Scegli un fornitore e carica una bolla o una fattura.</div>';}
+ names.forEach(function(f){var arr=groups[f];arr.sort(function(a,b){return (b.v.at||'').localeCompare(a.v.at||'');});
+  h+='<div class="docgrp"><div class="docgrph">'+esc(f)+' <span class="cnt">'+arr.length+'</span></div><div class="docgrid">';
+  arr.forEach(function(d){var isimg=(d.v.mime||'').indexOf('image')===0;var dt=d.v.at?new Date(d.v.at):null;var ds=dt?(('0'+dt.getDate()).slice(-2)+'/'+('0'+(dt.getMonth()+1)).slice(-2)+'/'+dt.getFullYear()):'';
+   h+='<div class="doccard"><div class="thumb" onclick="viewDoc(\''+encodeURIComponent(d.k)+'\')">'+(isimg?'<img src="'+d.v.data+'">':'📄 PDF')+'</div><div class="doctipo '+(d.v.tipo==='fattura'?'tf':'tb')+'">'+esc(d.v.tipo||'')+'</div><div class="docdt">'+ds+'</div><div class="del" onclick="delDoc(\''+encodeURIComponent(d.k)+'\')">×</div></div>';
+  });
+  h+='</div></div>';});
+ el('docbody').innerHTML=h;}
+function addDoc(input,tipo){var f=input.files&&input.files[0];if(!f)return;var sel=el('doc_forn');var forn=sel?sel.value:'';
+ if(forn==='__ALTRO__'){forn=prompt('Nome fornitore/ditta:')||'';}
+ if(!forn){toast('Scegli prima il fornitore');input.value='';return;}
+ toast('Carico…');compress(f).then(async function(a){var key='mdoc|'+docFornKey(forn)+'|'+Date.now();
+  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:key,v:{data:a.data,mime:a.mime,name:a.name,forn:forn,tipo:tipo,at:new Date().toISOString()}})});
+   input.value='';toast('✓ Caricato');openDocs();}catch(e){toast('⚠️ Non salvato');console.error(e);}});}
+function viewDoc(ek){var k=decodeURIComponent(ek);var d=DOCS.find(function(x){return x.k===k;});if(!d)return;if((d.v.mime||'').indexOf('image')===0){el('vimg').src=d.v.data;el('viewer').style.display='flex';}else{var w=window.open();if(w)w.document.write('<iframe src="'+d.v.data+'" style="border:0;width:100%;height:100%"></iframe>');}}
+async function delDoc(ek){var k=decodeURIComponent(ek);var c=prompt('Codice chef per eliminare:');if(c===null)return;if(c.trim().toLowerCase()!==CHEF_CODE.toLowerCase()){alert('Codice errato.');return;}
+ try{await sb('kitchen_meta?k=eq.'+encodeURIComponent(k),{method:'DELETE',headers:{Prefer:'return=minimal'}});}catch(e){console.error(e);}openDocs();}
 el('newBtn').onclick=openNew;
 el('fornBtn').onclick=openForn;
 el('dBack').onclick=function(){el('detail').style.display='none';CUR=null;};
 el('dSave').onclick=save;
-el('fBack').onclick=function(){el('forn').style.display='none';render();};
+el('fBack').onclick=function(){el('forn').style.display='none';render();};el('docBtn').onclick=openDocs;el('docBack').onclick=function(){el('docs').style.display='none';};
 function setStato(s){grab();CUR.stato=s;if(s==='ok'&&!CUR.dataRip)CUR.dataRip=today();renderForm(CUR._isnew);}
 function renderForm(isNew){CUR._isnew=isNew;el('detail').style.display='block';el('forn').style.display='none';window.scrollTo(0,0);
  var atts=(CUR.allegati||[]).map(function(a,idx){var isImg=(a.mime||'').indexOf('image')===0;
