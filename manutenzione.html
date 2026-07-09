@@ -166,13 +166,13 @@ img{max-width:100%;height:auto}
 </div></div>
 <div id="viewer"><div class="vbar"><button class="vback" onclick="closeViewer()">‹ Indietro</button><span class="vt" id="vtitle"></span></div><div id="vbody"></div></div>
 <div id="toast"></div>
-<div id="verbadge">v 09/07 18:15</div>
+<div id="verbadge">v 09/07 18:30</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 const CHEF_CODE="Capo2026";
-const APP_VER='09/07 18:15';
+const APP_VER='09/07 18:30';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
@@ -214,7 +214,7 @@ async function loadAll(){el('status').textContent='Caricamento dal cloud…';try
 function filtersBar(){var n=ITEMS.filter(function(i){return i.stato!=='ok';}).length;var T=[['aperti','🔧 Aperti'+(n?' ('+n+')':'')],['ok','✅ Sistemati'],['tutti','📋 Tutti']];el('filters').innerHTML=T.map(function(t){return '<button class="fchip'+(FILT===t[0]?' on':'')+'" onclick="setFilt(\''+t[0]+'\')">'+esc(t[1])+'</button>';}).join('');}
 function setFilt(f){FILT=f;render();window.scrollTo(0,0);}
 el('q').addEventListener('input',render);
-function supGroup(d){var x=(d||'').toLowerCase();if(x.indexOf('niederbacher')>=0)return 'Niederbacher';if(x.indexOf('simatek')>=0||x.indexOf('simatec')>=0)return 'Simatek';if(x.indexOf('simone')>=0||x.indexOf('noselli')>=0)return 'Noselli';return (d&&d.trim())?d.trim():'Senza fornitore';}
+function supGroup(d){var x=(d||'').toLowerCase();if(x.indexOf('niederbacher')>=0)return 'Niederbacher';if(x.indexOf('simatek')>=0||x.indexOf('simatec')>=0)return 'Simatek';if(x.indexOf('noselli')>=0)return 'Noselli';if(x.indexOf('simone')>=0)return 'Simone';return (d&&d.trim())?d.trim():'Senza fornitore';}
 var GRPFOLD={};function toggleGrp(eg){var g=decodeURIComponent(eg);GRPFOLD[g]=!GRPFOLD[g];render();}
 function render(){filtersBar();var q=(el('q').value||'').trim().toLowerCase();var list=el('list');
  var items=ITEMS.slice();
@@ -229,7 +229,7 @@ function render(){filtersBar();var q=(el('q').value||'').trim().toLowerCase();va
   '<div class="meta">'+(i.ditta?'<span>🛠 '+esc(i.ditta)+'</span>':'')+(i.tel?'<span>📞 '+esc(i.tel)+'</span>':'')+(i.dataSegn?'<span>📅 '+dShow(i.dataSegn)+'</span>':'')+(i.stato==='ok'&&i.dataRip?'<span>✅ '+dShow(i.dataRip)+'</span>':'')+(i.costo?'<span>💶 '+esc(i.costo)+'</span>':'')+(na?'<span class="att">📎 '+na+'</span>':'')+'</div></div>';}
  var groups={},order=[];
  items.forEach(function(i){var g=supGroup(i.ditta);if(!groups[g]){groups[g]=[];order.push(g);}groups[g].push(i);});
- var pri={'Niederbacher':1,'Simatek':2,'Noselli':3};
+ var pri={'Niederbacher':1,'Simatek':2,'Noselli':3,'Simone':4};
  order.sort(function(a,b){var pa=pri[a]||(a==='Senza fornitore'?99:50),pb=pri[b]||(b==='Senza fornitore'?99:50);if(pa!==pb)return pa-pb;return a.localeCompare(b);});
  list.innerHTML=order.map(function(g){var arr=groups[g];var open=!GRPFOLD[g];var openCnt=arr.filter(function(i){return i.stato!=='ok';}).length;
   return '<div class="grp"><div class="grph" onclick="toggleGrp(\''+encodeURIComponent(g)+'\')"><span class="ar">'+(open?'▾':'▸')+'</span> <b>'+esc(g)+'</b> <span class="gc">'+arr.length+'</span>'+(openCnt?'<span class="gopen">'+openCnt+' da fare</span>':'')+'</div>'+(open?'<div class="grpcards">'+arr.map(cardHtml).join('')+'</div>':'')+'</div>';
@@ -244,7 +244,7 @@ async function openDocs(){el('docs').style.display='block';el('docbody').innerHT
  try{var r=await sb('kitchen_meta?k=like.mdoc|*&select=k,v');DOCS=(r||[]).map(function(x){return {k:x.k,v:x.v||{}};});}catch(e){DOCS=[];}
  renderDocs();}
 function renderDocs(){
- var DOCFORN=['Niederbacher','Simatek','Noselli'];var fopts='<option value="">— fornitore —</option>'+DOCFORN.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>';}).join('')+'<option value="__ALTRO__">Altro / scrivi…</option>';
+ var DOCFORN=['Niederbacher','Simatek','Noselli','Simone'];var fopts='<option value="">— fornitore —</option>'+DOCFORN.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>';}).join('')+'<option value="__ALTRO__">Altro / scrivi…</option>';
  var h='<div class="docadd"><select id="doc_forn">'+fopts+'</select>'+
   '<label class="addbtn">📷 Bolla<input type="file" accept="image/*" capture="environment" style="display:none" onchange="addDoc(this,\'bolla\')"></label>'+
   '<label class="addbtn">🧾 Fattura (foto/PDF)<input type="file" accept="image/*,application/pdf" style="display:none" onchange="addDoc(this,\'fattura\')"></label></div>';
