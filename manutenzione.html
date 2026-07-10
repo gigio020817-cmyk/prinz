@@ -63,6 +63,15 @@
  .attbox .thumb{width:92px;height:92px;border-radius:10px;border:1px solid #ccc;object-fit:cover;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:30px}
  .attbox .lbl{font-size:10px;text-align:center;color:#666;margin-top:3px;font-weight:700}
  .attbox .del{position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;background:var(--rosso);color:#fff;border:2px solid #fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1}
+ .diary{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+ .logentry{background:#faf6ee;border:1px solid #e7ddca;border-left:4px solid #c9a227;border-radius:10px;padding:9px 30px 9px 11px;position:relative}
+ .logentry .ld{font-size:11.5px;font-weight:800;color:#6b1f2a;margin-bottom:2px}
+ .logentry .lt{font-size:14px;white-space:pre-wrap;line-height:1.35}
+ .logentry .lx{position:absolute;top:6px;right:9px;color:#c0392b;font-weight:800;cursor:pointer;font-size:16px;line-height:1}
+ .addlog{display:flex;gap:8px;margin-top:8px;align-items:stretch}
+ .addlog textarea{flex:1;min-height:44px}
+ .addlogbtn{background:#6b1f2a;color:#fff;border:0;border-radius:10px;padding:0 16px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap}
+ .emptylog{color:#999;font-size:13px;padding:2px}
  .addatt{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
  .addbtn{display:inline-block;border:1.5px dashed var(--gold);background:#fffdf5;color:#8a6d00;border-radius:11px;padding:11px 14px;font-size:13.5px;font-weight:800;cursor:pointer}
  .addbtn input{display:none}
@@ -166,13 +175,13 @@ img{max-width:100%;height:auto}
 </div></div>
 <div id="viewer"><div class="vbar"><button class="vback" onclick="closeViewer()">‹ Indietro</button><span class="vt" id="vtitle"></span></div><div id="vbody"></div></div>
 <div id="toast"></div>
-<div id="verbadge">v 09/07 18:30</div>
+<div id="verbadge">v 09/07 18:45</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 const CHEF_CODE="Capo2026";
-const APP_VER='09/07 18:30';
+const APP_VER='09/07 18:45';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
@@ -198,6 +207,7 @@ function schedaA3(){grab();var c=CUR;var st=STATI[c.stato||'da'];
  h+='<div class="a3-grid">'+a3fld('Macchinario',c.macchinario)+a3fld('Stato',st.t)+a3fld('Fornitore / Ditta',c.ditta)+a3fld('Telefono',c.tel)+a3fld('Data segnalazione',dShow(c.dataSegn))+a3fld('Data riparazione',c.dataRip?dShow(c.dataRip):'—')+a3fld('Costo',c.costo)+a3fld('N. allegati',((c.allegati||[]).length)+' file')+'</div>';
  h+='<div class="a3-box"><div class="k">Problema</div><div class="v">'+esc(c.problema||'—')+'</div></div>';
  if(c.note)h+='<div class="a3-box"><div class="k">Note</div><div class="v">'+esc(c.note)+'</div></div>';
+ if(c.log&&c.log.length){var _dl=c.log.slice().sort(function(a,b){return (a.at||'').localeCompare(b.at||'');}).map(function(e){return '<div style="margin-bottom:5px"><b>'+dShow(e.at)+'</b> — '+esc(e.t)+'</div>';}).join('');h+='<div class="a3-box"><div class="k">Aggiornamenti</div><div class="v">'+_dl+'</div></div>';}
  if(pdfs.length)h+='<div class="a3-box"><div class="k">Documenti allegati</div><div class="v">'+pdfs.map(function(a){return '📄 '+esc(a.kind||'allegato')+(a.name?' ('+esc(a.name)+')':'');}).join('<br>')+'</div></div>';
  h+='<div class="a3-seclbl">📷 Foto</div>';
  h+=photos?('<div class="a3-photos">'+photos+'</div>'):'<div style="color:#999;font-size:14px">Nessuna foto allegata.</div>';
@@ -226,7 +236,7 @@ function render(){filtersBar();var q=(el('q').value||'').trim().toLowerCase();va
  function cardHtml(i){var st=STATI[i.stato||'da'];var na=(i.allegati||[]).length;
   return '<div class="card" onclick="openEdit(\''+i._id+'\')"><div class="top"><span class="mac">'+esc(i.macchinario||'(senza nome)')+'</span><span class="badge '+st.b+'">'+st.t+'</span></div>'+
   (i.problema?'<div class="prob">'+esc(i.problema)+'</div>':'')+
-  '<div class="meta">'+(i.ditta?'<span>🛠 '+esc(i.ditta)+'</span>':'')+(i.tel?'<span>📞 '+esc(i.tel)+'</span>':'')+(i.dataSegn?'<span>📅 '+dShow(i.dataSegn)+'</span>':'')+(i.stato==='ok'&&i.dataRip?'<span>✅ '+dShow(i.dataRip)+'</span>':'')+(i.costo?'<span>💶 '+esc(i.costo)+'</span>':'')+(na?'<span class="att">📎 '+na+'</span>':'')+'</div></div>';}
+  '<div class="meta">'+(i.ditta?'<span>🛠 '+esc(i.ditta)+'</span>':'')+(i.tel?'<span>📞 '+esc(i.tel)+'</span>':'')+(i.dataSegn?'<span>📅 '+dShow(i.dataSegn)+'</span>':'')+(i.stato==='ok'&&i.dataRip?'<span>✅ '+dShow(i.dataRip)+'</span>':'')+(i.costo?'<span>💶 '+esc(i.costo)+'</span>':'')+((i.log&&i.log.length)?'<span>💬 '+i.log.length+'</span>':'')+(na?'<span class="att">📎 '+na+'</span>':'')+'</div></div>';}
  var groups={},order=[];
  items.forEach(function(i){var g=supGroup(i.ditta);if(!groups[g]){groups[g]=[];order.push(g);}groups[g].push(i);});
  var pri={'Niederbacher':1,'Simatek':2,'Noselli':3,'Simone':4};
@@ -277,6 +287,7 @@ el('dSave').onclick=save;
 el('fBack').onclick=function(){el('forn').style.display='none';render();};el('docBtn').onclick=openDocs;el('docBack').onclick=function(){el('docs').style.display='none';};
 function setStato(s){grab();CUR.stato=s;if(s==='ok'&&!CUR.dataRip)CUR.dataRip=today();renderForm(CUR._isnew);}
 function renderForm(isNew){CUR._isnew=isNew;el('detail').style.display='block';el('forn').style.display='none';window.scrollTo(0,0);
+ CUR.log=Array.isArray(CUR.log)?CUR.log:[];if(!CUR.log.length&&CUR.note){CUR.log.push({at:(CUR.dataSegn||today()),t:CUR.note});CUR.note='';}
  var atts=(CUR.allegati||[]).map(function(a,idx){var isImg=(a.mime||'').indexOf('image')===0;
    var thumb=isImg?'<img class="thumb" src="'+a.data+'" onclick="viewAtt('+idx+')">':'<div class="thumb" onclick="viewAtt('+idx+')">📄</div>';
    return '<div class="attbox">'+thumb+'<div class="lbl">'+esc(a.kind||'allegato')+'</div><div class="del" onclick="rmAtt('+idx+')">×</div></div>';
@@ -291,7 +302,10 @@ function renderForm(isNew){CUR._isnew=isNew;el('detail').style.display='block';e
  h+='<div class="callrow"><a class="callbtn call" onclick="doCall()">📞 Chiama</a><a class="callbtn wa" onclick="doWa()">💬 WhatsApp</a><a class="callbtn share" onclick="doShare()">📤 Invia scheda al capo</a><a class="callbtn share" onclick="schedaA3()">📄 Scheda A4 (stampa/PDF)</a></div>';
  h+='<div class="row2"><div class="field"><label>Data segnalazione</label><input id="f_segn" type="date" value="'+esc(CUR.dataSegn)+'"></div><div class="field"><label>Data riparazione</label><input id="f_rip" type="date" value="'+esc(CUR.dataRip)+'"></div></div>';
  h+='<div class="field"><label>Costo</label><input id="f_costo" placeholder="es. 120 €" value="'+esc(CUR.costo)+'"></div>';
- h+='<div class="field"><label>Note</label><textarea id="f_note" placeholder="dettagli, garanzia, contatti…">'+esc(CUR.note)+'</textarea></div>';
+ var _logs=CUR.log.map(function(e,i){return {e:e,i:i};});_logs.sort(function(a,b){return (b.e.at||'').localeCompare(a.e.at||'');});
+ var _logHtml=_logs.length?_logs.map(function(o){return '<div class="logentry"><div class="lx" onclick="rmLog('+o.i+')">×</div><div class="ld">📅 '+dShow(o.e.at)+'</div><div class="lt">'+esc(o.e.t)+'</div></div>';}).join(''):'<div class="emptylog">Ancora nessun aggiornamento. Aggiungi qui sotto cosa ti dicono, man mano.</div>';
+ h+='<div class="field"><label>Diario aggiornamenti</label><div class="diary">'+_logHtml+'</div>'
+   +'<div class="addlog"><textarea id="f_newlog" rows="2" placeholder="Cosa hanno detto / fatto oggi…">'+esc(CUR._draftLog||'')+'</textarea><button type="button" class="addlogbtn" onclick="addLog()">＋ Aggiungi</button></div></div>';
  h+='<div class="field"><label>Allegati (bolla, fattura, foto)</label><div class="atts">'+(atts||'<span style="color:#999;font-size:13px">Nessun allegato</span>')+'</div>'+
    '<div class="addatt">'+
    '<label class="addbtn">📷 Foto bolla<input type="file" accept="image/*" capture="environment" onchange="addAtt(this,\'bolla\')"></label>'+
@@ -306,12 +320,15 @@ function pickForn(){var v=el('f_fornsel').value;if(v==='__manual'){el('f_ditta')
 function doCall(){var t=el('f_tel').value.trim();if(!t){toast('Aggiungi un numero');return;}location.href='tel:'+t.replace(/\s/g,'');}
 function doWa(){var t=el('f_tel').value.trim();var d=waDigits(t);if(!d){toast('Aggiungi un numero');return;}window.open('https://wa.me/'+d+'?text='+waMsg(),'_blank');}
 async function doShare(){grab();
- var msg='Prinz Rudolf – Scheda manutenzione\nMacchinario: '+(CUR.macchinario||'-')+'\nProblema: '+(CUR.problema||'-')+(CUR.stato?'\nStato: '+CUR.stato:'')+(CUR.dataSegn?'\nSegnalato: '+dShow(CUR.dataSegn):'')+(CUR.dataRip?'\nRiparato: '+dShow(CUR.dataRip):'')+(CUR.ditta?'\nFornitore: '+CUR.ditta:'')+(CUR.costo?'\nCosto: '+CUR.costo:'')+(CUR.note?'\nNote: '+CUR.note:'');
+ var _diario='';if(CUR.log&&CUR.log.length){_diario='\nAggiornamenti:\n'+CUR.log.slice().sort(function(a,b){return (a.at||'').localeCompare(b.at||'');}).map(function(e){return '· '+dShow(e.at)+': '+e.t;}).join('\n');}else if(CUR.note){_diario='\nNote: '+CUR.note;}
+ var msg='Prinz Rudolf – Scheda manutenzione\nMacchinario: '+(CUR.macchinario||'-')+'\nProblema: '+(CUR.problema||'-')+(CUR.stato?'\nStato: '+CUR.stato:'')+(CUR.dataSegn?'\nSegnalato: '+dShow(CUR.dataSegn):'')+(CUR.dataRip?'\nRiparato: '+dShow(CUR.dataRip):'')+(CUR.ditta?'\nFornitore: '+CUR.ditta:'')+(CUR.costo?'\nCosto: '+CUR.costo:'')+_diario;
  var files=[];var at=(CUR.allegati||[]);
  try{for(var i=0;i<at.length;i++){var a=at[i];var r=await fetch(a.data);var b=await r.blob();var mime=a.mime||b.type||'application/octet-stream';var nm=a.name||'';if(!/\.(jpe?g|png|pdf)$/i.test(nm)){nm='allegato'+(i+1)+(mime.indexOf('pdf')>=0?'.pdf':'.jpg');}files.push(new File([b],nm,{type:mime}));}}catch(e){}
  if(navigator.share){try{var data={text:msg,title:'Scheda manutenzione'};if(files.length&&navigator.canShare&&navigator.canShare({files:files}))data.files=files;await navigator.share(data);return;}catch(e){if(e&&e.name==='AbortError')return;}}
  var d=waDigits(CUR.tel);if(d){window.open('https://wa.me/'+d+'?text='+encodeURIComponent(msg),'_blank');toast('Allega le foto a mano');}else{toast('Condivisione non disponibile qui');}}
-function grab(){if(!el('f_mac'))return;CUR.macchinario=el('f_mac').value.trim();CUR.problema=el('f_prob').value.trim();CUR.dataSegn=el('f_segn').value;CUR.dataRip=el('f_rip').value;CUR.ditta=el('f_ditta').value.trim();CUR.tel=el('f_tel').value.trim();CUR.costo=el('f_costo').value.trim();CUR.note=el('f_note').value.trim();}
+function grab(){if(!el('f_mac'))return;CUR.macchinario=el('f_mac').value.trim();CUR.problema=el('f_prob').value.trim();CUR.dataSegn=el('f_segn').value;CUR.dataRip=el('f_rip').value;CUR.ditta=el('f_ditta').value.trim();CUR.tel=el('f_tel').value.trim();CUR.costo=el('f_costo').value.trim();if(el('f_newlog'))CUR._draftLog=el('f_newlog').value;}
+function addLog(){grab();var t=((el('f_newlog')&&el('f_newlog').value)||'').trim();if(!t){toast('Scrivi l\'aggiornamento');return;}CUR.log=Array.isArray(CUR.log)?CUR.log:[];CUR.log.push({at:today(),t:t});CUR._draftLog='';renderForm(CUR._isnew);toast('Aggiornamento aggiunto');}
+function rmLog(idx){grab();if(!confirm('Eliminare questo aggiornamento?'))return;CUR.log=Array.isArray(CUR.log)?CUR.log:[];CUR.log.splice(idx,1);renderForm(CUR._isnew);}
 function compress(file){return new Promise(function(res){
  if((file.type||'').indexOf('image')!==0){var fr=new FileReader();fr.onload=function(){res({mime:file.type||'application/octet-stream',data:fr.result,name:file.name});};fr.readAsDataURL(file);return;}
  var fr=new FileReader();fr.onload=function(){var img=new Image();img.onload=function(){var max=1400;var w=img.width,hh=img.height;if(w>max||hh>max){if(w>hh){hh=Math.round(hh*max/w);w=max;}else{w=Math.round(w*max/hh);hh=max;}}var c=document.createElement('canvas');c.width=w;c.height=hh;c.getContext('2d').drawImage(img,0,0,w,hh);res({mime:'image/jpeg',data:c.toDataURL('image/jpeg',0.7),name:(file.name||'foto')});};img.src=fr.result;};fr.readAsDataURL(file);
@@ -320,14 +337,14 @@ function addAtt(input,kind){var f=input.files&&input.files[0];if(!f)return;grab(
 function rmAtt(idx){grab();CUR.allegati.splice(idx,1);renderForm(CUR._isnew);}
 function viewAtt(idx){var a=CUR.allegati[idx];if(!a)return;showViewer(a.mime,a.data,a.name||a.kind||'');}
 async function save(){grab();if(!CUR.macchinario&&!CUR.problema){toast('Scrivi almeno il macchinario o il problema');return;}CUR.updatedAt=new Date().toISOString();if(!CUR.createdAt)CUR.createdAt=CUR.updatedAt;
- var rec=Object.assign({},CUR);delete rec._id;delete rec._isnew;
+ var rec=Object.assign({},CUR);delete rec._id;delete rec._isnew;delete rec._draftLog;
  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'manut|'+CUR._id,v:rec})});
   var ex=ITEMS.find(function(i){return i._id===CUR._id;});var stored=Object.assign({},rec);stored._id=CUR._id;if(ex){Object.assign(ex,stored);}else{ITEMS.push(stored);}
   el('detail').style.display='none';CUR=null;render();toast('✓ Salvato');
  }catch(e){toast('⚠️ Non salvato, controlla internet');console.error(e);}
 }
 async function delRec(){var c=prompt('Codice chef per eliminare:');if(c===null)return;if(c.trim().toLowerCase()!==CHEF_CODE.toLowerCase()){alert('Codice errato.');return;}if(!confirm('Eliminare questo intervento? (resta archiviato nel cloud ma sparisce dalla lista)'))return;
- var rec=Object.assign({},CUR);delete rec._id;delete rec._isnew;rec.deleted=true;rec.updatedAt=new Date().toISOString();
+ var rec=Object.assign({},CUR);delete rec._id;delete rec._isnew;delete rec._draftLog;rec.deleted=true;rec.updatedAt=new Date().toISOString();
  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'manut|'+CUR._id,v:rec})});ITEMS=ITEMS.filter(function(i){return i._id!==CUR._id;});el('detail').style.display='none';CUR=null;render();toast('Eliminato');}catch(e){toast('⚠️ Non riuscito');console.error(e);}
 }
 /* ===== Rubrica fornitori ===== */
