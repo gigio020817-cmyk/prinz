@@ -4,10 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Banu">
 <meta name="theme-color" content="#6b1f2a">
 <title>Banu · Prinz Rudolf</title>
 <style>
-  :root{--wine:#6b1f2a;--wine2:#8a2a37;--gold:#c9a227;--cream:#faf6ee;--ink:#2a2119;--line:#e7ddca}
+  :root{--wine:#6b1f2a;--wine2:#8a2a37;--gold:#c9a227;--cream:#faf6ee;--ink:#2a2119;--line:#e7ddca;--ok:#1e7a46}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     background:var(--cream);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;align-items:center}
@@ -15,7 +16,7 @@
   header .hi{font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700}
   header h1{margin:6px 0 2px;font-size:26px;font-weight:800}
   header .sub{font-size:13.5px;opacity:.85}
-  main{width:100%;max-width:520px;padding:20px 16px 40px;display:flex;flex-direction:column;gap:16px}
+  main{width:100%;max-width:520px;padding:20px 16px 40px;display:flex;flex-direction:column;gap:20px}
   a.card{display:flex;align-items:center;gap:16px;text-decoration:none;color:var(--ink);
     background:#fff;border:1px solid var(--line);border-left:6px solid var(--gold);border-radius:16px;
     padding:20px 18px;box-shadow:0 3px 10px rgba(0,0,0,.06);transition:transform .08s,box-shadow .08s}
@@ -24,6 +25,21 @@
   a.card .tx .t{font-size:19px;font-weight:800;margin-bottom:2px}
   a.card .tx .d{font-size:13.5px;color:#6b6257}
   a.card .go{margin-left:auto;color:var(--wine);font-size:24px;font-weight:800}
+
+  .sec{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,.06)}
+  .sec h2{margin:0;background:var(--wine);color:#fff;font-size:16px;padding:13px 16px;display:flex;align-items:center;gap:8px}
+  .sec h2 .day{margin-left:auto;font-size:12px;font-weight:600;opacity:.85}
+  .grp{padding:6px 12px 12px}
+  .grplbl{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--wine);font-weight:800;margin:12px 4px 4px}
+  .task{display:flex;align-items:center;gap:14px;padding:14px 12px;border-radius:12px;border:1px solid var(--line);
+    background:#fff;margin:8px 0;font-size:16.5px;font-weight:600;cursor:pointer;transition:background .1s}
+  .task:active{background:#f6efe1}
+  .task .ck{width:28px;height:28px;flex:0 0 auto;border-radius:50%;border:2.5px solid #c9bfa8;
+    display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;font-weight:900}
+  .task.done{background:#eef7f0;border-color:#bfe0cc}
+  .task.done .ck{background:var(--ok);border-color:var(--ok)}
+  .task.done .lbl{color:#5a7a66;text-decoration:line-through}
+  .hint{font-size:12.5px;color:#9a9082;text-align:center;padding:2px 8px 10px}
   footer{margin-top:auto;padding:16px;font-size:12px;color:#9a9082;text-align:center}
 </style>
 </head>
@@ -31,20 +47,42 @@
   <header>
     <div class="hi">Prinz Rudolf</div>
     <h1>Ciao Banu 👋</h1>
-    <div class="sub">Le tue app della cucina — tocca per aprire</div>
+    <div class="sub">Ricette della sera e pulizie della mattina</div>
   </header>
   <main>
-    <a class="card" href="cuochi.html?chi=Banu">
-      <div class="ic">🍳</div>
-      <div class="tx"><div class="t">Cucina — i miei compiti</div><div class="d">Entrata, pulizia, note e passaggio consegne. Si apre sul tuo nome.</div></div>
-      <div class="go">›</div>
-    </a>
-    <a class="card" href="antiprod.html">
+    <a class="card" href="antipasti.html">
       <div class="ic">🥗</div>
-      <div class="tx"><div class="t">Antipasti — produzione</div><div class="d">Segna gli antipasti man mano che li prepari.</div></div>
+      <div class="tx"><div class="t">Antipasti — foto e ricette</div><div class="d">Guarda foto e ricette per sapere come impiattare la sera.</div></div>
       <div class="go">›</div>
     </a>
+
+    <div class="sec">
+      <h2>🧽 Le tue pulizie <span class="day" id="oggi"></span></h2>
+      <div class="grp">
+        <div class="grplbl">Ogni mattina</div>
+        <div class="task" data-id="m1" data-p="d" onclick="tog(this)"><span class="ck">✓</span><span class="lbl">Pulizia zona colazione</span></div>
+        <div class="task" data-id="m2" data-p="d" onclick="tog(this)"><span class="ck">✓</span><span class="lbl">Affettatrice</span></div>
+        <div class="task" data-id="m3" data-p="d" onclick="tog(this)"><span class="ck">✓</span><span class="lbl">Lavandino</span></div>
+        <div class="task" data-id="m4" data-p="d" onclick="tog(this)"><span class="ck">✓</span><span class="lbl">Controllo insalata e produzione</span></div>
+
+        <div class="grplbl">1 volta a settimana</div>
+        <div class="task" data-id="w1" data-p="w" onclick="tog(this)"><span class="ck">✓</span><span class="lbl">Sbrinare il frigo delle insalate</span></div>
+        <div class="task" data-id="w2" data-p="w" onclick="tog(this)"><span class="ck">✓</span><span class="lbl">Pulire i frighi delle colazioni</span></div>
+      </div>
+      <div class="hint">Spunta man mano che finisci. La lista del mattino si azzera ogni giorno, quella settimanale ogni settimana.</div>
+    </div>
   </main>
   <footer>Prinz Rudolf · Merano — uso interno cucina</footer>
+
+<script>
+function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+function weekTok(){var d=new Date();var t=new Date(d.getFullYear(),d.getMonth(),d.getDate());var day=(t.getDay()+6)%7;t.setDate(t.getDate()-day+3);var first=new Date(t.getFullYear(),0,4);var wk=1+Math.round(((t-first)/86400000-3+((first.getDay()+6)%7))/7);return t.getFullYear()+'-W'+('0'+wk).slice(-2);}
+function keyOf(el){var p=el.getAttribute('data-p');var tok=p==='w'?weekTok():today();return 'banu_'+p+'_'+tok+'_'+el.getAttribute('data-id');}
+function tog(el){var k=keyOf(el);var now=!el.classList.contains('done');el.classList.toggle('done',now);try{if(now)localStorage.setItem(k,'1');else localStorage.removeItem(k);}catch(e){}}
+function restore(){document.querySelectorAll('.task').forEach(function(el){var v='0';try{v=localStorage.getItem(keyOf(el));}catch(e){}el.classList.toggle('done',v==='1');});}
+function showDay(){var g=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];var d=new Date();document.getElementById('oggi').textContent=g[d.getDay()]+' '+('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);}
+function cleanup(){try{var keep=[];document.querySelectorAll('.task').forEach(function(el){keep.push(keyOf(el));});for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(k&&k.indexOf('banu_')===0&&keep.indexOf(k)<0)localStorage.removeItem(k);}}catch(e){}}
+showDay();restore();cleanup();
+</script>
 </body>
 </html>
