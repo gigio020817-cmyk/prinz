@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='09/07 19:00';
+const APP_VER='09/07 20:45';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -224,10 +224,12 @@ function timbraCard(){
   var c=getCook();
   if(!c)return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Orario di arrivo</div></div><div class="card-b" style="display:block"><div class="readbox">Scegli il tuo nome in alto per registrare l\'orario di arrivo.</div></div></div>';
   var t=TIMBRA[c]||{};
-  var inH=t.in?('<div class="row" style="display:flex;justify-content:space-between;padding:6px 0"><span>Arrivo</span><span class="donerow" style="font-weight:700">'+tloc(t.in)+' &#10003;</span></div>'):'<button class="btn" style="width:100%;margin-top:0" onclick="timbraIn()">Segna ARRIVO</button>';
-  return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Orario di arrivo &mdash; '+esc(c)+'</div></div><div class="card-b" style="display:block"><div class="readbox" style="margin-bottom:10px">⚠️ Segna l\'arrivo solo quando sei <b>già cambiato e in cucina</b>, non quando entri in struttura.</div>'+inH+'</div></div>';
+  var inH=t.in?('<div class="row" style="display:flex;justify-content:space-between;padding:6px 0"><span>Arrivo</span><span class="donerow" style="font-weight:700;color:#1e7a46">segnato &#10003;</span></div>'):'<button class="btn" style="width:100%;margin-top:0" onclick="timbraIn()">Segna ARRIVO</button>';
+  var outH=t.out?('<div class="row" style="display:flex;justify-content:space-between;padding:6px 0"><span>Uscita</span><span class="donerow" style="font-weight:700;color:#1e7a46">segnata &#10003;</span></div>'):(t.in?'<button class="btn" style="width:100%;margin-top:8px;background:#fff;color:var(--bordeaux);border:1px solid var(--line)" onclick="timbraOut()">Segna USCITA (fine turno)</button>':'');
+  return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Orario di arrivo e uscita &mdash; '+esc(c)+'</div></div><div class="card-b" style="display:block"><div class="readbox" style="margin-bottom:10px">⚠️ Segna l\'arrivo solo quando sei <b>già cambiato e in cucina</b>. Gli orari li vede <b>solo lo chef</b>.</div>'+inH+outH+'</div></div>';
 }
-async function timbraIn(){var c=getCook();if(!c){alert("Prima scegli il tuo nome.");return;}var t=TIMBRA[c]||{};if(t.in)return;t.in=new Date().toISOString();TIMBRA[c]=t;try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today+'|'+c,v:t})});toast('Arrivo registrato: '+now());render();}catch(e){toast('⚠️ Non salvato');console.error(e);}}
+async function timbraIn(){var c=getCook();if(!c){alert("Prima scegli il tuo nome.");return;}var t=TIMBRA[c]||{};if(t.in)return;t.in=new Date().toISOString();TIMBRA[c]=t;try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today+'|'+c,v:t})});toast('Arrivo registrato ✓');render();}catch(e){toast('⚠️ Non salvato');console.error(e);}}
+async function timbraOut(){var c=getCook();if(!c){alert("Prima scegli il tuo nome.");return;}var t=TIMBRA[c]||{};if(!t.in){alert('Segna prima l\'arrivo.');return;}if(t.out)return;if(!confirm('Segnare la USCITA (fine turno)?'))return;t.out=new Date().toISOString();TIMBRA[c]=t;try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today+'|'+c,v:t})});toast('Uscita registrata ✓');render();}catch(e){toast('⚠️ Non salvato');console.error(e);}}
 function durMinC(a,b){try{return Math.max(0,Math.round((new Date(b)-new Date(a))/60000));}catch(e){return 0;}}
 function pausaListHtml(){
   if(!PAUSE.length)return '<div class="readbox" style="margin-top:8px">Nessuna pausa oggi.</div>';
@@ -489,6 +491,6 @@ function render(){
     +readCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 19:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 20:45</div>
 </body>
 </html>

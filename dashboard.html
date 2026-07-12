@@ -181,7 +181,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='03/07 22:15';
+const APP_VER='09/07 20:45';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -315,9 +315,9 @@ function timbraCardDash(){
       if(typeof isOff==='function'&&isOff(c,day))return '<div class="row"><span>'+esc(c)+'</span><span style="color:#c9a227;font-weight:800">🔓 libero</span></div>';
       return '<div class="row"><span>'+esc(c)+'</span><span class="muted">—</span></div>';
     }
-    return '<div class="row"><span>'+esc(c)+'</span><span class="donerow" style="font-weight:700">'+tloc(t.in)+'</span></div>';
+    return '<div class="row"><span>'+esc(c)+'</span><span class="donerow" style="font-weight:700">'+tloc(t.in)+(t.out?(' → '+tloc(t.out)):'')+'</span></div>';
   }).join('');
-  var _miss=TEAM.filter(function(x){var c=x[0];var t=T[c];var off=(typeof isOff==='function'&&isOff(c,day));return !off && !(t&&t.in);}).length;var _to=foldOpen('arrivi');var _ta=_miss>0?'<span class="pill no">⚠️ '+_miss+' non arrivati</span>':'<span class="pill ok">tutti arrivati</span>';return '<div class="card"><div class="card-h" style="cursor:pointer" onclick="foldTP(\'arrivi\')"><div class="t">Orari di arrivo</div><span>'+_ta+' <span class="muted">'+(_to?'▾':'▸')+'</span></span></div>'+(_to?('<div class="card-b">'+rows+'</div>'):'')+'</div>';
+  var _miss=TEAM.filter(function(x){var c=x[0];var t=T[c];var off=(typeof isOff==='function'&&isOff(c,day));return !off && !(t&&t.in);}).length;var _to=foldOpen('arrivi');var _ta=_miss>0?'<span class="pill no">⚠️ '+_miss+' non arrivati</span>':'<span class="pill ok">tutti arrivati</span>';return '<div class="card"><div class="card-h" style="cursor:pointer" onclick="foldTP(\'arrivi\')"><div class="t">Orari di arrivo / uscita</div><span>'+_ta+' <span class="muted">'+(_to?'▾':'▸')+'</span></span></div>'+(_to?('<div class="card-b">'+rows+'</div>'):'')+'</div>';
 }
 function chefCard(ck,day){
   var dm={};(ck||[]).filter(function(r){return r.grp==='chef';}).forEach(function(r){dm[r.idx]=r;});
@@ -658,6 +658,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 03/07 22:15</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 20:45</div>
 </body>
 </html>

@@ -56,9 +56,9 @@
   </header>
   <main>
     <div class="sec" id="arrsec">
-      <h2>🕐 Orario di arrivo</h2>
+      <h2>🕐 Orario di arrivo e uscita</h2>
       <div class="grp">
-        <div class="arrnote">⚠️ Segna l'arrivo solo quando sei <b>già cambiato e in cucina</b>, non quando entri in struttura.</div>
+        <div class="arrnote">⚠️ Segna l'arrivo solo quando sei <b>già cambiato e in cucina</b>. Gli orari li vede <b>solo lo chef</b>.</div>
         <div id="arrbox"><div class="arrload">…</div></div>
       </div>
     </div>
@@ -112,9 +112,13 @@ const COOK="Banu";
 async function sb(path,opts){opts=opts||{};var h={apikey:SB_KEY,'Content-Type':'application/json'};if(opts.headers)Object.assign(h,opts.headers);var r=await fetch(SB_URL+'/rest/v1/'+path,{method:opts.method||'GET',headers:h,body:opts.body});if(!r.ok)throw new Error('HTTP '+r.status);var t=await r.text();return t?JSON.parse(t):null;}
 function thm(iso){try{var d=new Date(iso);return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}catch(e){return '';}}
 var TIMB=null;
-function renderArr(){var box=document.getElementById('arrbox');if(!box)return;
-  if(TIMB&&TIMB.in){box.innerHTML='<div class="arrdone"><span>Arrivo registrato</span><span>'+thm(TIMB.in)+' ✓</span></div>';}
-  else{box.innerHTML='<button class="arrbtn" onclick="timbraIn()">Segna ARRIVO</button>';}}
+function renderArr(){var box=document.getElementById('arrbox');if(!box)return;var h='';
+  h+=(TIMB&&TIMB.in)?'<div class="arrdone"><span>Arrivo</span><span>segnato ✓</span></div>':'<button class="arrbtn" onclick="timbraIn()">Segna ARRIVO</button>';
+  if(TIMB&&TIMB.in){h+=TIMB.out?'<div class="arrdone" style="margin-top:8px"><span>Uscita</span><span>segnata ✓</span></div>':'<button class="arrbtn" style="margin-top:8px;background:#fff;color:var(--wine);border:1px solid var(--line)" onclick="timbraOut()">Segna USCITA (fine turno)</button>';}
+  box.innerHTML=h;}
+async function timbraOut(){if(!TIMB||!TIMB.in){alert('Segna prima l\'arrivo.');return;}if(TIMB.out)return;if(!confirm('Segnare la USCITA (fine turno)?'))return;TIMB.out=new Date().toISOString();renderArr();
+  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today()+'|'+COOK,v:TIMB})});}
+  catch(e){alert('Non salvato, controlla internet');TIMB.out=null;renderArr();}}
 async function loadArr(){try{var r=await sb('kitchen_meta?k=eq.'+encodeURIComponent('timbra|'+today()+'|'+COOK)+'&select=v');TIMB=(r&&r[0]&&r[0].v)||{};}catch(e){TIMB={};}renderArr();}
 async function timbraIn(){if(TIMB&&TIMB.in)return;var t=TIMB||{};t.in=new Date().toISOString();TIMB=t;renderArr();
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today()+'|'+COOK,v:t})});}
