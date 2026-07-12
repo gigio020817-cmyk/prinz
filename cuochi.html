@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='09/07 21:00';
+const APP_VER='09/07 21:15';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -223,6 +223,7 @@ function tloc(iso){try{return new Date(iso).toLocaleTimeString('it-IT',{hour:'2-
 function timbraCard(){
   var c=getCook();
   if(!c)return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Orario di arrivo</div></div><div class="card-b" style="display:block"><div class="readbox">Scegli il tuo nome in alto per registrare l\'orario di arrivo.</div></div></div>';
+  if(c==='Gigio')return '';
   var t=TIMBRA[c]||{};
   var inH=t.in?('<div class="row" style="display:flex;justify-content:space-between;padding:6px 0"><span>Arrivo</span><span class="donerow" style="font-weight:700;color:#1e7a46">segnato &#10003;</span></div>'):'<button class="btn" style="width:100%;margin-top:0" onclick="timbraIn()">Segna ARRIVO</button>';
   var outH=t.out?('<div class="row" style="display:flex;justify-content:space-between;padding:6px 0"><span>Uscita</span><span class="donerow" style="font-weight:700;color:#1e7a46">segnata &#10003;</span></div>'):(t.in?'<button class="btn" style="width:100%;margin-top:8px;background:#fff;color:var(--bordeaux);border:1px solid var(--line)" onclick="timbraOut()">Segna USCITA (fine turno)</button>':'');
@@ -408,7 +409,7 @@ function missingFor(cook){
   if(isOff(cook))return [];
   if(CHIUSI.indexOf(cook)>=0)return [];
   var miss=[];
-  if(!(TIMBRA[cook]&&TIMBRA[cook].in))miss.push({t:"Segnare l'orario di arrivo",from:0});
+  if(cook!=='Gigio'&&!(TIMBRA[cook]&&TIMBRA[cook].in))miss.push({t:"Segnare l'orario di arrivo",from:0});
   var tour=PEOPLE[cook]&&PEOPLE[cook].tournant;
   var cov=tour?(getCover()||badrCovers()):'';
   if(tour&&cov){var g='pulizia#'+cov,tot=puliziaFor(cov).length,d=countDone(g);if(d<tot)miss.push({t:"Pulizia partita di "+cov+" ("+d+"/"+tot+")",from:DUE_PULIZIA});}
@@ -431,23 +432,38 @@ function updatePenale(cook,miss){try{
     sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:k,v:{cook:cook,n:0,missing:[],done:true,at:new Date().toISOString()}})}).catch(function(){});
   }
 }catch(e){}}
+function progressFor(cook){
+  var tot=0,done=0;
+  if(cook!=='Gigio'){tot++; if(TIMBRA[cook]&&TIMBRA[cook].in)done++;}
+  var tour=PEOPLE[cook]&&PEOPLE[cook].tournant;var cov=tour?(getCover()||badrCovers()):'';
+  if(tour&&cov){tot+=puliziaFor(cov).length;done+=countDone('pulizia#'+cov);}
+  else{tot+=puliziaFor(cook).length;done+=countDone('pulizia#'+cook);}
+  if(RESPFISSI.indexOf(cook)>=0){tot+=APERTURA.length;done+=countDone('apertura');tot+=CHIUSURA.length;done+=countDone('chiusura');}
+  tot++; if(ENT.filter(function(e){return e.type==='scheda'&&e.cook===cook;}).length>0)done++;
+  var pct=tot?Math.round(done/tot*100):100;if(pct>100)pct=100;if(pct<0)pct=0;
+  return {tot:tot,done:done,pct:pct};
+}
+function _ydayC(){var d=new Date(today+'T00:00:00');d.setDate(d.getDate()-1);return ymd(d);}
+function maybeStreak(cook){try{var k='pr_streak_'+cook;var o=JSON.parse(localStorage.getItem(k)||'{}');if(o.last===today)return;o.n=(o.last===_ydayC())?((o.n||0)+1):1;o.last=today;localStorage.setItem(k,JSON.stringify(o));}catch(e){}}
+function streakHtml(cook){try{var o=JSON.parse(localStorage.getItem('pr_streak_'+cook)||'{}');if(o.last===today&&(o.n||0)>=2)return ' · 🔥 <b>'+o.n+'</b> giorni di fila a 100%';}catch(e){}return '';}
 function penaleBanner(cook){
   var raw=missingFor(cook);
   if(raw===null)return '';
   var nm=nowMin();
   var due=raw.filter(function(m){return nm>=m.from;});
-  var pending=raw.filter(function(m){return nm<m.from;});
   updatePenale(cook,due.map(function(m){return m.t;}));
+  var pr=progressFor(cook);
+  if(!raw.length){maybeStreak(cook);return '<div class="okbar">✅ '+esc(cook)+', hai completato tutto oggi! 🎉'+streakHtml(cook)+'</div>';}
+  var lis=raw.map(function(m){return '<li>'+esc(m.t)+'</li>';}).join('');
+  var barcol=due.length?'#c0392b':'#c9a227';
+  var bar='<div style="background:rgba(0,0,0,.12);border-radius:8px;height:9px;margin:9px 0 4px;overflow:hidden"><div style="height:100%;width:'+pr.pct+'%;background:'+barcol+'"></div></div><div style="font-size:12px;opacity:.92;margin-bottom:6px">Completato oggi: <b>'+pr.pct+'%</b> ('+pr.done+'/'+pr.tot+')'+streakHtml(cook)+'</div>';
   if(due.length){
-    var lis=due.map(function(m){return '<li>'+esc(m.t)+'</li>';}).join('');
-    return '<div class="penalebar"><div class="pb-t">⚠️ '+esc(cook)+' — TI MANCANO '+due.length+' COSE</div><div class="pb-s">Completale subito: lo chef vede chi non ha finito · rischio PENALE</div><ul class="pb-l">'+lis+'</ul></div>';
+    return '<div class="penalebar"><div class="pb-t">⚠️ '+esc(cook)+' — TI MANCANO '+raw.length+' COSE</div><div class="pb-s">Completale subito: lo chef vede chi non ha finito · rischio PENALE</div>'+bar+'<ul class="pb-l">'+lis+'</ul></div>';
   }
-  if(pending.length){
-    var nxt=pending.slice().sort(function(a,b){return a.from-b.from;})[0];
-    return '<div class="okbar" style="background:#fff6da;color:#5a4600;border-color:#e7cf87">⏳ '+esc(cook)+', per ora niente in scadenza. Buon lavoro! (prossima cosa da segnare verso le '+hhmm(nxt.from)+')</div>';
-  }
-  return '<div class="okbar">✅ '+esc(cook)+', hai completato tutto. Grazie!</div>';
+  return '<div class="penalebar" style="background:linear-gradient(160deg,#fff6da,#ffefb8);border-color:#e7cf87"><div class="pb-t" style="color:#7a5b00">📋 '+esc(cook)+' — ti mancano '+raw.length+' cose oggi</div><div class="pb-s" style="color:#7a5b00">Completa tutto prima di fine turno · lo chef vede chi non ha finito</div>'+bar+'<ul class="pb-l" style="color:#5a4600">'+lis+'</ul></div>';
 }
+function fineTurnoCard(){var c=getCook();if(!c||c==='Gigio'||isOff(c)||CHIUSI.indexOf(c)>=0)return '';var t=TIMBRA[c]||{};if(t.out)return '<div class="okbar">👋 '+esc(c)+', turno chiuso. A domani!</div>';return '<div class="card" style="border-color:var(--gold)"><div class="card-b" style="display:block"><button class="btn" style="width:100%;font-size:16px;padding:14px" onclick="fineTurno()">✅ Ho finito il turno</button><div class="readbox" style="margin-top:8px">Se manca ancora qualcosa te lo dico prima di chiudere. Poi ti segna la fine turno.</div></div></div>';}
+function fineTurno(){var c=getCook();if(!c){alert('Prima scegli il tuo nome.');return;}var miss=missingFor(c)||[];if(miss.length){alert('Aspetta! Prima di andare ti manca:\n\n- '+miss.map(function(m){return m.t;}).join('\n- ')+'\n\nCompletale, poi segna la fine turno.');return;}if(!(TIMBRA[c]&&TIMBRA[c].in)){alert('Segna prima l\'arrivo.');return;}timbraOut();}
 function toggleConsDone(){var e=document.getElementById('cconsdone');if(e)e.style.display=(e.style.display==='none'?'block':'none');}
 function consegneCard(){
   var c=getCook();var isG=(c==='Gianluca'||c==='Gigio');
@@ -489,9 +505,10 @@ function render(){
     +consegneCard()
     +presaCard()
     +menuCard()
-    +readCard();
+    +readCard()
+    +fineTurnoCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 21:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 21:15</div>
 </body>
 </html>
