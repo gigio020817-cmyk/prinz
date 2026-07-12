@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Noi">
+<meta name="theme-color" content="#1c1c1c">
+<meta name="robots" content="noindex, nofollow">
+<title>Le nostre cose · Prinz</title>
+<style>
+  :root{--wine:#6b1f2a;--dark:#1c1c1c;--dark2:#000;--gold:#c9a227;--cream:#faf6ee;--ink:#22201d;--mut:#8a8378;--line:#e7ddca;--ok:#1e7a46}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
+  /* lock */
+  #lock{position:fixed;inset:0;z-index:50;background:linear-gradient(160deg,var(--dark),var(--dark2));display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;padding:24px}
+  #lock .mark{width:64px;height:64px;border-radius:16px;border:2px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:16px}
+  #lock h1{font-size:21px;margin:0 0 4px;font-weight:700}
+  #lock p{opacity:.8;font-size:13px;margin:0 0 22px}
+  #lock input{width:100%;max-width:300px;border:none;border-radius:12px;padding:14px 16px;font-size:17px;text-align:center;color:var(--ink)}
+  #lock button{width:100%;max-width:300px;margin-top:12px;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:800;background:linear-gradient(160deg,var(--gold),#a9861d);color:#1c1c1c}
+  #lock label{display:flex;align-items:center;gap:8px;font-size:13px;opacity:.9;margin-top:14px}
+  #lock label input{width:auto}
+  #lock .err{color:#ffd2d2;font-size:13px;height:18px;margin-top:8px}
+  header{background:linear-gradient(160deg,var(--dark),var(--dark2));color:#fff;padding:22px 16px 18px;border-bottom:4px solid var(--gold);position:sticky;top:0;z-index:10}
+  header .hi{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700}
+  header h1{margin:5px 0 2px;font-size:22px;font-weight:800}
+  header .sub{font-size:13px;opacity:.82}
+  main{max-width:560px;margin:0 auto;padding:16px 14px 44px}
+  .who{display:flex;gap:8px;align-items:center;margin-bottom:14px;font-size:13px;color:var(--mut)}
+  .who b{color:var(--ink)}
+  .who button{border:1px solid var(--line);background:#fff;border-radius:18px;padding:7px 14px;font-weight:700;font-size:13px;color:var(--ink)}
+  .who button.on{background:var(--wine);color:#fff;border-color:var(--wine)}
+  .addrow{display:flex;gap:8px;margin-bottom:14px}
+  .addrow input{flex:1;border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-size:16px;background:#fff;color:var(--ink)}
+  .addbtn{border:0;border-radius:12px;padding:0 18px;font-weight:800;font-size:15px;background:var(--wine);color:#fff}
+  .sechd{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--wine);font-weight:800;margin:16px 4px 8px}
+  .task{display:flex;align-items:flex-start;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 12px;margin:8px 0;position:relative}
+  .task .ck{width:26px;height:26px;flex:0 0 auto;border-radius:50%;border:2.5px solid #c9bfa8;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:900;cursor:pointer;margin-top:1px}
+  .task.done .ck{background:var(--ok);border-color:var(--ok)}
+  .task .tx{flex:1;min-width:0}
+  .task .tt{font-size:16px;font-weight:600;line-height:1.3;word-break:break-word}
+  .task.done .tt{text-decoration:line-through;color:#8a8f89}
+  .task .mt{font-size:11px;color:var(--mut);margin-top:3px}
+  .task .del{color:#c0392b;font-weight:800;font-size:18px;cursor:pointer;padding:0 2px;line-height:1;margin-top:1px}
+  .empty{color:#9a9082;font-size:14px;text-align:center;padding:14px}
+  .noteta{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15px;min-height:110px;background:#fff;color:var(--ink);font-family:inherit;line-height:1.4}
+  .noterow{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+  .noterow small{font-size:11.5px;color:var(--mut)}
+  .savebtn{border:0;border-radius:12px;padding:10px 16px;font-weight:800;font-size:14px;background:var(--wine);color:#fff}
+  .status{font-size:11.5px;color:var(--mut);text-align:center;margin-top:16px}
+  #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:#1c1c1c;color:#fff;padding:10px 18px;border-radius:22px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:60}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="lock">
+  <div class="mark">🔒</div>
+  <h1>Le nostre cose</h1>
+  <p>Spazio privato · Gigio & Gianluca</p>
+  <input id="pw" type="password" inputmode="text" placeholder="Password" autocomplete="off">
+  <button id="enter">Entra</button>
+  <label><input type="checkbox" id="remember"> Ricordami su questo telefono</label>
+  <div class="err" id="err"></div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="hi">Prinz Rudolf</div>
+    <h1>Le nostre cose 🍽️</h1>
+    <div class="sub">Produzione antipasti · solo io e Gianluca</div>
+  </header>
+  <main>
+    <div class="who">Sei: <button id="wG" onclick="setWho('Gigio')">Gigio</button><button id="wL" onclick="setWho('Gianluca')">Gianluca</button></div>
+
+    <div class="addrow">
+      <input id="newt" placeholder="Cosa preparare… (es. hummus, tartare ×10)" onkeydown="if(event.key==='Enter')addItem()">
+      <button class="addbtn" onclick="addItem()">＋</button>
+    </div>
+
+    <div class="sechd">Da fare</div>
+    <div id="todo"></div>
+    <div class="sechd">Fatti</div>
+    <div id="done"></div>
+
+    <div class="sechd" style="margin-top:22px">Note condivise</div>
+    <textarea class="noteta" id="note" placeholder="Scrivi qui messaggi liberi per l'altro…"></textarea>
+    <div class="noterow"><small id="noteinfo"></small><button class="savebtn" onclick="saveNote()">Salva nota</button></div>
+
+    <div class="status" id="status"></div>
+  </main>
+</div>
+<div id="toast"></div>
+
+<script>
+const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
+const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
+const APP_PW="prinzgg";
+const KEY="ggprod";
+const APP_VER='09/07 20:00';
+async function sb(path,opts){opts=opts||{};var h={apikey:SB_KEY,'Content-Type':'application/json'};if(opts.headers)Object.assign(h,opts.headers);var r=await fetch(SB_URL+'/rest/v1/'+path,{method:opts.method||'GET',headers:h,body:opts.body});if(!r.ok)throw new Error('HTTP '+r.status);var t=await r.text();return t?JSON.parse(t):null;}
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&quot;');}
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1600);}
+function nowISO(){return new Date().toISOString();}
+function who(){return localStorage.getItem('gg_who')||'';}
+function setWho(n){localStorage.setItem('gg_who',n);paintWho();}
+function paintWho(){var w=who();document.getElementById('wG').classList.toggle('on',w==='Gigio');document.getElementById('wL').classList.toggle('on',w==='Gianluca');}
+function tloc(iso){try{var d=new Date(iso);return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}catch(e){return '';}}
+
+var STATE={items:[],note:'',noteM:'',noteBy:''};
+var _saving=false;
+
+function mergeState(local,server){
+  if(!server)return local;
+  var byId={};(local.items||[]).forEach(function(i){byId[i.id]=i;});
+  (server.items||[]).forEach(function(si){var li=byId[si.id];if(!li||((si.m||'')>(li.m||'')))byId[si.id]=si;});
+  var items=Object.keys(byId).map(function(k){return byId[k];});
+  var note=local.note,noteM=local.noteM,noteBy=local.noteBy;
+  if((server.noteM||'')>(noteM||'')){note=server.note;noteM=server.noteM;noteBy=server.noteBy;}
+  return {items:items,note:note||'',noteM:noteM||'',noteBy:noteBy||''};
+}
+async function pull(){
+  try{var r=await sb('kitchen_meta?k=eq.'+KEY+'&select=v');var sv=(r&&r[0]&&r[0].v)||null;STATE=mergeState(STATE,sv);}catch(e){}
+}
+async function push(){
+  _saving=true;
+  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:KEY,v:STATE})});
+    document.getElementById('status').textContent='✓ Salvato · '+tloc(nowISO());}
+  catch(e){toast('⚠️ Non salvato, controlla internet');}
+  _saving=false;
+}
+async function mutate(fn){await pull();fn();render();await push();}
+
+function addItem(){
+  var inp=document.getElementById('newt');var t=(inp.value||'').trim();if(!t){return;}
+  inp.value='';
+  mutate(function(){STATE.items.push({id:'i'+Date.now()+Math.random().toString(36).slice(2,6),t:t,done:false,by:who()||'?',at:nowISO(),m:nowISO()});});
+}
+function toggleItem(id){
+  mutate(function(){var i=STATE.items.find(function(x){return x.id===id;});if(!i)return;i.done=!i.done;i.m=nowISO();if(i.done){i.dBy=who()||'?';i.dAt=nowISO();}else{i.dBy='';i.dAt='';}});
+}
+function delItem(id){
+  if(!confirm('Eliminare questa voce?'))return;
+  mutate(function(){var i=STATE.items.find(function(x){return x.id===id;});if(!i)return;i.deleted=true;i.m=nowISO();});
+}
+function saveNote(){
+  var v=document.getElementById('note').value;
+  mutate(function(){STATE.note=v;STATE.noteM=nowISO();STATE.noteBy=who()||'?';});
+  toast('Nota salvata');
+}
+function taskHtml(i){
+  var meta=i.done?('✓ '+esc(i.dBy||'')+' · '+tloc(i.dAt)):('scritto da '+esc(i.by||'')+' · '+tloc(i.at));
+  return '<div class="task'+(i.done?' done':'')+'"><div class="ck" onclick="toggleItem(\''+i.id+'\')">'+(i.done?'✓':'')+'</div>'
+    +'<div class="tx"><div class="tt">'+esc(i.t)+'</div><div class="mt">'+meta+'</div></div>'
+    +'<div class="del" onclick="delItem(\''+i.id+'\')">×</div></div>';
+}
+function render(){
+  var act=STATE.items.filter(function(i){return !i.deleted;});
+  var todo=act.filter(function(i){return !i.done;}).sort(function(a,b){return (a.at||'').localeCompare(b.at||'');});
+  var done=act.filter(function(i){return i.done;}).sort(function(a,b){return (b.dAt||'').localeCompare(a.dAt||'');});
+  document.getElementById('todo').innerHTML=todo.length?todo.map(taskHtml).join(''):'<div class="empty">Niente da fare. 🎉</div>';
+  document.getElementById('done').innerHTML=done.length?done.map(taskHtml).join(''):'<div class="empty">Ancora niente spuntato.</div>';
+  var ta=document.getElementById('note');if(document.activeElement!==ta)ta.value=STATE.note||'';
+  document.getElementById('noteinfo').textContent=STATE.noteM?('ultima modifica: '+esc(STATE.noteBy||'')+' · '+tloc(STATE.noteM)):'';
+}
+async function boot(){
+  await pull();render();document.getElementById('status').textContent='✓ Collegato';
+  if(!who()){setTimeout(function(){toast('Tocca il tuo nome in alto');},400);}
+  if(!window._iv)window._iv=setInterval(async function(){if(_saving)return;await pull();render();},20000);
+  window.addEventListener('focus',async function(){if(_saving)return;await pull();render();});
+}
+
+/* lock */
+var pw=document.getElementById('pw'),err=document.getElementById('err');
+function unlock(p,fromStore){
+  if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}
+  if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('gg_pw','1')}catch(e){}}
+  document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';paintWho();boot();
+}
+document.getElementById('enter').onclick=function(){unlock(pw.value,false);};
+pw.addEventListener('keydown',function(e){if(e.key==='Enter')unlock(pw.value,false);});
+(function(){var s=null;try{s=localStorage.getItem('gg_pw')}catch(e){}if(s){document.getElementById('remember').checked=true;unlock(APP_PW,true);}else{setTimeout(function(){pw.focus();},300);}})();
+(async function selfUpdate(){try{if(sessionStorage.getItem('upd_gg'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_gg','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
+</script>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 09/07 20:00</div>
+</body>
+</html>
