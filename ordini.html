@@ -217,7 +217,7 @@ async function tryUnlock(password,fromStore){
 }
 document.getElementById('enter').onclick=()=>tryUnlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(pw.value,false)});
-const APP_VER='04/07 10:15';
+const APP_VER='09/07 20:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_ordini'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_ordini','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){if(!window.crypto||!crypto.subtle){err.textContent="Apri l'app dal sito (https).";return;}
   try{if(localStorage.getItem('pr_av_ordini')!=='28/06 22:15'){localStorage.removeItem('ord_pw');localStorage.setItem('pr_av_ordini','28/06 22:15');}}catch(_e){}let s=null;try{s=localStorage.getItem('ord_pw')}catch(e){}
@@ -228,7 +228,7 @@ function customProd(){return jget('ord_prod','{}')}
 function telMap(){return jget('ord_tel','{}')}
 function allSuppliers(){return BASE.concat(customSup())}
 function telFor(s){const o=telMap();return o[s.name]||s.tel||''}
-function productsFor(name){const s=allSuppliers().find(x=>x.name===name)||{products:[]};var all=(s.products||[]).concat(customProd()[name]||[]);var h=(jget('ord_hidden','{}')[name])||[];return h.length?all.filter(function(p){return h.indexOf(p.n)<0;}):all;}
+function productsFor(name){const s=allSuppliers().find(x=>x.name===name)||{products:[]};var all=(s.products||[]).concat(customProd()[name]||[]);var h=(jget('ord_hidden','{}')[name])||[];if(h.length)all=all.filter(function(p){return h.indexOf(p.n)<0;});var seen={},out=[];all.forEach(function(p){var k=(p.n||'').trim().toLowerCase();if(!k||seen[k])return;seen[k]=1;out.push(p);});return out;}
 function delProductBtn(b){var row=b.closest('.prow');if(!row)return;var pn=row.getAttribute('data-name');if(pn)delProduct(pn);}
 function delProduct(pn){var name=curSupplier;if(!name)return;if(!confirm('Vuoi togliere «'+pn+'» da '+name+'?'))return;
   var cp=customProd();var arr=cp[name]||[];var n0=arr.length;cp[name]=arr.filter(function(p){return p.n!==pn;});localStorage.setItem('ord_prod',JSON.stringify(cp));
@@ -365,7 +365,7 @@ function exportAdds(){const t=buildExport();if(!t){alert("Non hai aggiunte da es
 function copyExp(){const ta=document.getElementById('exptxt');ta.select();ta.setSelectionRange(0,99999);try{navigator.clipboard.writeText(ta.value);}catch(e){try{document.execCommand('copy');}catch(_){}}alert("Copiato! Ora incollalo a Claude in chat.");}
 document.getElementById('q').addEventListener('input',function(){renderList(this.value)});
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 06/07 13:15</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 20:30</div>
 <div id="bollamodal"></div>
 </body>
 </html>
