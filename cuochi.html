@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='09/07 21:30';
+const APP_VER='09/07 21:40';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -285,7 +285,7 @@ function schedaCard(){
   const me=getCook();const mine=list.filter(e=>e.cook===me);
   let rows=list.map(e=>'<div class="it"><div class="chk on">✓</div><div class="lab">'+esc(e.data.cosa)+(e.data.entro?' <span class="readbox">(entro '+esc(e.data.entro)+')</span>':'')+'<span class="sig">✓ '+esc(e.cook)+' · '+tloc(e.at)+'</span></div></div>').join('');
   if(!list.length)rows='<div class="readbox">Nessuna voce ancora.</div>';
-  var todo=(me&&!mine.length);
+  var todo=(me&&!mine.length&&NOSCHEDA.indexOf(me)<0);
   var warn=todo?'<div class="readbox" style="background:#ffe9e9;border:1px solid #f2b8b8;color:#a12b2b;font-weight:700;margin-bottom:8px">⚠️ OBBLIGATORIA — devi scrivere cosa hai preparato oggi. La compilano TUTTI, ogni giorno.</div>':(me?'<div class="readbox" style="background:#eef7f0;border:1px solid #bfe0cc;color:#1e7a46;margin-bottom:8px">✅ Hai compilato la tua scheda oggi. Grazie!</div>':'');
   var bcol=todo?'#c0392b':'var(--gold)';
   return '<div class="card'+(todo?' open':'')+'" id="csch" style="border-color:'+bcol+'"><div class="card-h" onclick="toggleCard(\'csch\')"><div class="t">📝 Scheda di servizio — OBBLIGATORIA</div><div class="meta">'+(mine.length?'✓':'⚠️')+'</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'+warn+rows
@@ -406,12 +406,14 @@ function countDone(group){var d=0;Object.keys(CK).forEach(function(k){if(k.index
 var DUE_APERTURA=600;   // 10:00
 var DUE_PULIZIA=900;    // 15:00
 var DUE_CHIUSURA=1260;  // 21:00
+var NOSCHEDA=["Majeet","Gigio"];
 function nowMin(){var d=new Date();return d.getHours()*60+d.getMinutes();}
 function hhmm(m){return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2);}
 function missingFor(cook){
   if(!cook)return null;
   if(isOff(cook))return [];
   if(CHIUSI.indexOf(cook)>=0)return [];
+  if(cook==='Gigio')return [];
   var miss=[];
   if(cook!=='Gigio'&&!(TIMBRA[cook]&&TIMBRA[cook].in))miss.push({t:"Segnare l'orario di arrivo",from:0});
   var tour=PEOPLE[cook]&&PEOPLE[cook].tournant;
@@ -423,7 +425,7 @@ function missingFor(cook){
   if(showApe){var da=countDone('apertura');if(da<APERTURA.length)miss.push({t:"Check-list apertura ("+da+"/"+APERTURA.length+")",from:DUE_APERTURA});}
   if(showChiu){var dc=countDone('chiusura');if(dc<CHIUSURA.length)miss.push({t:"Check-list chiusura ("+dc+"/"+CHIUSURA.length+")",from:DUE_CHIUSURA});}
   var nsch=ENT.filter(function(e){return e.type==='scheda'&&e.cook===cook;}).length;
-  if(nsch===0)miss.push({t:"Scrivere cosa hai preparato (scheda di servizio)",from:DUE_PULIZIA});
+  if(nsch===0&&NOSCHEDA.indexOf(cook)<0)miss.push({t:"Scrivere cosa hai preparato (scheda di servizio)",from:DUE_PULIZIA});
   return miss;
 }
 var _penSig=null;
@@ -437,13 +439,14 @@ function updatePenale(cook,miss){try{
   }
 }catch(e){}}
 function progressFor(cook){
+  if(cook==='Gigio')return {tot:0,done:0,pct:100};
   var tot=0,done=0;
   if(cook!=='Gigio'){tot++; if(TIMBRA[cook]&&TIMBRA[cook].in)done++;}
   var tour=PEOPLE[cook]&&PEOPLE[cook].tournant;var cov=tour?(getCover()||badrCovers()):'';
   if(tour&&cov){tot+=puliziaFor(cov).length;done+=countDone('pulizia#'+cov);}
   else{tot+=puliziaFor(cook).length;done+=countDone('pulizia#'+cook);}
   if(RESPFISSI.indexOf(cook)>=0){tot+=APERTURA.length;done+=countDone('apertura');tot+=CHIUSURA.length;done+=countDone('chiusura');}
-  tot++; if(ENT.filter(function(e){return e.type==='scheda'&&e.cook===cook;}).length>0)done++;
+  if(NOSCHEDA.indexOf(cook)<0){tot++; if(ENT.filter(function(e){return e.type==='scheda'&&e.cook===cook;}).length>0)done++;}
   var pct=tot?Math.round(done/tot*100):100;if(pct>100)pct=100;if(pct<0)pct=0;
   return {tot:tot,done:done,pct:pct};
 }
@@ -451,6 +454,7 @@ function _ydayC(){var d=new Date(today+'T00:00:00');d.setDate(d.getDate()-1);ret
 function maybeStreak(cook){try{var k='pr_streak_'+cook;var o=JSON.parse(localStorage.getItem(k)||'{}');if(o.last===today)return;o.n=(o.last===_ydayC())?((o.n||0)+1):1;o.last=today;localStorage.setItem(k,JSON.stringify(o));}catch(e){}}
 function streakHtml(cook){try{var o=JSON.parse(localStorage.getItem('pr_streak_'+cook)||'{}');if(o.last===today&&(o.n||0)>=2)return ' · 🔥 <b>'+o.n+'</b> giorni di fila a 100%';}catch(e){}return '';}
 function penaleBanner(cook){
+  if(cook==='Gigio')return '';
   var raw=missingFor(cook);
   if(raw===null)return '';
   var nm=nowMin();
@@ -513,6 +517,6 @@ function render(){
     +fineTurnoCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 21:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 21:40</div>
 </body>
 </html>
