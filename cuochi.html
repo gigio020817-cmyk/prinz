@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='09/07 21:15';
+const APP_VER='09/07 21:30';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -282,9 +282,13 @@ async function saveResp(){const c=getCook();const v={name:document.getElementByI
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'responsabile',v:v})});META=v;toast('Responsabile salvato');}catch(e){toast('⚠️ Non salvato');console.error(e);}}
 function schedaCard(){
   const list=ENT.filter(e=>e.type==='scheda');
+  const me=getCook();const mine=list.filter(e=>e.cook===me);
   let rows=list.map(e=>'<div class="it"><div class="chk on">✓</div><div class="lab">'+esc(e.data.cosa)+(e.data.entro?' <span class="readbox">(entro '+esc(e.data.entro)+')</span>':'')+'<span class="sig">✓ '+esc(e.cook)+' · '+tloc(e.at)+'</span></div></div>').join('');
   if(!list.length)rows='<div class="readbox">Nessuna voce ancora.</div>';
-  return '<div class="card" id="csch"><div class="card-h" onclick="toggleCard(\'csch\')"><div class="t">Scheda di servizio (mise en place)</div><div class="meta">'+list.length+'</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'+rows
+  var todo=(me&&!mine.length);
+  var warn=todo?'<div class="readbox" style="background:#ffe9e9;border:1px solid #f2b8b8;color:#a12b2b;font-weight:700;margin-bottom:8px">⚠️ OBBLIGATORIA — devi scrivere cosa hai preparato oggi. La compilano TUTTI, ogni giorno.</div>':(me?'<div class="readbox" style="background:#eef7f0;border:1px solid #bfe0cc;color:#1e7a46;margin-bottom:8px">✅ Hai compilato la tua scheda oggi. Grazie!</div>':'');
+  var bcol=todo?'#c0392b':'var(--gold)';
+  return '<div class="card'+(todo?' open':'')+'" id="csch" style="border-color:'+bcol+'"><div class="card-h" onclick="toggleCard(\'csch\')"><div class="t">📝 Scheda di servizio — OBBLIGATORIA</div><div class="meta">'+(mine.length?'✓':'⚠️')+'</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'+warn+rows
     +'<label class="fl">Cosa e quanto (es. "Pane: 8 kg fatto")</label><input class="txt" id="schCosa" placeholder="Lavoro svolto…">'
     +'<label class="fl">Pronto entro (facoltativo)</label><input class="txt" id="schEntro" placeholder="es. 12:00">'
     +'<button class="btn" onclick="addScheda()">+ Aggiungi voce</button></div></div>';
@@ -509,6 +513,6 @@ function render(){
     +fineTurnoCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 21:15</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 21:30</div>
 </body>
 </html>
