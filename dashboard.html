@@ -181,7 +181,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='09/07 20:45';
+const APP_VER='09/07 21:20';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -431,9 +431,12 @@ function pausaCardDash(){
   var pill=out.length?'<span class="pill no">'+out.length+' fuori</span>':'<span class="pill ok">tutti dentro</span>';
   return '<div class="card"><div class="card-h"><div class="t">Pause<div class="sub">chi esce in pausa durante il servizio</div></div>'+pill+'</div><div class="card-b">'+h+(totRows?'<div style="margin-top:6px;border-top:1px solid #ececec;padding-top:6px">'+totRows+'</div>':'')+'</div></div>';
 }
+async function dashSavePass(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'passlist',v:{items:window.PASSL||[]}})});}catch(e){alert('Errore, riprova');console.error(e);}}
+async function dashTogglePass(id){var L=window.PASSL||[];var x=L.find(function(y){return y.id===id;});if(!x)return;x.done=!x.done;if(x.done){x.doneBy='Chef';x.doneAt=new Date().toISOString();}else{delete x.doneBy;delete x.doneAt;}await dashSavePass();loadAll(true);}
+async function dashRemovePass(id){if(!confirm('Togliere questa consegna dalla lista? (sparisce anche per i cuochi)'))return;window.PASSL=(window.PASSL||[]).filter(function(y){return y.id!==id;});await dashSavePass();loadAll(true);}
 function consegneDashCard(){
   var L=window.PASSL||[];var openL=L.filter(function(x){return !x.done;}),doneL=L.filter(function(x){return x.done;});
-  function row(x){var dn=!!x.done;var _d=(x.at||'').slice(0,10);var dt=_d?(' · '+_d.split('-').reverse().slice(0,2).join('/')):'';return '<div class="row"><span>'+(dn?'✅ ':'⬜ ')+esc(x.t)+' <span class="muted">— '+esc(x.by||'')+dt+(dn?(' · fatto da '+esc(x.doneBy||'')):'')+'</span></span></div>';}
+  function row(x){var dn=!!x.done;var _d=(x.at||'').slice(0,10);var dt=_d?(' · '+_d.split('-').reverse().slice(0,2).join('/')):'';var b='border:1px solid #ddd;background:#fff;border-radius:8px;padding:4px 9px;font-size:13px;margin-left:6px;cursor:pointer;white-space:nowrap';return '<div class="row" style="align-items:center"><span style="flex:1">'+(dn?'✅ ':'⬜ ')+esc(x.t)+' <span class="muted">— '+esc(x.by||'')+dt+(dn?' · fatto':'')+'</span></span><button style="'+b+'" onclick="dashTogglePass(\''+x.id+'\')">'+(dn?'↩︎':'✓')+'</button><button style="'+b+';color:#c0392b" onclick="dashRemovePass(\''+x.id+'\')">🗑</button></div>';}
   var body=L.length?(openL.map(row).join('')+doneL.map(row).join('')):'<div class="muted">Nessuna consegna.</div>';
   return '<div class="card"><div class="card-h"><div class="t">\ud83d\udccb Consegne / cose da fare</div><span class="pill '+(openL.length?'mid':'ok')+'">'+(openL.length?(openL.length+' da fare'):'tutte fatte')+'</span></div><div class="card-b">'+body+'</div></div>';
 }
@@ -658,6 +661,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 20:45</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 21:20</div>
 </body>
 </html>
