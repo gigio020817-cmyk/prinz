@@ -41,6 +41,11 @@
   .task.done .lbl{color:#5a7a66;text-decoration:line-through}
   .hint{font-size:12.5px;color:#9a9082;text-align:center;padding:2px 8px 10px}
   footer{margin-top:auto;padding:16px;font-size:12px;color:#9a9082;text-align:center}
+  .arrnote{font-size:12.5px;color:#8a6d1a;background:#fff8e6;border:1px solid #ecdca0;border-radius:10px;padding:9px 11px;margin:8px 4px 10px;line-height:1.35}
+  .arrbtn{width:100%;border:0;border-radius:14px;padding:18px;font-size:18px;font-weight:800;background:var(--wine);color:#fff;cursor:pointer}
+  .arrbtn:active{opacity:.9}
+  .arrdone{display:flex;justify-content:space-between;align-items:center;background:#eef7f0;border:1px solid #bfe0cc;border-radius:12px;padding:15px 14px;font-size:16px;font-weight:800;color:#1e7a46}
+  .arrload{color:#9a9082;font-size:14px;text-align:center;padding:10px}
 </style>
 </head>
 <body>
@@ -50,6 +55,14 @@
     <div class="sub">Ricette della sera e le tue pulizie</div>
   </header>
   <main>
+    <div class="sec" id="arrsec">
+      <h2>🕐 Orario di arrivo</h2>
+      <div class="grp">
+        <div class="arrnote">⚠️ Segna l'arrivo solo quando sei <b>già cambiato e in cucina</b>, non quando entri in struttura.</div>
+        <div id="arrbox"><div class="arrload">…</div></div>
+      </div>
+    </div>
+
     <a class="card" href="antipasti.html">
       <div class="ic">🥗</div>
       <div class="tx"><div class="t">Antipasti — foto e ricette</div><div class="d">Guarda foto e ricette per sapere come impiattare la sera.</div></div>
@@ -91,6 +104,22 @@ function restore(){document.querySelectorAll('.task').forEach(function(el){var v
 function showDay(){var g=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];var d=new Date();document.getElementById('oggi').textContent=g[d.getDay()]+' '+('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);}
 function cleanup(){try{var keep=[];document.querySelectorAll('.task').forEach(function(el){keep.push(keyOf(el));});for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(k&&k.indexOf('banu_')===0&&keep.indexOf(k)<0)localStorage.removeItem(k);}}catch(e){}}
 showDay();restore();cleanup();
+
+/* ===== Orario di arrivo (timbratura, come dashboard cuochi) ===== */
+const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
+const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
+const COOK="Banu";
+async function sb(path,opts){opts=opts||{};var h={apikey:SB_KEY,'Content-Type':'application/json'};if(opts.headers)Object.assign(h,opts.headers);var r=await fetch(SB_URL+'/rest/v1/'+path,{method:opts.method||'GET',headers:h,body:opts.body});if(!r.ok)throw new Error('HTTP '+r.status);var t=await r.text();return t?JSON.parse(t):null;}
+function thm(iso){try{var d=new Date(iso);return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}catch(e){return '';}}
+var TIMB=null;
+function renderArr(){var box=document.getElementById('arrbox');if(!box)return;
+  if(TIMB&&TIMB.in){box.innerHTML='<div class="arrdone"><span>Arrivo registrato</span><span>'+thm(TIMB.in)+' ✓</span></div>';}
+  else{box.innerHTML='<button class="arrbtn" onclick="timbraIn()">Segna ARRIVO</button>';}}
+async function loadArr(){try{var r=await sb('kitchen_meta?k=eq.'+encodeURIComponent('timbra|'+today()+'|'+COOK)+'&select=v');TIMB=(r&&r[0]&&r[0].v)||{};}catch(e){TIMB={};}renderArr();}
+async function timbraIn(){if(TIMB&&TIMB.in)return;var t=TIMB||{};t.in=new Date().toISOString();TIMB=t;renderArr();
+  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today()+'|'+COOK,v:t})});}
+  catch(e){alert('Non salvato, controlla internet');TIMB.in=null;renderArr();}}
+loadArr();
 </script>
 </body>
 </html>
