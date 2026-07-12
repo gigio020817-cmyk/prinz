@@ -115,7 +115,7 @@
 <div id="atabs"><button id="atRic" class="atab on" onclick="showAntiView('ric')">📖 Ricette</button><button id="atProd" class="atab" onclick="showAntiView('prod')">🍅 Produzioni</button></div>
 <main><div id="list"></div><div id="detail"></div></main>
 <div id="prodwrap" style="display:none"><iframe id="prodframe" title="Produzioni Antipasti" style="width:100%;height:calc(100vh - 118px);border:0"></iframe></div>
-<footer>Prinz Rudolf &middot; Ricettario Antipasti — uso interno cucina</footer>
+<footer>Prinz Rudolf &middot; Ricettario Antipasti — uso interno cucina<br><a href="ggprod.html" style="display:inline-block;margin-top:9px;color:var(--gold);text-decoration:none;font-size:12px;border:1px solid var(--gold);border-radius:16px;padding:5px 13px">📋 Le nostre cose · Gigio &amp; Gianluca</a></footer>
 </div>
 <div id="viewer" onclick="this.style.display='none'"><img id="vimg" src=""></div>
 <script>
@@ -146,7 +146,7 @@ async function tryUnlock(password,fromStore){
 }
 document.getElementById('enter').onclick=()=>tryUnlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(pw.value,false)});
-const APP_VER='29/06 18:45';
+const APP_VER='09/07 20:15';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_anti'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_anti','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){if(!window.crypto||!crypto.subtle){err.textContent="Apri l'app dal sito (https), non come file locale.";return;}
   try{if(localStorage.getItem('pr_av_anti')!=='28/06 14:00'){localStorage.removeItem('pr_pw');localStorage.setItem('pr_av_anti','28/06 14:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_pw')}catch(e){}
@@ -191,6 +191,6 @@ function showAntiView(v){var s=document.querySelector('.search'),m=document.quer
  else{if(s)s.style.display='';if(m)m.style.display='';if(pw)pw.style.display='none';tr.classList.add('on');tp.classList.remove('on');}}
 </script>
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Modifiche da inviare</h3><p>Copia questo testo e mandalo a Gigio (o incollalo a Claude in chat).</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 06/07 15:10</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 20:15</div>
 </body>
 </html>
