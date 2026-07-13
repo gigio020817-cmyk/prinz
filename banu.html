@@ -116,7 +116,10 @@ function renderArr(){var box=document.getElementById('arrbox');if(!box)return;va
   h+=(TIMB&&TIMB.in)?'<div class="arrdone"><span>Arrivo</span><span>segnato ✓</span></div>':'<button class="arrbtn" onclick="timbraIn()">Segna ARRIVO</button>';
   if(TIMB&&TIMB.in){h+=TIMB.out?'<div class="arrdone" style="margin-top:8px"><span>Uscita</span><span>segnata ✓</span></div>':'<button class="arrbtn" style="margin-top:8px;background:#fff;color:var(--wine);border:1px solid var(--line)" onclick="timbraOut()">Segna USCITA (fine turno)</button>';}
   box.innerHTML=h;}
-async function timbraOut(){if(!TIMB||!TIMB.in){alert('Segna prima l\'arrivo.');return;}if(TIMB.out)return;if(!confirm('Segnare la USCITA (fine turno)?'))return;TIMB.out=new Date().toISOString();renderArr();
+async function timbraOut(){if(!TIMB||!TIMB.in){alert('Segna prima l\'arrivo.');return;}if(TIMB.out)return;
+  var undone=[];document.querySelectorAll('.task[data-p="d"]').forEach(function(el){if(!el.classList.contains('done')){var l=el.querySelector('.lbl');undone.push(l?l.textContent:'');}});
+  if(undone.length){alert('Aspetta! Prima di chiudere il turno devi spuntare:\n\n- '+undone.join('\n- ')+'\n\nFalle, poi segna l\'uscita.');return;}
+  if(!confirm('Segnare la USCITA (fine turno)?'))return;TIMB.out=new Date().toISOString();renderArr();
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today()+'|'+COOK,v:TIMB})});}
   catch(e){alert('Non salvato, controlla internet');TIMB.out=null;renderArr();}}
 async function loadArr(){try{var r=await sb('kitchen_meta?k=eq.'+encodeURIComponent('timbra|'+today()+'|'+COOK)+'&select=v');TIMB=(r&&r[0]&&r[0].v)||{};}catch(e){TIMB={};}renderArr();}
