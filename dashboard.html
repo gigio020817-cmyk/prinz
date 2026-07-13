@@ -51,6 +51,10 @@
   .muted{color:var(--muted);font-size:12px;white-space:nowrap}
   .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;color:#fff}
   .pill.ok{background:var(--ok)} .pill.no{background:var(--warn)} .pill.mid{background:var(--gold);color:#1a1400}
+  .dsec{margin:0 0 16px}
+  .dsech{display:flex;align-items:center;justify-content:space-between;background:#6b1f2a;color:#fff;font-weight:800;font-size:15.5px;padding:13px 15px;border-radius:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+  .dsech .dsecar{font-size:14px;opacity:.9}
+  .dsecb{padding-top:11px}
   .missrow{color:var(--warn);font-weight:600}
   .it{display:flex;align-items:flex-start;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)}
   .it:last-child{border-bottom:none}
@@ -181,7 +185,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='09/07 22:20';
+const APP_VER='09/07 22:35';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -516,27 +520,30 @@ function reportCard(){
   return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:pointer" onclick="foldTP(\'report\')"><div class="t">📊 Report settimanale<div class="sub">ultime 4 settimane · chi ha dimenticato cosa</div></div><span class="muted">'+(open?'▾':'▸')+'</span></div>'+(open?('<div class="card-b">'+body+'</div>'):'')+'</div>';
 }
 
+var DSEC_DEF={oggi:true,giornata:false,rif:false};
+function dsecOpen(id){try{var r=localStorage.getItem('dsec_'+id);return r===null?!!DSEC_DEF[id]:r==='1';}catch(e){return !!DSEC_DEF[id];}}
+function toggleDsec(id){try{localStorage.setItem('dsec_'+id,dsecOpen(id)?'0':'1');}catch(e){}rerenderDash();}
+function dsec(id,title,inner){var op=dsecOpen(id);return '<div class="dsec"><div class="dsech" onclick="toggleDsec(\''+id+'\')"><span>'+title+'</span><span class="dsecar">'+(op?'▾':'▸')+'</span></div>'+(op?('<div class="dsecb">'+inner+'</div>'):'')+'</div>';}
 function render(day,ck,ckw,ent,meta,presa){
   window.LAST={day:day,ck:ck,ckw:ckw,ent:ent,meta:meta,presa:presa};
   const resp='Gianluca e Ubaldo';
   const scheda=ent.filter(e=>e.type==='scheda');const pass=ent.filter(e=>e.type==='passaggio');
-  let h=consegneDashCard()+riepilogoCard()+coCard(day)+reportCard()+chefCard(ck,day)+recModsCard()+cookNotesCard();
-  h+=timbraCardDash();
-  h+=pausaCardDash();
-  h+='<div class="card"><div class="card-h"><div class="t">Responsabili della settimana</div></div><div class="card-b"><div class="row"><span><b>Gianluca</b> e <b>Ubaldo</b></span><span class="muted">fissi · apertura e chiusura</span></div></div></div>';
-  h+=shared('apertura',ck,day,resp);
-  h+='<div class="card"><div class="card-h"><div class="t">🧽 Pulizie cuochi<div class="sub">giornaliera + settimanale · devono pulire e spuntare</div></div></div><div class="card-b" style="padding:4px 10px 10px">'+puliziaCard(ck,day)+weeklyCard(ckw,day)+'</div></div>';
-  h+=shared('chiusura',ck,day,resp);
-  h+='<div class="card"><div class="card-h"><div class="t">Scheda di servizio</div><span class="pill '+(scheda.length?'ok':'no')+'">'+scheda.length+' voci</span></div><div class="card-b">'+(scheda.length?scheda.map(e=>'<div class="row"><span>'+esc(e.data.cosa)+(e.data.entro?' <span class="muted">(entro '+esc(e.data.entro)+')</span>':'')+'</span><span class="muted">'+esc(e.cook)+' · '+tloc(e.at)+'</span></div>').join(''):'<div class="muted">Niente.</div>')+'</div></div>';
   var GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
   function dlab(ds){try{var x=new Date(ds+'T00:00:00');return GG[x.getDay()]+' '+ds.split('-').reverse().slice(0,2).join('/');}catch(e){return ds||'';}}
   var allPass=(window.PREVPASS||[]).concat(pass);
   allPass=allPass.slice().sort(function(a,b){if((a.day||'')!==(b.day||''))return (a.day||'')<(b.day||'')?1:-1;return ((a.at||'')<(b.at||'')?1:-1);});
   function passRow(p){var d=p.data||{};var lascia=(p.day&&p.day!==day)?(' <span class="muted">(lasciato '+esc(dlab(p.day))+')</span>'):'';return '<div class="row"><span><b>'+esc(d.partita||'?')+'</b>: '+esc(d.da||'?')+' → '+esc(d.a||'?')+lascia+(d.pronto?'<div class="missrow" style="font-weight:400;color:#2e7d32">Pronto: '+esc(d.pronto)+'</div>':'')+(d.manca?'<div class="missrow" style="font-weight:400">Manca: '+esc(d.manca)+'</div>':'')+(d.dove?'<div class="missrow" style="font-weight:400">Dove: '+esc(d.dove)+'</div>':'')+(d.urgenti?'<div class="missrow" style="font-weight:400">Urgenti: '+esc(d.urgenti)+'</div>':'')+(d.note?'<div class="missrow" style="font-weight:400">Note: '+esc(d.note)+'</div>':'')+'</span><span class="muted">'+esc(p.cook)+' · '+tloc(p.at)+'</span></div>';}
-  h+='<div class="card"><div class="card-h"><div class="t">Passaggi di consegne</div><span class="pill '+(allPass.length?'ok':'no')+'">'+allPass.length+'</span></div><div class="card-b">'+(allPass.length?allPass.map(passRow).join(''):'<div class="muted">Nessuno negli ultimi giorni.</div>')+'</div></div>';
   const signed={};(presa||[]).forEach(p=>signed[p.cook]=p.at);const ns=Object.keys(signed).length;
-  var _po=foldOpen('presa');var _pa=(ns>=TEAM.length)?'<span class="pill ok">tutti</span>':'<span class="pill no">⚠️ manca '+(TEAM.length-ns)+'</span>';h+='<div class="card"><div class="card-h" style="cursor:pointer" onclick="foldTP(\'presa\')"><div class="t">Presa visione mansionario</div><span>'+_pa+' <span class="muted">'+(_po?'▾':'▸')+'</span></span></div>'+(_po?('<div class="card-b">'+TEAM.map(t=>'<div class="row"><span>'+t[0]+' <span class="muted">· '+t[1]+'</span></span>'+(signed[t[0]]?'<span class="pill ok">✓</span>':'<span class="pill no">manca</span>')+'</div>').join('')+'</div>'):'')+'</div>';
-  h+=menuCard();
+  var _po=foldOpen('presa');var _pa=(ns>=TEAM.length)?'<span class="pill ok">tutti</span>':'<span class="pill no">⚠️ manca '+(TEAM.length-ns)+'</span>';
+  var respCardH='<div class="card"><div class="card-h"><div class="t">Responsabili della settimana</div></div><div class="card-b"><div class="row"><span><b>Gianluca</b> e <b>Ubaldo</b></span><span class="muted">fissi · apertura e chiusura</span></div></div></div>';
+  var pulizieCardH='<div class="card"><div class="card-h"><div class="t">🧽 Pulizie cuochi<div class="sub">giornaliera + settimanale · devono pulire e spuntare</div></div></div><div class="card-b" style="padding:4px 10px 10px">'+puliziaCard(ck,day)+weeklyCard(ckw,day)+'</div></div>';
+  var schedaCardH='<div class="card"><div class="card-h"><div class="t">Scheda di servizio</div><span class="pill '+(scheda.length?'ok':'no')+'">'+scheda.length+' voci</span></div><div class="card-b">'+(scheda.length?scheda.map(e=>'<div class="row"><span>'+esc(e.data.cosa)+(e.data.entro?' <span class="muted">(entro '+esc(e.data.entro)+')</span>':'')+'</span><span class="muted">'+esc(e.cook)+' · '+tloc(e.at)+'</span></div>').join(''):'<div class="muted">Niente.</div>')+'</div></div>';
+  var passCardH='<div class="card"><div class="card-h"><div class="t">Passaggi di consegne</div><span class="pill '+(allPass.length?'ok':'no')+'">'+allPass.length+'</span></div><div class="card-b">'+(allPass.length?allPass.map(passRow).join(''):'<div class="muted">Nessuno negli ultimi giorni.</div>')+'</div></div>';
+  var presaCardH='<div class="card"><div class="card-h" style="cursor:pointer" onclick="foldTP(\'presa\')"><div class="t">Presa visione mansionario</div><span>'+_pa+' <span class="muted">'+(_po?'▾':'▸')+'</span></span></div>'+(_po?('<div class="card-b">'+TEAM.map(t=>'<div class="row"><span>'+t[0]+' <span class="muted">· '+t[1]+'</span></span>'+(signed[t[0]]?'<span class="pill ok">✓</span>':'<span class="pill no">manca</span>')+'</div>').join('')+'</div>'):'')+'</div>';
+  var gOggi=riepilogoCard()+chefCard(ck,day)+recModsCard()+consegneDashCard()+coCard(day)+cookNotesCard();
+  var gGiorno=timbraCardDash()+pausaCardDash()+shared('apertura',ck,day,resp)+pulizieCardH+shared('chiusura',ck,day,resp)+schedaCardH+passCardH;
+  var gRif=respCardH+presaCardH+reportCard()+menuCard();
+  var h=dsec('oggi','🔔 Da controllare oggi',gOggi)+dsec('giornata','📅 Giornata',gGiorno)+dsec('rif','📚 Riferimento',gRif);
   document.getElementById('view').innerHTML=h;
 }
 function buildReport(){
@@ -662,6 +669,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 22:20</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 22:35</div>
 </body>
 </html>
