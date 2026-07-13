@@ -102,7 +102,7 @@ const APP_PW="lavoroprinz";
 const TEAM=[["Gigio","Chef di cucina"],["Gianluca","Secondo cuoco · Tournant"],["Alex","Secondi"],["Mattia","Primi"],["Ubaldo","Pizzeria + Panificazione · turno serale"],["Erjola","Pasticceria"],["Badr","Secondi"],["Majeet","Commis"],["Banu","Colazioni + antipasti (sera)"]];
 const PULIZIA=["Piani e zona di lavoro (piano sanificato · coperchi in ordine · niente sporco vicino ai piatti)","Cotture (fornelli/piastra/griglia · forno sopra e fronte · salamandra)","Attrezzatura della partita (bilance, bimby/pacojet, sottovuoto, friggitrice, microonde · cambio acqua roner)","Freddo (banco frigo: riordino, date, FIFO · abbattitore davanti)","Pass (dietro, sopra, decorazioni)"];
 const APERTURA=["Accendere le attrezzature del mattino","Controllare le PRESENZE settimanali","Ricevere e sistemare la merce (FIFO)","Controllo mise en place e scorte","Taglieri e contenitori al loro posto","Pasto del personale fuori per le 11:30","Controllare gli avanzi e stoccarli","Stracci puliti, postazioni in ordine"];
-const CHIUSURA=["Tutto spento (attrezzature)","Pulizia serale di tutto (microonde, pelapatate, friggitrici se serve)","Celle chiuse, in ordine, prodotti etichettati","Taglieri e contenitori a posto (plastica/organico)"];
+const CHIUSURA=["Tutto spento (attrezzature)","Pulizia serale di tutto (microonde, pelapatate, friggitrici se serve)","⚠️ CONTROLLARE che le PLANETARIE siano pulite — se no, pulirle PRIMA di andare via","Celle chiuse, in ordine, prodotti etichettati","Taglieri e contenitori a posto (plastica/organico)"];
 const PULIZIA_SETT=["Freddo a fondo (interno banco frigo/cassetti e guarnizioni · cella di competenza + scadenze)","Cotture a fondo (forno e piastra)","Scaffali e piccoli elettrodomestici (anche quelli bassi)","Roner a fondo (acqua e aceto a 90°C per 1 ora)","Ogni 2 settimane: scongelare congelatori piccoli · filtri cappe ai lavapiatti"];
 const MONFRIG=["Pulire la friggitrice a fondo"];
 const MONFRIG_WHO=["Badr","Mattia"];
@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='09/07 21:40';
+const APP_VER='09/07 21:45';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -468,7 +468,7 @@ function penaleBanner(cook){
   if(due.length){
     return '<div class="penalebar"><div class="pb-t">⚠️ '+esc(cook)+' — TI MANCANO '+raw.length+' COSE</div><div class="pb-s">Completale subito: lo chef vede chi non ha finito · rischio PENALE</div>'+bar+'<ul class="pb-l">'+lis+'</ul></div>';
   }
-  return '<div class="penalebar" style="background:linear-gradient(160deg,#fff6da,#ffefb8);border-color:#e7cf87"><div class="pb-t" style="color:#7a5b00">📋 '+esc(cook)+' — ti mancano '+raw.length+' cose oggi</div><div class="pb-s" style="color:#7a5b00">Completa tutto prima di fine turno · lo chef vede chi non ha finito</div>'+bar+'<ul class="pb-l" style="color:#5a4600">'+lis+'</ul></div>';
+  return '<div class="penalebar" style="background:#ffcf3f;color:#3a2c00;border-color:#d6a800;box-shadow:0 3px 14px rgba(214,168,0,.35);animation:none"><div class="pb-t" style="color:#3a2c00">📋 '+esc(cook)+' — ti mancano '+raw.length+' cose oggi</div><div class="pb-s" style="color:#5a4400">Completa tutto prima di fine turno · lo chef vede chi non ha finito</div>'+bar+'<ul class="pb-l" style="color:#3a2c00">'+lis+'</ul></div>';
 }
 function fineTurnoCard(){var c=getCook();if(!c||c==='Gigio'||isOff(c)||CHIUSI.indexOf(c)>=0)return '';var t=TIMBRA[c]||{};if(t.out)return '<div class="okbar">👋 '+esc(c)+', turno chiuso. A domani!</div>';return '<div class="card" style="border-color:var(--gold)"><div class="card-b" style="display:block"><button class="btn" style="width:100%;font-size:16px;padding:14px" onclick="fineTurno()">✅ Ho finito il turno</button><div class="readbox" style="margin-top:8px">Se manca ancora qualcosa te lo dico prima di chiudere. Poi ti segna la fine turno.</div></div></div>';}
 function fineTurno(){var c=getCook();if(!c){alert('Prima scegli il tuo nome.');return;}var miss=missingFor(c)||[];if(miss.length){alert('Aspetta! Prima di andare ti manca:\n\n- '+miss.map(function(m){return m.t;}).join('\n- ')+'\n\nCompletale, poi segna la fine turno.');return;}if(!(TIMBRA[c]&&TIMBRA[c].in)){alert('Segna prima l\'arrivo.');return;}timbraOut();}
@@ -517,6 +517,6 @@ function render(){
     +fineTurnoCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 21:40</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 21:45</div>
 </body>
 </html>
