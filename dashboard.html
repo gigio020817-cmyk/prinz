@@ -124,7 +124,7 @@ const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 const TEAM=[["Gianluca","Secondo cuoco · Tournant"],["Alex","Secondi"],["Banu","Colazioni + antipasti (sera)"],["Mattia","Primi"],["Ubaldo","Pizzeria + Panificazione · turno serale"],["Erjola","Pasticceria"],["Badr","Secondi"],["Majeet","Commis"]];
-const APERTURA=["Accendere le attrezzature del mattino","Controllare le PRESENZE settimanali","Ricevere e sistemare la merce (FIFO)","Controllo mise en place e scorte","Taglieri e contenitori al loro posto","Pasto del personale fuori per le 11:30","Controllare gli avanzi e stoccarli","Stracci puliti, postazioni in ordine"];
+const APERTURA=["Accendere le attrezzature del mattino","Controllare le PRESENZE settimanali","Ricevere e sistemare la merce (FIFO)","Controllo mise en place e scorte","Pasto del personale fuori per le 11:30","Controllare gli avanzi e stoccarli"];
 const PULIZIA=["Piani e zona di lavoro (piano sanificato · coperchi in ordine · niente sporco vicino ai piatti)","Cotture (fornelli/piastra/griglia · forno sopra e fronte · salamandra)","Attrezzatura della partita (bilance, bimby/pacojet, sottovuoto, friggitrice, microonde · cambio acqua roner)","Freddo (banco frigo: riordino, date, FIFO · abbattitore davanti)","Pass (dietro, sopra, decorazioni)"];
 const CHIUSURA=["Tutto spento (attrezzature)","Pulizia serale di tutto (microonde, pelapatate, friggitrici se serve)","Celle chiuse, in ordine, prodotti etichettati","Taglieri e contenitori a posto (plastica/organico)"];
 const PULIZIA_SETT=["Freddo a fondo (interno banco frigo/cassetti e guarnizioni · cella di competenza + scadenze)","Cotture a fondo (forno e piastra)","Scaffali e piccoli elettrodomestici (anche quelli bassi)","Roner a fondo (acqua e aceto a 90°C per 1 ora)","Ogni 2 settimane: scongelare congelatori piccoli · filtri cappe ai lavapiatti"];
@@ -181,7 +181,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='09/07 21:45';
+const APP_VER='09/07 22:20';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -350,23 +350,25 @@ function paneCard(){
 }
 const MENU_INFO='Pranzo ~30 pax · Cena ~25 pax · quantità accanto a ogni piatto';
 const MENU_PRANZO=[
- ['Lun','Pasta al pomodoro e basilico (~1,2 kg)','Collo di maiale CBT in salsa (~1,6 kg)','Pollo alla cacciatora (~0,7 kg)','Parmigiana di verdure (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg'],
- ['Mar','Pasta al ragù di manzo (~1,2 kg)','Pollo al curry (~1,8 kg)','—','Curry di verdure e ceci (~0,9 kg)','Patate ~1,5 kg + verdure surg. ~2 kg'],
- ['Mer','Pasta al forno (~1,2 kg)','Brasato di manzo CBT (~1,6 kg)','Bocconcini di pollo (~0,7 kg)','Sformato di verdure (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg'],
- ['Gio','Riso / risotto (~1,5 kg)','Spezzatino di tacchino (~1,8 kg)','—','Pasta al forno veg (~1 kg)','Patate al forno ~1,8 kg + verdure surg. ~2 kg'],
- ['Ven','Pasta al tonno (~1,2 kg)','Pesce fritto (~1,8 kg)','Pollo in umido (~0,7 kg)','Couscous con verdure (~0,9 kg)','Patate prezzemolate ~1,8 kg + verdure ~2 kg'],
- ['Sab','Pasta all\'arrabbiata (~1,2 kg)','Collo di maiale CBT, salsa funghi (~1,6 kg)','Pollo in umido (~0,7 kg)','Verdure gratinate (~0,8 kg)','Polenta/patate ~1,8 kg + verdure surg. ~2 kg'],
- ['Dom','Riso ai funghi (~1,5 kg)','Arrosto di manzo in salsa (~1,6 kg)','Pollo arrosto (~0,8 kg)','Verdure gratinate (~0,8 kg)','Purè ~1,8 kg + verdure ~2 kg']
+ ['Lun','Pasta al pomodoro e basilico (~1,2 kg) · 1,5 kg riso in bianco','Pollo alla cacciatora (~1,8 kg)','—','Insalata iceberg','Verdure ~2 kg + patate al forno ~1,8 kg'],
+ ['Mar','Pasta al pesto di zucchine (~1,2 kg) · 1,5 kg riso in bianco','Spezzatino di tacchino (~1,8 kg)','—','Insalata greca','Verdure ~2 kg + polenta ~1,8 kg'],
+ ['Mer','Pasta al forno (~1,2 kg) · 1,5 kg riso in bianco','Pesce fritto (~1,8 kg)','—','Pomodoro e cipolla','Verdure ~2 kg + cous cous ~1,5 kg'],
+ ['Gio','Risotto a scelta (~1,5 kg) · 1,5 kg riso in bianco','Pollo in umido ai funghi (~1,8 kg)','—','Pomodori e cetrioli','Verdure ~2 kg + patate al forno ~1,8 kg'],
+ ['Ven','Pasta al tonno (~1,2 kg) · 1,5 kg riso in bianco','Cosce di pollo al forno (~1,8 kg)','—','Insalata mista','Verdure ~2 kg + polenta ~1,8 kg'],
+ ['Sab','Pasta all\'arrabbiata (~1,2 kg) · 1,5 kg riso in bianco','Pollo al curry (~1,8 kg)','—','Carote e mais','Verdure ~2 kg + patate ~1,8 kg'],
+ ['Dom','Pasta al pesto di pomodoro secco (~1,2 kg) · 1,5 kg riso in bianco','Pollo in umido (~1,8 kg)','—','Insalata verde','Verdure ~2 kg + polenta ~1,8 kg']
 ];
-const MENU_PRANZO_NOTE='Sempre presenti: riso bianco bollito (1 kg) · insalata del giorno (~1 kg) · freddo extra: tonno (~0,8 kg) o 12 uova sode · formaggio grattugiato. Placche sotto il pass: 6 calde (sopra: primo · secondo · alternativa/veg — sotto: riso bianco · verdure · patate/purè) + banco freddo a parte (insalata · freddo extra).';
+const MENU_PRANZO_NOTE='Sempre presenti: insalata del giorno (~1 kg) · freddo extra: tonno (~0,8 kg) o 12 uova sode · formaggio grattugiato. Placche sotto il pass: 6 calde (sopra: primo · secondo · alternativa/veg — sotto: riso bianco · verdure · patate/purè) + banco freddo a parte (insalata · freddo extra).';
+const MENU_PRANZO_PREP='👥 Chi prepara (la mattina): PRIMI → <b>Mattia</b> · SECONDI (piatti principali) → <b>Badr</b> · INSALATE e VERDURE/contorni → <b>Manjeet e Alex</b> (al bistro).';
+const MENU_PRANZO_AVANZO='♻️ Ogni mattina: tirare fuori l\'avanzo della mezza pensione, sistemarlo e aggiungerlo al pasto del personale — così non si spreca niente.';
 const MENU_CENA=[
- ['Lun','Insalata di pasta ~1,5 kg (tonno, mais, mozzarella)','Insalata verde + pane','Senza tonno, con formaggio','Manjeet'],
- ['Mar','Hamburger nel pane (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Burger di verdure','Alex'],
- ['Mer','Pasta al forno (~1,5 kg)','Insalata + pane','Pasta al forno vegetariana','Mattia'],
- ['Gio','Pizza in teglia (~2,5 kg impasto)','Insalata','Pizza di verdure','Badr'],
- ['Ven','Insalata di riso ~1,5 kg (tonno, uova, mais)','Insalata + pane','Versione veg con ceci/formaggio','Manjeet'],
- ['Sab','Wrap / kebab di pollo (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Wrap di verdure e formaggio','Badr'],
- ['Dom','Pita / focaccia farcita (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Versione vegetariana','Alex']
+ ['Lun','Insalata di pasta ~1,5 kg (tonno, mais, mozzarella)','Insalata verde + pane','Senza tonno, con formaggio','Mattia o Badr'],
+ ['Mar','Pasta al forno (~1,5 kg)','Insalata + pane','Pasta al forno vegetariana','Mattia'],
+ ['Mer','Pizza in teglia (~2,5 kg impasto)','Insalata','Pizza di verdure','Ubaldo'],
+ ['Gio','Wrap / kebab di pollo (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Wrap di verdure e formaggio','Badr'],
+ ['Ven','Insalata di riso ~1,5 kg (tonno, uova, mais)','Insalata + pane','Versione veg con ceci/formaggio','Alex e Manjeet'],
+ ['Sab','Hamburger nel pane (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Burger di verdure','Alex e Manjeet'],
+ ['Dom','Pita / focaccia farcita (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Versione vegetariana','Alex e Manjeet']
 ];
 const MENU_CENA_NOTE='Piatti composti (hamburger, wrap, pita): ~2 a testa per metà dei coperti (~38 pz su 25 pax). Cena: maiale ok, niente manzo (tranne hamburger del martedì). Insalata e riso bianco sempre presenti.';
 function recModsCard(){
@@ -387,7 +389,7 @@ function copyRecMods(){
 function cookNotesCard(){
   var n=window.COOKNOTES||[];if(!n.length)return '';
   var rows=n.map(function(x){return '<div class="row" style="align-items:flex-start"><span><b>'+esc(x.cook)+':</b> '+esc(x.text).replace(/\n/g,'<br>')+'</span><span class="muted">'+(x.at?tloc(x.at):'')+'</span></div>';}).join('');
-  return '<div class="card" style="border-color:var(--gold)"><div class="card-h"><div class="t">📝 Note dei cuochi<div class="sub">scritte dai capi partita (Alex, Gianluca…)</div></div><span class="pill ok">'+n.length+'</span></div><div class="card-b">'+rows+'</div></div>';
+  var _no=foldOpen('cooknotes');return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:pointer" onclick="foldTP(\'cooknotes\')"><div class="t">📝 Note dei cuochi</div><span><span class="pill ok">'+n.length+'</span> <span class="muted">'+(_no?'▾':'▸')+'</span></span></div>'+(_no?('<div class="card-b" style="font-size:12px">'+rows+'</div>'):'')+'</div>';
 }
 function menuCard(){
   var p=MENU_PRANZO.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — <b>Primo:</b> '+esc(d[1])+' · <b>Secondo:</b> '+esc(d[2])+(d[3]&&d[3]!=='—'?' · <b>Alt. carne:</b> '+esc(d[3]):'')+' · <b>Veg:</b> '+esc(d[4])+' · <b>Contorni:</b> '+esc(d[5])+'</div>';}).join('');
@@ -410,7 +412,7 @@ function riepilogoCard(){
   var SC=window.PANESC||{};var dueP=PANE.filter(function(p){return p.soglia!=null&&(SC[p.id]||0)<=p.soglia;}).length;
   var T=window.TIMB||{};var arr=TEAM.filter(function(x){return T[x[0]]&&T[x[0]].in;}).length;
   var hasNote=!!(window.NOTE&&window.NOTE.trim());
-  function chip(lbl,icon){return '<span style="display:inline-block;background:#fbf8f2;border:1px solid var(--line);border-radius:20px;padding:4px 10px;margin:3px 4px 0 0;font-size:12.5px;font-weight:600">'+icon+' '+lbl+'</span>';}
+  function chip(lbl,icon){return '<span style="display:inline-block;background:#fbf8f2;border:1px solid var(--line);border-radius:20px;padding:4px 10px;margin:2px 3px 0 0;font-size:11px;font-weight:600">'+icon+' '+lbl+'</span>';}
   var lib=aperturaLibera(D.day);
   var apIcon=lib&&apD===0?'🟦':ic(apD,APERTURA.length);
   var chIcon=lib&&chD===0?'🟦':ic(chD,CHIUSURA.length);
@@ -429,7 +431,7 @@ function pausaCardDash(){
   done.forEach(function(p){h+='<div class="row"><span>'+esc(p.n)+'</span><span class="muted">'+tloc(p.out)+'→'+tloc(p.in)+' · '+durMinDash(p.out,p.in)+' min</span></div>';});
   var totRows=Object.keys(tot).map(function(n){return '<div class="row"><span><b>'+esc(n)+'</b> · totale</span><span class="muted">'+tot[n]+' min</span></div>';}).join('');
   var pill=out.length?'<span class="pill no">'+out.length+' fuori</span>':'<span class="pill ok">tutti dentro</span>';
-  return '<div class="card"><div class="card-h"><div class="t">Pause<div class="sub">chi esce in pausa durante il servizio</div></div>'+pill+'</div><div class="card-b">'+h+(totRows?'<div style="margin-top:6px;border-top:1px solid #ececec;padding-top:6px">'+totRows+'</div>':'')+'</div></div>';
+  var _po=foldOpen('pause');return '<div class="card"><div class="card-h" style="cursor:pointer" onclick="foldTP(\'pause\')"><div class="t">Pause<div class="sub">chi esce in pausa durante il servizio</div></div><span>'+pill+' <span class="muted">'+(_po?'▾':'▸')+'</span></span></div>'+(_po?('<div class="card-b">'+h+(totRows?'<div style="margin-top:6px;border-top:1px solid #ececec;padding-top:6px">'+totRows+'</div>':'')+'</div>'):'')+'</div>';
 }
 async function dashSavePass(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'passlist',v:{items:window.PASSL||[]}})});}catch(e){alert('Errore, riprova');console.error(e);}}
 async function dashTogglePass(id){var L=window.PASSL||[];var x=L.find(function(y){return y.id===id;});if(!x)return;x.done=!x.done;if(x.done){x.doneBy='Chef';x.doneAt=new Date().toISOString();}else{delete x.doneBy;delete x.doneAt;}await dashSavePass();loadAll(true);}
@@ -518,13 +520,12 @@ function render(day,ck,ckw,ent,meta,presa){
   window.LAST={day:day,ck:ck,ckw:ckw,ent:ent,meta:meta,presa:presa};
   const resp='Gianluca e Ubaldo';
   const scheda=ent.filter(e=>e.type==='scheda');const pass=ent.filter(e=>e.type==='passaggio');
-  let h=liberiCard(day)+consegneDashCard()+riepilogoCard()+coCard(day)+reportCard()+chefCard(ck,day)+recModsCard()+cookNotesCard();
+  let h=consegneDashCard()+riepilogoCard()+coCard(day)+reportCard()+chefCard(ck,day)+recModsCard()+cookNotesCard();
   h+=timbraCardDash();
   h+=pausaCardDash();
   h+='<div class="card"><div class="card-h"><div class="t">Responsabili della settimana</div></div><div class="card-b"><div class="row"><span><b>Gianluca</b> e <b>Ubaldo</b></span><span class="muted">fissi · apertura e chiusura</span></div></div></div>';
   h+=shared('apertura',ck,day,resp);
-  h+=puliziaCard(ck,day);
-  h+=weeklyCard(ckw,day);
+  h+='<div class="card"><div class="card-h"><div class="t">🧽 Pulizie cuochi<div class="sub">giornaliera + settimanale · devono pulire e spuntare</div></div></div><div class="card-b" style="padding:4px 10px 10px">'+puliziaCard(ck,day)+weeklyCard(ckw,day)+'</div></div>';
   h+=shared('chiusura',ck,day,resp);
   h+='<div class="card"><div class="card-h"><div class="t">Scheda di servizio</div><span class="pill '+(scheda.length?'ok':'no')+'">'+scheda.length+' voci</span></div><div class="card-b">'+(scheda.length?scheda.map(e=>'<div class="row"><span>'+esc(e.data.cosa)+(e.data.entro?' <span class="muted">(entro '+esc(e.data.entro)+')</span>':'')+'</span><span class="muted">'+esc(e.cook)+' · '+tloc(e.at)+'</span></div>').join(''):'<div class="muted">Niente.</div>')+'</div></div>';
   var GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
@@ -661,6 +662,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 21:45</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 22:20</div>
 </body>
 </html>
