@@ -170,7 +170,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 async function sb(path,opts){opts=opts||{};const h={apikey:SB_KEY,'Content-Type':'application/json'};if(opts.headers)Object.assign(h,opts.headers);const r=await fetch(SB_URL+'/rest/v1/'+path,{method:opts.method||'GET',headers:h,body:opts.body});if(!r.ok)throw new Error('HTTP '+r.status+' '+await r.text());const txt=await r.text();return txt?JSON.parse(txt):null;}
 
 /* state */
-let CK={},ENT=[],META=null,PRESA=[],CTRL={},TIMBRA={},PREVPASS=[],NOTECUOCO={},PAUSE=[],PASSL=[];
+let CK={},ENT=[],META=null,PRESA=[],CTRL={},TIMBRA={},PREVPASS=[],NOTECUOCO={},PAUSE=[],PASSL=[],CHEFORD=[];
 function dayShift(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return ymd(d);}
 function getCook(){return localStorage.getItem('pr_cook')||''}
 function setCook(n){localStorage.setItem('pr_cook',n);render();}
@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='09/07 21:45';
+const APP_VER='09/07 21:55';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -213,6 +213,7 @@ async function loadAll(){
     PREVPASS=prevp||[];
     NOTECUOCO={};(ncuoco||[]).forEach(function(r){NOTECUOCO[r.k]=(r.v&&r.v.text)||'';});
     PAUSE=(pausa||[]).map(function(r){return {key:r.k,n:(r.v&&r.v.n)||'',out:(r.v&&r.v.out)||null,in:(r.v&&r.v.in)||null};}).sort(function(a,b){return (a.out||'').localeCompare(b.out||'');});
+    try{var _co=await sb('kitchen_meta?k=eq.chefordini|'+today+'&select=v');CHEFORD=(_co&&_co[0]&&_co[0].v&&_co[0].v.items)?_co[0].v.items:[];}catch(e){CHEFORD=[];}
     try{var _pl=await sb('kitchen_meta?k=eq.passlist&select=*');PASSL=(_pl&&_pl[0]&&_pl[0].v&&_pl[0].v.items)?_pl[0].v.items:[];}catch(e){PASSL=[];}
     document.getElementById('status').textContent='✓ Collegato · '+today.split('-').reverse().join('/');
     render();
@@ -426,6 +427,8 @@ function missingFor(cook){
   if(showChiu){var dc=countDone('chiusura');if(dc<CHIUSURA.length)miss.push({t:"Check-list chiusura ("+dc+"/"+CHIUSURA.length+")",from:DUE_CHIUSURA});}
   var nsch=ENT.filter(function(e){return e.type==='scheda'&&e.cook===cook;}).length;
   if(nsch===0&&NOSCHEDA.indexOf(cook)<0)miss.push({t:"Scrivere cosa hai preparato (scheda di servizio)",from:DUE_PULIZIA});
+  var _myco=(CHEFORD||[]).filter(function(o){return o.cook===cook&&o.done!==true;});
+  if(_myco.length)miss.push({t:"Ordini dello chef da fare ("+_myco.length+")",from:DUE_CHIUSURA});
   return miss;
 }
 var _penSig=null;
@@ -453,6 +456,16 @@ function progressFor(cook){
 function _ydayC(){var d=new Date(today+'T00:00:00');d.setDate(d.getDate()-1);return ymd(d);}
 function maybeStreak(cook){try{var k='pr_streak_'+cook;var o=JSON.parse(localStorage.getItem(k)||'{}');if(o.last===today)return;o.n=(o.last===_ydayC())?((o.n||0)+1):1;o.last=today;localStorage.setItem(k,JSON.stringify(o));}catch(e){}}
 function streakHtml(cook){try{var o=JSON.parse(localStorage.getItem('pr_streak_'+cook)||'{}');if(o.last===today&&(o.n||0)>=2)return ' · 🔥 <b>'+o.n+'</b> giorni di fila a 100%';}catch(e){}return '';}
+function chefOrdCard(){
+  var me=getCook();if(!me)return '';
+  var mine=(CHEFORD||[]).filter(function(o){return o.cook===me;});
+  if(!mine.length)return '';
+  var pend=mine.filter(function(o){return o.done!==true;});
+  if(!pend.length)return '<div class="okbar">✅ Ordini dello chef: tutto fatto ('+mine.length+'). Grazie!</div>';
+  var rows=pend.map(function(o){return '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.14);border-radius:10px;padding:10px 12px;margin:8px 0"><div style="flex:1;font-size:15px;font-weight:800;color:#fff">'+esc(o.txt)+'<div style="font-size:11.5px;opacity:.85;font-weight:600">richiesto dallo chef · '+tloc(o.at)+'</div></div><button onclick="cuocoMarkCO('+o.id+')" style="background:#fff;color:#8a1f10;border:0;border-radius:9px;padding:9px 14px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap">✓ Fatto</button></div>';}).join('');
+  return '<div class="penalebar" style="background:#8a1f10;box-shadow:0 3px 14px rgba(138,31,16,.5)"><div class="pb-t">🔔 '+esc(me)+' — LO CHEF TI HA CHIESTO '+pend.length+' '+(pend.length>1?'COSE':'COSA')+'</div><div class="pb-s">Falle PRIMA di chiudere il servizio, poi tocca ✓ Fatto</div>'+rows+'</div>';
+}
+async function cuocoMarkCO(id){var o=(CHEFORD||[]).find(function(x){return x.id===id;});if(!o)return;o.done=true;o.doneAt=new Date().toISOString();try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefordini|'+today,v:{items:CHEFORD}})});toast('Fatto ✓');render();}catch(e){toast('⚠️ Non salvato');o.done=null;render();}}
 function penaleBanner(cook){
   if(cook==='Gigio')return '';
   var raw=missingFor(cook);
@@ -502,6 +515,7 @@ function render(){
   var chiTitle = 'Check-list chiusura (responsabile)';
   document.getElementById('view').innerHTML=
     penaleBanner(ME)+
+    chefOrdCard()+
     timbraCard()+
     pausaCard()+
     (RESPFISSI.indexOf(ME)>=0?respCard():'')
@@ -517,6 +531,6 @@ function render(){
     +fineTurnoCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 21:45</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 21:55</div>
 </body>
 </html>
