@@ -166,7 +166,7 @@ const PEOPLE={
  "Nuovo":{pulizia:["Piani e zona di lavoro (piano sanificato · coperchi in ordine · niente sporco vicino ai piatti)","Attrezzatura della partita (bilance, bimby/pacojet, sottovuoto, friggitrice, microonde · cambio acqua roner)","Freddo (banco frigo: riordino, date, FIFO · abbattitore davanti)","Pass (dietro, sopra, decorazioni)"],puliziaSett:["Freddo a fondo (interno banco frigo/cassetti e guarnizioni · cella + scadenze)","Scaffali e piccoli elettrodomestici (anche quelli bassi)","Roner a fondo (acqua e aceto a 90°C per 1 ora)","Abbattitore Vision (dentro, fuori e sopra)","Ogni 2 settimane: scongelare congelatori piccoli"]}
 };
 PEOPLE.Banu={noResp:true,noApe:true};
-function puliziaFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].pulizia)||PULIZIA;}
+function puliziaFor(cook){var _b=(PEOPLE[cook]&&PEOPLE[cook].pulizia)||PULIZIA;return _b.concat(["⚠️ Controllare PLANETARIE e ABBATTITORI — se sporchi, pulirli PRIMA di andare"]);}
 function puliziaSettFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].puliziaSett)||PULIZIA_SETT;}
 function ymd(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
 function dayShift(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return ymd(d);}
@@ -185,7 +185,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='09/07 22:45';
+const APP_VER='09/07 22:55';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -669,6 +669,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 22:45</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 09/07 22:55</div>
 </body>
 </html>
