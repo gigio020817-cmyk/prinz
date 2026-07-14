@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='14/07 14:00';
+const APP_VER='14/07 14:35';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -498,32 +498,53 @@ async function savePassList(){try{await sb('kitchen_meta?on_conflict=k',{method:
 function addPass(){var c=getCook();if(!c){alert('Prima scegli il tuo nome.');return;}var el=document.getElementById('consIn');var t=(el.value||'').trim();if(!t)return;PASSL.push({id:'p'+Date.now()+Math.floor(Math.random()*1000),t:t,by:c,at:new Date().toISOString(),done:false});savePassList();render();openCard('ccons');setTimeout(function(){var i=document.getElementById('consIn');if(i)i.focus();},50);}
 function togglePass(id){var c=getCook();if(!c){alert('Prima scegli il tuo nome.');return;}var x=PASSL.find(function(y){return y.id===id;});if(!x)return;x.done=!x.done;if(x.done){x.doneBy=c;x.doneAt=new Date().toISOString();}else{delete x.doneBy;delete x.doneAt;}savePassList();render();openCard('ccons');}
 function clearDonePass(){if(!confirm('Togliere le voci già fatte dalla lista?'))return;PASSL=PASSL.filter(function(x){return !x.done;});savePassList();render();openCard('ccons');}
+function setCTile(id){window.CTILE=id;try{window.scrollTo(0,0);}catch(e){}render();}
 function render(){
   whoBar();
   var ME=getCook();
-  var isResp = RESPFISSI.indexOf(ME)>=0;   // responsabili fissi: Gianluca e Ubaldo
-  var showApe = isResp;
-  var showChiu = isResp;
+  var isResp = RESPFISSI.indexOf(ME)>=0;
   var apeTitle = 'Check-list apertura (responsabile)';
   var chiTitle = 'Check-list chiusura (responsabile)';
-  document.getElementById('view').innerHTML=
-    penaleBanner(ME)+
-    chefOrdCard()+
-    timbraCard()+
-    pausaCard()+
-    (RESPFISSI.indexOf(ME)>=0?respCard():'')
-    +(showApe?checklistCard('cap',apeTitle,'apertura',APERTURA):'')
-    +puliziaSection()
-    +schedaCard()
-    +notaCard()
-    +(showChiu?checklistCard('cch',chiTitle,'chiusura',CHIUSURA):'')
-    +consegneCard()
-    +presaCard()
-    +menuCard()
-    +readCard()
-    +fineTurnoCard();
+  var VIEWS={
+    orari: timbraCard(),
+    pause: pausaCard(),
+    pulizie: puliziaSection(),
+    consegne: consegneCard(),
+    scheda: schedaCard(),
+    note: notaCard(),
+    menu: menuCard(),
+    info: readCard(),
+    fine: fineTurnoCard()
+  };
+  if(isResp){ VIEWS.apertura=checklistCard('cap',apeTitle,'apertura',APERTURA); VIEWS.chiusura=checklistCard('cch',chiTitle,'chiusura',CHIUSURA); VIEWS.resp=respCard(); }
+  var TILES=[
+    {id:'orari',l:'Orari pranzo / sera',e:'⏱️',b:'#B5D4F4',fg:'#042C53',a:'#0C447C'},
+    {id:'pulizie',l:'Le mie pulizie',e:'🧽',b:'#C0DD97',fg:'#173404',a:'#27500A'},
+    {id:'pause',l:'Pause',e:'⏸️',b:'#FAC775',fg:'#412402',a:'#633806'},
+    {id:'consegne',l:'Consegne',e:'📋',b:'#D3D1C7',fg:'#2C2C2A',a:'#444441'},
+    {id:'scheda',l:'Scheda servizio',e:'📝',b:'#F4C0D1',fg:'#4B1528',a:'#72243E'},
+    {id:'note',l:'Note',e:'🗒️',b:'#F5C4B3',fg:'#4A1B0C',a:'#712B13'}
+  ];
+  if(isResp){
+    TILES.push({id:'apertura',l:'Apertura',e:'🌅',b:'#9FE1CB',fg:'#04342C',a:'#085041',s:'resp. settimana'});
+    TILES.push({id:'chiusura',l:'Chiusura',e:'🌙',b:'#CECBF6',fg:'#26215C',a:'#3C3489',s:'resp. settimana'});
+    TILES.push({id:'resp',l:'Responsabile',e:'⭐',b:'#FAC775',fg:'#412402',a:'#633806'});
+  }
+  TILES.push({id:'menu',l:'Menu',e:'🍽️',b:'#FAC775',fg:'#412402',a:'#633806'});
+  TILES.push({id:'info',l:'Info / regole',e:'ℹ️',b:'#9FE1CB',fg:'#04342C',a:'#085041'});
+  TILES.push({id:'fine',l:'Fine turno',e:'✅',b:'#F7C1C1',fg:'#501313',a:'#791F1F'});
+  var LBL={};TILES.forEach(function(t){LBL[t.id]=t.l;});
+  var top=penaleBanner(ME)+chefOrdCard();
+  var out;
+  if(window.CTILE && VIEWS[window.CTILE]!==undefined){
+    out=top+'<button class="btn" style="width:100%;margin-bottom:12px;font-size:15px" onclick="setCTile(null)">‹ Indietro ai quadrati</button><div style="font-size:18px;font-weight:700;margin:2px 0 10px">'+esc(LBL[window.CTILE]||'')+'</div>'+VIEWS[window.CTILE];
+  } else {
+    var grid=TILES.map(function(t){return '<div onclick="setCTile(\''+t.id+'\')" style="cursor:pointer;background:'+t.b+';border-radius:14px;padding:12px 10px;min-height:96px;display:flex;flex-direction:column;justify-content:space-between"><div style="font-size:28px;line-height:1">'+t.e+'</div><div><div style="font-size:14px;font-weight:700;color:'+t.fg+'">'+t.l+'</div>'+(t.s?('<div style="font-size:11px;font-weight:700;color:'+t.a+'">'+t.s+'</div>'):'')+'</div></div>';}).join('');
+    out=top+'<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">'+grid+'</div>';
+  }
+  document.getElementById('view').innerHTML=out;
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 14/07 14:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 14/07 14:35</div>
 </body>
 </html>
