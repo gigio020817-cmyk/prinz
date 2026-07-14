@@ -76,7 +76,7 @@
  </div><!--/view3d-->
  <div id="menuview" style="display:none"></div>
 </div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 14/07 16:20</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 14/07 16:55</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -87,7 +87,7 @@ function el(id){return document.getElementById(id);}
 function unlock(p,fs){var e=el('err');if(p!==APP_PW){e.textContent='Password errata';el('pw').value='';return;}if(el('remember').checked||fs){try{localStorage.setItem('pr_b3d','1')}catch(_){}}el('lock').style.display='none';el('app').style.display='block';initApp();}
 el('enter').onclick=function(){unlock(el('pw').value,false);};
 el('pw').addEventListener('keydown',function(e){if(e.key==='Enter')unlock(e.target.value,false);});
-const APP_VER='14/07 16:20';
+const APP_VER='14/07 16:55';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_b3d'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_b3d','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_b3d')!=='26/06 16:54'){localStorage.removeItem('pr_b3d');localStorage.setItem('pr_av_b3d','26/06 16:54');}}catch(_e){}var s=null;try{s=localStorage.getItem('pr_b3d')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(function(){el('pw').focus();},300);})();
 
@@ -99,7 +99,7 @@ var MENU=[{"cat": "ANTIPASTI", "dishes": [{"name": "Tartare di manzo con anguria
 function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function mslug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,46);}
 async function saveMenuNote(k,v,st){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'bistro3d|'+k,v:{text:v}})});if(st){st.textContent='✓ salvato';setTimeout(function(){st.textContent='';},1400);}}catch(e){if(st)st.textContent='⚠️ non salvato';}}
-function mzoom(src){var o=document.getElementById('mzov');if(!o){o=document.createElement('div');o.id='mzov';o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;z-index:99999;cursor:zoom-out';o.onclick=function(){o.style.display='none';};o.innerHTML='<img style="max-width:95%;max-height:95%;border-radius:8px">';document.body.appendChild(o);}o.querySelector('img').src=src;o.style.display='flex';}
+function mzoom(src){var o=document.getElementById('mzov');if(!o){o=document.createElement('div');o.id='mzov';o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:99999;overflow:auto;-webkit-overflow-scrolling:touch;text-align:center';o.onclick=function(){o.style.display='none';};o.innerHTML='<div style="position:fixed;bottom:12px;left:0;right:0;color:rgba(255,255,255,.75);font-size:12px;text-align:center;pointer-events:none">Tocca la foto per ingrandire · scorri per spostarti</div><img style="max-width:100%;display:inline-block;vertical-align:middle;cursor:zoom-in">';document.body.appendChild(o);var mi=o.querySelector('img');mi.onclick=function(ev){ev.stopPropagation();mi._z=((mi._z||0)+1)%3;if(mi._z===0){mi.style.maxWidth='100%';mi.style.width='';}else if(mi._z===1){mi.style.maxWidth='none';mi.style.width='190%';}else{mi.style.maxWidth='none';mi.style.width='300%';}};}var im=o.querySelector('img');im._z=0;im.style.maxWidth='100%';im.style.width='';im.src=src;o.style.display='block';o.scrollTop=0;}
 function buildMenu(){var host=el('menuview');if(!host)return;var h='<input class="msearch" id="msearch" placeholder="🔍 Cerca piatto o ingrediente…">';
  MENU.forEach(function(cat){h+='<div class="mcat">'+esc(cat.cat)+'</div>';cat.dishes.forEach(function(d){var id=mslug(d.name);var blob=(d.name+' '+d.comp.map(function(c){return c.n+' '+c.r;}).join(' ')).toLowerCase();
   h+='<div class="mdish" data-blob="'+esc(blob)+'"><div class="dh">'+esc(d.name)+'<span class="ar">▸</span></div><div class="mbody">'+(d.img?'<img class="mdishphoto" src="'+d.img+'" onclick="mzoom(this.src)">':'');
