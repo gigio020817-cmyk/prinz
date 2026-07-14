@@ -170,7 +170,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 async function sb(path,opts){opts=opts||{};const h={apikey:SB_KEY,'Content-Type':'application/json'};if(opts.headers)Object.assign(h,opts.headers);const r=await fetch(SB_URL+'/rest/v1/'+path,{method:opts.method||'GET',headers:h,body:opts.body});if(!r.ok)throw new Error('HTTP '+r.status+' '+await r.text());const txt=await r.text();return txt?JSON.parse(txt):null;}
 
 /* state */
-let CK={},ENT=[],META=null,PRESA=[],CTRL={},TIMBRA={},PREVPASS=[],NOTECUOCO={},PAUSE=[],PASSL=[],CHEFORD=[];
+let CK={},ENT=[],META=null,PRESA=[],CTRL={},TIMBRA={},PREVPASS=[],NOTECUOCO={},PAUSE=[],PASSL=[],CHEFORD=[];var SBLOCCHI={};
 function dayShift(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return ymd(d);}
 function getCook(){return localStorage.getItem('pr_cook')||''}
 function setCook(n){localStorage.setItem('pr_cook',n);render();}
@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='14/07 13:10';
+const APP_VER='14/07 13:25';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -231,7 +231,7 @@ function timbraCard(){
   return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Orario di arrivo e uscita &mdash; '+esc(c)+'</div></div><div class="card-b" style="display:block"><div class="readbox" style="margin-bottom:10px">⚠️ Segna l\'arrivo solo quando sei <b>già cambiato e in cucina</b>. Gli orari li vede <b>solo lo chef</b>.</div>'+inH+outH+'</div></div>';
 }
 async function timbraIn(){var c=getCook();if(!c){alert("Prima scegli il tuo nome.");return;}var t=TIMBRA[c]||{};if(t.in)return;t.in=new Date().toISOString();TIMBRA[c]=t;try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today+'|'+c,v:t})});toast('Arrivo registrato ✓');render();}catch(e){toast('⚠️ Non salvato');console.error(e);}}
-async function timbraOut(){var c=getCook();if(!c){alert("Prima scegli il tuo nome.");return;}var t=TIMBRA[c]||{};if(!t.in){alert('Segna prima l\'arrivo.');return;}if(t.out)return;var _m=missingFor(c)||[];if(_m.length){alert('Aspetta! Prima di chiudere il turno devi completare:\n\n- '+_m.map(function(x){return x.t;}).join('\n- ')+'\n\nFalle, poi segna l\'uscita.');return;}if(!confirm('\u26A0\uFE0F PLANETARIE e ABBATTITORI\n\nHai controllato che siano PULITI? Se sono sporchi, puliscili PRIMA di andare.\n\nPremi OK solo se li hai davvero controllati.'))return;var _uc=prompt('\uD83D\uDD12 USCITA DA SBLOCCARE\n\nChiama lo CHEF (o Gianluca se non c\u2019\u00e8): controlla la pulizia di persona e digita il codice di sblocco.');if(_uc===null)return;if((_uc||'').trim().toLowerCase()!==UNLOCK_CODE.toLowerCase()){alert('\u274C Codice sbagliato.\n\nL\u2019uscita la sblocca SOLO lo chef o Gianluca, di persona, dopo aver controllato la pulizia. Non puoi chiudere il turno da solo.');return;}t.out=new Date().toISOString();TIMBRA[c]=t;try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today+'|'+c,v:t})});toast('Uscita registrata ✓');render();}catch(e){toast('⚠️ Non salvato');console.error(e);}}
+async function timbraOut(){var c=getCook();if(!c){alert("Prima scegli il tuo nome.");return;}var t=TIMBRA[c]||{};if(!t.in){alert('Segna prima l\'arrivo.');return;}if(t.out)return;var _m=missingFor(c)||[];if(_m.length){alert('Aspetta! Prima di chiudere il turno devi completare:\n\n- '+_m.map(function(x){return x.t;}).join('\n- ')+'\n\nFalle, poi segna l\'uscita.');return;}if(!confirm('\u26A0\uFE0F PLANETARIE e ABBATTITORI\n\nHai controllato che siano PULITI? Se sono sporchi, puliscili PRIMA di andare.\n\nPremi OK solo se li hai davvero controllati.'))return;var _sv=null;try{var _s=await sb('kitchen_meta?k=eq.sblocco|'+today+'|'+c+'&select=v');_sv=(_s&&_s[0]&&_s[0].v)||null;}catch(e){}if(!_sv||_sv.used){alert('\uD83D\uDD12 Uscita da sbloccare.\n\nChiedi allo CHEF: quando ha controllato pulizie, planetarie e abbattitori ti sblocca l\u2019uscita dalla sua dashboard. Poi ripremi Uscita.');return;}t.out=new Date().toISOString();TIMBRA[c]=t;try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today+'|'+c,v:t})});try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'sblocco|'+today+'|'+c,v:{by:((_sv&&_sv.by)||'chef'),at:(_sv&&_sv.at)||null,used:true,usedAt:new Date().toISOString()}})});}catch(_e){}toast('Uscita registrata ✓');render();}catch(e){toast('⚠️ Non salvato');console.error(e);}}
 function durMinC(a,b){try{return Math.max(0,Math.round((new Date(b)-new Date(a))/60000));}catch(e){return 0;}}
 function pausaListHtml(){
   if(!PAUSE.length)return '<div class="readbox" style="margin-top:8px">Nessuna pausa oggi.</div>';
@@ -408,7 +408,6 @@ var DUE_APERTURA=600;   // 10:00
 var DUE_PULIZIA=900;    // 15:00
 var DUE_CHIUSURA=1260;  // 21:00
 var NOSCHEDA=["Majeet","Gigio"];
-var UNLOCK_CODE="PrinzOK25"; // sblocco uscita: lo conoscono solo Chef e Gianluca
 function nowMin(){var d=new Date();return d.getHours()*60+d.getMinutes();}
 function hhmm(m){return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2);}
 function missingFor(cook){
@@ -532,6 +531,6 @@ function render(){
     +fineTurnoCard();
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 14/07 13:10</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 14/07 13:25</div>
 </body>
 </html>
