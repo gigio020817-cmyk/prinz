@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='14/07 15:15';
+const APP_VER='14/07 15:25';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -488,9 +488,9 @@ function consegneCard(){
   function rowMine(x){return '<div class="it"><div class="lab" style="flex:1">'+esc(x.t)+'<span class="sig">'+(x.done?('✓ fatto da '+esc(x.doneBy||'')):'in attesa')+dtagOf(x)+'</span></div><button class="ctrlbtn" style="width:auto;padding:6px 10px" onclick="removePass(\''+x.id+'\')">Rimuovi</button></div>';}
   var rows;
   if(isG){var openRows=openL.length?openL.map(rowG).join(''):'<div class="readbox">Nessuna consegna da fare al momento. 👍</div>';var arch=doneL.length?('<button class="btn" style="background:#fff;color:var(--bordeaux);border:1px solid var(--line);margin-top:10px" onclick="toggleConsDone()">📋 Consegne fatte ('+doneL.length+')</button><div id="cconsdone" style="display:none;margin-top:6px">'+doneL.map(rowG).join('')+'<button class="btn" style="background:#fff;color:#c0392b;border:1px solid #c0392b;margin-top:6px" onclick="clearDonePass()">🗑 Svuota archivio consegne</button></div>'):'';rows=openRows+arch;}
-  else{rows=src.length?src.map(rowMine).join(''):'<div class="readbox">Non hai lasciato consegne. Scrivi qui sotto cosa deve fare chi copre la tua partita.</div>';}
+  else{rows=src.length?src.map(rowMine).join(''):'<div class="readbox">Non hai lasciato consegne. Scrivi qui sotto cosa deve fare il libero.</div>';}
   var title=isG?'📋 Consegne da fare (per te)':'📋 Lascia una consegna';
-  var intro=isG?'Le cose lasciate dai capi partita: falle e spuntale.':'Scrivi le cose da fare per chi copre la tua partita. Le vedono Gianluca e lo chef.';
+  var intro=isG?'Le cose lasciate dai capi partita: falle e spuntale.':'Scrivi le cose da fare per il libero (chi copre la tua partita). Le vedono Gianluca e lo chef.';
   return '<div class="card open" id="ccons" style="border-color:var(--gold)"><div class="card-h" onclick="toggleCard(\'ccons\')"><div class="t">'+title+'</div>'+(isG?'<div class="meta">'+openL.length+'</div>':'')+'<svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">'+intro+'</div>'+rows+'<label class="fl">Aggiungi una cosa da fare</label><input class="txt" id="consIn" placeholder="es. Finire la mise en place dei flan"><button class="btn" onclick="addPass()">+ Aggiungi</button>'+'</div></div>';
 }
 function removePass(id){var c=getCook();var x=PASSL.find(function(y){return y.id===id;});if(!x)return;if(x.by!==c){alert('Puoi togliere solo le consegne che hai scritto tu.');return;}if(!confirm('Togliere questa consegna?'))return;PASSL=PASSL.filter(function(y){return y.id!==id;});savePassList();render();openCard('ccons');}
@@ -521,15 +521,15 @@ function render(){
     {id:'pulizie',l:'Le mie pulizie',e:'🧽',b:'#C0DD97',fg:'#173404',a:'#27500A'},
     {id:'pause',l:'Pause',e:'⏸️',b:'#FAC775',fg:'#412402',a:'#633806'},
     {id:'consegne',l:'Consegne',e:'📋',b:'#D3D1C7',fg:'#2C2C2A',a:'#444441'},
-    {id:'scheda',l:'Scheda servizio',e:'📝',b:'#F4C0D1',fg:'#4B1528',a:'#72243E'},
-    {id:'note',l:'Note',e:'🗒️',b:'#F5C4B3',fg:'#4A1B0C',a:'#712B13'}
+    {id:'scheda',l:'Scheda servizio',e:'📝',b:'#F4C0D1',fg:'#4B1528',a:'#72243E'}
   ];
   if(isResp){
     TILES.push({id:'apertura',l:'Apertura',e:'🌅',b:'#9FE1CB',fg:'#04342C',a:'#085041',s:'resp. settimana'});
     TILES.push({id:'chiusura',l:'Chiusura',e:'🌙',b:'#CECBF6',fg:'#26215C',a:'#3C3489',s:'resp. settimana'});
     TILES.push({id:'resp',l:'Responsabile',e:'⭐',b:'#FAC775',fg:'#412402',a:'#633806'});
   }
-  TILES.push({id:'menu',l:'Menu',e:'🍽️',b:'#FAC775',fg:'#412402',a:'#633806'});
+  if(['Alex','Gianluca'].indexOf(ME)>=0)TILES.push({id:'note',l:'Note (problemi)',e:'🗒️',b:'#F5C4B3',fg:'#4A1B0C',a:'#712B13'});
+  TILES.push({id:'menu',l:'Menu del personale',e:'🍽️',b:'#FAC775',fg:'#412402',a:'#633806'});
   TILES.push({id:'info',l:'Info / regole',e:'ℹ️',b:'#9FE1CB',fg:'#04342C',a:'#085041'});
   var LBL={};TILES.forEach(function(t){LBL[t.id]=t.l;});
   var top=penaleBanner(ME)+chefOrdCard();
@@ -543,6 +543,6 @@ function render(){
   document.getElementById('view').innerHTML=out;
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 14/07 15:15</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 14/07 15:25</div>
 </body>
 </html>
