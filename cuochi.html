@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='14/07 15:25';
+const APP_VER='14/07 15:35';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -317,7 +317,7 @@ function presaCard(){
 }
 async function firmaPresa(){const c=getCook();if(!c){alert('Prima scegli il tuo nome.');return;}const role=(TEAM.find(t=>t[0]===c)||['',''])[1];
   try{await sb('kitchen_presa?on_conflict=cook',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({cook:c,role:role})});PRESA.push({cook:c,role:role,at:new Date().toISOString()});render();openCard('cpv');toast('Firmato');}catch(e){toast('⚠️ Non salvato');console.error(e);}}
-function readCard(){return '<div class="card" id="cread"><div class="card-h" onclick="toggleCard(\'cread\')"><div class="t">📖 Mansionario & guide (da leggere)</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox">Qui metteremo il mansionario completo, organigramma, briefing, friggitrici, foto impiattamento e promemoria — da consultare. (Da aggiungere.)</div></div></div>';}
+function readCard(){return '<div class="card" id="cread"><div class="card-h" onclick="toggleCard(\'cread\')"><div class="t">📖 Mansionario & guide (da leggere)</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox">Qui metteremo il mansionario completo, organigramma, briefing, friggitrici, foto impiattamento e promemoria — da consultare. (Da aggiungere.)</div><div class="readbox" style="margin-top:8px;background:#fbecec;border:1px solid #c0392b;color:#7a1f1f;font-weight:700">\u2696\uFE0F PENALI: a 7 errori settimanali sull\u2019app vengono revocati il mezzo libero in pi\u00f9 e l\u2019uscita concordata in anticipo. Si prega la massima seriet\u00e0.</div></div></div>';}
 
 let openIds=new Set();
 function openCard(id){const e=document.getElementById(id);if(e)e.classList.add('open');}
@@ -466,15 +466,15 @@ function penaleBanner(cook){
   var nm=nowMin();
   var due=raw.filter(function(m){return nm>=m.from;});
   updatePenale(cook,due.map(function(m){return m.t;}));
-  var pr=progressFor(cook);
+  var pr=progressFor(cook);var _RULE='<div style="margin-top:8px;font-size:11.5px;font-weight:700;line-height:1.4;border-top:1px solid rgba(120,120,120,.45);padding-top:6px">\u2696\uFE0F A 7 ERRORI settimanali sull\u2019app vengono revocati il MEZZO LIBERO in pi\u00f9 e l\u2019USCITA concordata in anticipo. Si prega la massima seriet\u00e0.</div>';
   if(!raw.length){maybeStreak(cook);return '<div class="okbar">✅ '+esc(cook)+', hai completato tutto oggi! 🎉'+streakHtml(cook)+'</div>';}
   var lis=raw.map(function(m){return '<li>'+esc(m.t)+'</li>';}).join('');
   var barcol=due.length?'#c0392b':'#c9a227';
   var bar='<div style="background:rgba(0,0,0,.12);border-radius:8px;height:9px;margin:9px 0 4px;overflow:hidden"><div style="height:100%;width:'+pr.pct+'%;background:'+barcol+'"></div></div><div style="font-size:12px;opacity:.92;margin-bottom:6px">Completato oggi: <b>'+pr.pct+'%</b> ('+pr.done+'/'+pr.tot+')'+streakHtml(cook)+'</div>';
   if(due.length){
-    return '<div class="penalebar"><div class="pb-t">⚠️ '+esc(cook)+' — TI MANCANO '+raw.length+' COSE</div><div class="pb-s">Completale subito: lo chef vede chi non ha finito · rischio PENALE</div>'+bar+'<ul class="pb-l">'+lis+'</ul></div>';
+    return '<div class="penalebar"><div class="pb-t">⚠️ '+esc(cook)+' — TI MANCANO '+raw.length+' COSE</div><div class="pb-s">Completale subito: lo chef vede chi non ha finito · rischio PENALE</div>'+bar+'<ul class="pb-l">'+lis+'</ul>'+_RULE+'</div>';
   }
-  return '<div class="penalebar" style="background:#ffcf3f;color:#3a2c00;border-color:#d6a800;box-shadow:0 3px 14px rgba(214,168,0,.35);animation:none"><div class="pb-t" style="color:#3a2c00">📋 '+esc(cook)+' — ti mancano '+raw.length+' cose oggi</div><div class="pb-s" style="color:#5a4400">Completa tutto prima di fine turno · lo chef vede chi non ha finito</div>'+bar+'<ul class="pb-l" style="color:#3a2c00">'+lis+'</ul></div>';
+  return '<div class="penalebar" style="background:#ffcf3f;color:#3a2c00;border-color:#d6a800;box-shadow:0 3px 14px rgba(214,168,0,.35);animation:none"><div class="pb-t" style="color:#3a2c00">📋 '+esc(cook)+' — ti mancano '+raw.length+' cose oggi</div><div class="pb-s" style="color:#5a4400">Completa tutto prima di fine turno · lo chef vede chi non ha finito</div>'+bar+'<ul class="pb-l" style="color:#3a2c00">'+lis+'</ul>'+_RULE+'</div>';
 }
 function fineTurnoCard(){var c=getCook();if(!c||c==='Gigio'||isOff(c)||CHIUSI.indexOf(c)>=0)return '';var t=TIMBRA[c]||{};if(t.sOut)return '<div class="okbar">👋 '+esc(c)+', turno chiuso. A domani!</div>';return '<div class="card" style="border-color:var(--gold)"><div class="card-b" style="display:block"><button class="btn" style="width:100%;font-size:16px;padding:14px" onclick="fineTurno()">✅ Ho finito il turno</button><div class="readbox" style="margin-top:8px">Se manca qualcosa te lo dico. Poi l’uscita la sblocca lo chef (o Gianluca) dopo aver controllato la pulizia — chiediglielo di persona. Prima di chiudere ti chiede di confermare planetarie e abbattitori.</div></div></div>';}
 function fineTurno(){var c=getCook();if(!c){alert('Prima scegli il tuo nome.');return;}var miss=missingFor(c)||[];if(miss.length){alert('Aspetta! Prima di andare ti manca:\n\n- '+miss.map(function(m){return m.t;}).join('\n- ')+'\n\nCompletale, poi segna la fine turno.');return;}if(!(TIMBRA[c]&&TIMBRA[c].pIn)){alert('Segna prima l\'arrivo del pranzo.');return;}timbraSet('sOut');}
@@ -543,6 +543,6 @@ function render(){
   document.getElementById('view').innerHTML=out;
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 14/07 15:25</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 14/07 15:35</div>
 </body>
 </html>
