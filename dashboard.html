@@ -185,7 +185,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='14/07 15:45';
+const APP_VER='14/07 16:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -224,7 +224,7 @@ async function loadAll(silent){
     window.COOKNOTES=(cnote||[]).map(function(r){var p=(r.k||'').split('|');return {cook:p[1],day:p[2],text:(r.v&&r.v.text)||'',at:(r.v&&r.v.at)||null};}).filter(function(x){return x.day===day && x.text && x.text.trim();});
     window.RECMODS=(recmods||[]).map(function(r){var k=r.k||'';var app=k.indexOf('anticorr|')===0?'Antipasti':k.indexOf('primicorr|')===0?'Primi':k.indexOf('dcorr|')===0?'Pasticceria':k.indexOf('panecorr|')===0?'Pane':'?';return {key:k,app:app,label:(r.v&&r.v.label)||'',text:(r.v&&r.v.text)||'',at:(r.v&&r.v.at)||null};}).filter(function(x){return x.text && x.text.trim();});
     try{var _pl=await sb('kitchen_meta?k=eq.passlist&select=*');window.PASSL=(_pl&&_pl[0]&&_pl[0].v&&_pl[0].v.items)?_pl[0].v.items:[];}catch(e){window.PASSL=[];}
-    try{var _co=await sb('kitchen_meta?k=eq.chefordini|'+day+'&select=*');window.CHEFORD=(_co&&_co[0]&&_co[0].v&&_co[0].v.items)?_co[0].v.items:[];}catch(e){window.CHEFORD=[];}
+    try{var _co=await sb('kitchen_meta?k=eq.chefordini'+''+'&select=*');window.CHEFORD=(_co&&_co[0]&&_co[0].v&&_co[0].v.items)?_co[0].v.items:[];}catch(e){window.CHEFORD=[];}
     render(day,ck,ckw,ent,(meta&&meta[0])?meta[0].v:null,presa);
     renderNote();
     document.getElementById('status').textContent='✓ Aggiornato alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
@@ -316,7 +316,7 @@ async function saveNote(){
 function sbloccoCard(){var T=window.TIMB||{};var S=window.SBLOCCHI||{};var attivi=TEAM.filter(function(x){var c=x[0];var t=T[c];return t&&(t.pIn||t.in)&&!(t.sOut||t.out);});if(!attivi.length)return '';var rows=attivi.map(function(x){var c=x[0];var s=S[c];var stato;if(s&&s.used){stato='<span class="pill ok">✓ uscito</span>';}else if(s&&!s.used){stato='<span class="pill ok">🔓 sbloccato</span> <button class="ctrlbtn" style="width:auto;padding:6px 10px" onclick="revocaUscita(\''+c+'\')">Annulla</button>';}else{stato='<button class="btn" style="width:auto;padding:8px 12px;margin:0" onclick="sbloccaUscita(\''+c+'\')">✅ Ho controllato — sblocca</button>';}return '<div class="row"><span><b>'+esc(c)+'</b> <span class="muted">· arrivo '+tloc(T[c].pIn||T[c].in)+'</span></span><span>'+stato+'</span></div>';}).join('');return '<div class="card" style="border-color:var(--gold)"><div class="card-h"><div class="t">🔓 Sblocca uscite<div class="sub">nessuno chiude il turno finché non sblocchi tu (dopo aver controllato pulizie, planetarie e abbattitori)</div></div></div><div class="card-b">'+rows+'</div></div>';}
 async function sbloccaUscita(cook){var day=(window.LAST&&window.LAST.day)||todayStr();if(!confirm('Confermi di aver controllato pulizie, planetarie e abbattitori di '+cook+'?\n\nSbloccando, '+cook+' potrà segnare l\'uscita.'))return;window.SBLOCCHI=window.SBLOCCHI||{};window.SBLOCCHI[cook]={by:'chef',at:new Date().toISOString(),used:false};try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'sblocco|'+day+'|'+cook,v:window.SBLOCCHI[cook]})});}catch(e){}rerenderDash();}
 async function revocaUscita(cook){var day=(window.LAST&&window.LAST.day)||todayStr();if(!confirm('Togliere lo sblocco a '+cook+'?'))return;window.SBLOCCHI=window.SBLOCCHI||{};window.SBLOCCHI[cook]={by:'chef',at:new Date().toISOString(),used:true,revoked:true};try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'sblocco|'+day+'|'+cook,v:window.SBLOCCHI[cook]})});}catch(e){}rerenderDash();}
-function timbraCardDash(){var T=window.TIMB||{};var day=(window.LAST&&window.LAST.day)||todayStr();function has(t){return t&&(t.pIn||t.sIn||t.in);}function fmt(t){var P=[];if(t.pIn||t.pOut)P.push('Mattina '+(t.pIn?tloc(t.pIn):'—')+(t.pOut?('→'+tloc(t.pOut)):''));if(t.sIn||t.sOut)P.push('Sera '+(t.sIn?tloc(t.sIn):'—')+(t.sOut?('→'+tloc(t.sOut)):''));if(!P.length&&(t.in||t.out))P.push(tloc(t.in)+(t.out?('→'+tloc(t.out)):''));return P.join(' · ');}var rows=TEAM.map(function(x){var c=x[0];var t=T[c];if(!has(t)){if(typeof isOff==='function'&&isOff(c,day))return '<div class="row"><span>'+esc(c)+'</span><span style="color:#c9a227;font-weight:800">🔓 libero</span></div>';return '<div class="row"><span>'+esc(c)+'</span><span class="muted">—</span></div>';}return '<div class="row"><span>'+esc(c)+'</span><span class="donerow" style="font-weight:700">'+fmt(t)+'</span></div>';}).join('');var _miss=TEAM.filter(function(x){var c=x[0];var t=T[c];var off=(typeof isOff==='function'&&isOff(c,day));return !off && !has(t);}).length;var _to=foldOpen('arrivi');var _ta=_miss>0?'<span class="pill no">⚠️ '+_miss+' non arrivati</span>':'<span class="pill ok">tutti arrivati</span>';return '<div class="card"><div class="card-h" style="cursor:pointer" onclick="foldTP(\'arrivi\')"><div class="t">Orari arrivo / uscita (mattina e sera)</div><span>'+_ta+' <span class="muted">'+(_to?'▾':'▸')+'</span></span></div>'+(_to?('<div class="card-b">'+rows+'</div>'):'')+'</div>';}
+function timbraCardDash(){var T=window.TIMB||{};var day=(window.LAST&&window.LAST.day)||todayStr();function has(t){return t&&(t.pIn||t.sIn||t.in);}function fmt(t){var P=[];var mm=function(a,b){if(!a||!b)return 0;var x=(new Date(b)-new Date(a))/60000;return (x>0&&x<20*60)?x:0;};if(t.pIn||t.pOut)P.push('Mattina '+(t.pIn?tloc(t.pIn):'—')+(t.pOut?('→'+tloc(t.pOut)):''));if(t.sIn||t.sOut)P.push('Sera '+(t.sIn?tloc(t.sIn):'—')+(t.sOut?('→'+tloc(t.sOut)):''));if(!P.length&&(t.in||t.out))P.push(tloc(t.in)+(t.out?('→'+tloc(t.out)):''));var tot=mm(t.pIn,t.pOut)+mm(t.sIn,t.sOut);if(tot===0)tot=mm(t.in,t.out);var ht=tot>0?(' · <b>'+Math.floor(tot/60)+'h'+('0'+Math.round(tot%60)).slice(-2)+'</b>'):'';return P.join(' · ')+ht;}var rows=TEAM.map(function(x){var c=x[0];var t=T[c];if(!has(t)){if(typeof isOff==='function'&&isOff(c,day))return '<div class="row"><span>'+esc(c)+'</span><span style="color:#c9a227;font-weight:800">🔓 libero</span></div>';return '<div class="row"><span>'+esc(c)+'</span><span class="muted">—</span></div>';}return '<div class="row"><span>'+esc(c)+'</span><span class="donerow" style="font-weight:700">'+fmt(t)+'</span></div>';}).join('');var _miss=TEAM.filter(function(x){var c=x[0];var t=T[c];var off=(typeof isOff==='function'&&isOff(c,day));return !off && !has(t);}).length;var _to=foldOpen('arrivi');var _ta=_miss>0?'<span class="pill no">⚠️ '+_miss+' non arrivati</span>':'<span class="pill ok">tutti arrivati</span>';return '<div class="card"><div class="card-h" style="cursor:pointer" onclick="foldTP(\'arrivi\')"><div class="t">Orari arrivo / uscita (mattina e sera)</div><span>'+_ta+' <span class="muted">'+(_to?'▾':'▸')+'</span></span></div>'+(_to?('<div class="card-b">'+rows+'</div>'):'')+'</div>';}
 function chefCard(ck,day){
   var dm={};(ck||[]).filter(function(r){return r.grp==='chef';}).forEach(function(r){dm[r.idx]=r;});
   var done=Object.keys(dm).length;var tot=CHEF.length;
@@ -461,7 +461,7 @@ function coCard(day){
   if(!rows)rows='<div class="muted">Nessun ordine segnato oggi. Scrivi sopra cosa hai chiesto e a chi.</div>';
   return '<div class="card" style="border:2px solid var(--gold)"><div class="card-h"><div class="t">📋 Ordini ai cuochi<div class="sub">segna cosa hai chiesto e a chi · a fine giornata spunta se è stato fatto</div></div></div><div class="card-b"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"><input id="coTxt" placeholder="Es. preparare il fondo bruno" style="flex:1;min-width:150px;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px" onkeydown="if(event.key===\'Enter\')addChefOrd()"><select id="coCook" style="border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px">'+opts+'</select><button class="ctrlbtn" style="margin:0" onclick="addChefOrd()">+ Aggiungi</button></div>'+rows+'</div></div>';
 }
-async function saveCO(){var day=(window.LAST&&window.LAST.day)||todayStr();try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefordini|'+day,v:{items:window.CHEFORD||[]}})});}catch(e){console.error(e);}}
+async function saveCO(){var day=(window.LAST&&window.LAST.day)||todayStr();try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefordini',v:{items:window.CHEFORD||[]}})});}catch(e){console.error(e);}}
 function addChefOrd(){var t=document.getElementById('coTxt'),c=document.getElementById('coCook');var txt=((t&&t.value)||'').trim();if(!txt){alert('Scrivi cosa hai chiesto.');return;}window.CHEFORD=window.CHEFORD||[];window.CHEFORD.push({id:Date.now(),txt:txt,cook:(c&&c.value)||'',at:new Date().toISOString(),done:null});if(t)t.value='';saveCO();rerenderDash();}
 function setCO(id,val){window.CHEFORD=(window.CHEFORD||[]).map(function(o){if(o.id===id){o.done=val;o.doneAt=new Date().toISOString();}return o;});saveCO();rerenderDash();}
 function delCO(id){if(!confirm('Togliere questo ordine dalla lista?'))return;window.CHEFORD=(window.CHEFORD||[]).filter(function(o){return o.id!==id;});saveCO();rerenderDash();}
@@ -533,6 +533,11 @@ function penaliCard(){
   return '<div class="card" style="border-color:#c0392b"><div class="card-h"><div class="t">⚖️ Penali della settimana<div class="sub">compiti non completati da lunedì · a 7 → revoca mezzo libero in più + uscita concordata</div></div></div><div class="card-b">'+rows+'</div></div>';
 }
 
+function apeChiuView(ck,day,resp){
+  var aO=foldOpen('ape'),cO=foldOpen('chi');
+  return '<div style="margin-bottom:8px"><div onclick="foldTP(\'ape\')" style="cursor:pointer;font-weight:700;padding:8px 2px;border-bottom:1px solid var(--border)">🌅 Apertura — resp. settimana <span class="muted">'+(aO?'▾':'▸')+'</span></div>'+(aO?shared('apertura',ck,day,resp):'')+'</div>'+'<div><div onclick="foldTP(\'chi\')" style="cursor:pointer;font-weight:700;padding:8px 2px;border-bottom:1px solid var(--border)">🌙 Chiusura — resp. settimana <span class="muted">'+(cO?'▾':'▸')+'</span></div>'+(cO?shared('chiusura',ck,day,resp):'')+'</div>';
+}
+
 function setTile(id){window.TILEVIEW=id;try{window.scrollTo(0,0);}catch(e){}rerenderDash();}
 function render(day,ck,ckw,ent,meta,presa){
   window.LAST={day:day,ck:ck,ckw:ckw,ent:ent,meta:meta,presa:presa};
@@ -556,15 +561,13 @@ function render(day,ck,ckw,ent,meta,presa){
     penali: penaliCard(),
     turni: timbraCardDash(),
     pause: pausaCardDash(),
-    pulizie: pulizieCardH,
-    apertura: shared('apertura',ck,day,resp),
-    chiusura: shared('chiusura',ck,day,resp),
+    apeChiu: apeChiuView(ck,day,resp),
     scheda: schedaCardH,
     passaggi: passCardH,
     consegne: consegneDashCard(),
     compiti: chefCard(ck,day),
     report: reportCard(),
-    rif: riepilogoCard()+coCard(day)+recModsCard()+cookNotesCard()+respCardH+presaCardH+menuCard()
+    rif: coCard(day)+recModsCard()+cookNotesCard()+respCardH+presaCardH+menuCard()
   };
   var _T=window.TIMB||{};
   function _cnt(f){return TEAM.filter(f).length;}
@@ -577,9 +580,7 @@ function render(day,ck,ckw,ent,meta,presa){
     {id:'penali',l:'Penali settimana',e:'⚖️',b:'#F09595',fg:'#501313',a:'#791F1F',n:(nPen||'')},
     {id:'turni',l:'Turni mattina / sera',e:'⏱️',b:'#B5D4F4',fg:'#042C53',a:'#0C447C',n:(nArr?('⚠ '+nArr):'')},
     {id:'pause',l:'Pause',e:'⏸️',b:'#FAC775',fg:'#412402',a:'#633806',n:(nPau||'')},
-    {id:'pulizie',l:'Pulizie',e:'🧽',b:'#C0DD97',fg:'#173404',a:'#27500A',n:''},
-    {id:'apertura',l:'Apertura',e:'🌅',b:'#9FE1CB',fg:'#04342C',a:'#085041',s:'resp. settimana',n:''},
-    {id:'chiusura',l:'Chiusura',e:'🌙',b:'#CECBF6',fg:'#26215C',a:'#3C3489',s:'resp. settimana',n:''},
+    {id:'apeChiu',l:'Apertura / Chiusura',e:'🌅',b:'#9FE1CB',fg:'#04342C',a:'#085041',s:'resp. settimana',n:''},
     {id:'scheda',l:'Scheda servizio',e:'📝',b:'#F4C0D1',fg:'#4B1528',a:'#72243E',n:(scheda.length||'')},
     {id:'passaggi',l:'Passaggi',e:'🔄',b:'#F5C4B3',fg:'#4A1B0C',a:'#712B13',n:(allPass.length||'')},
     {id:'consegne',l:'Consegne',e:'📋',b:'#D3D1C7',fg:'#2C2C2A',a:'#444441',n:(nCons||'')},
@@ -718,6 +719,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 14/07 15:45</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 14/07 16:00</div>
 </body>
 </html>

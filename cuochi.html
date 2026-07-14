@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='14/07 15:35';
+const APP_VER='14/07 16:00';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -213,7 +213,7 @@ async function loadAll(){
     PREVPASS=prevp||[];
     NOTECUOCO={};(ncuoco||[]).forEach(function(r){NOTECUOCO[r.k]=(r.v&&r.v.text)||'';});
     PAUSE=(pausa||[]).map(function(r){return {key:r.k,n:(r.v&&r.v.n)||'',out:(r.v&&r.v.out)||null,in:(r.v&&r.v.in)||null};}).sort(function(a,b){return (a.out||'').localeCompare(b.out||'');});
-    try{var _co=await sb('kitchen_meta?k=eq.chefordini|'+today+'&select=v');CHEFORD=(_co&&_co[0]&&_co[0].v&&_co[0].v.items)?_co[0].v.items:[];}catch(e){CHEFORD=[];}
+    try{var _co=await sb('kitchen_meta?k=eq.chefordini'+''+'&select=v');CHEFORD=(_co&&_co[0]&&_co[0].v&&_co[0].v.items)?_co[0].v.items:[];}catch(e){CHEFORD=[];}
     try{var _pl=await sb('kitchen_meta?k=eq.passlist&select=*');PASSL=(_pl&&_pl[0]&&_pl[0].v&&_pl[0].v.items)?_pl[0].v.items:[];}catch(e){PASSL=[];}
     document.getElementById('status').textContent='✓ Collegato · '+today.split('-').reverse().join('/');
     render();
@@ -458,7 +458,7 @@ function chefOrdCard(){
   var rows=pend.map(function(o){return '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.14);border-radius:10px;padding:10px 12px;margin:8px 0"><div style="flex:1;font-size:15px;font-weight:800;color:#fff">'+esc(o.txt)+'<div style="font-size:11.5px;opacity:.85;font-weight:600">richiesto dallo chef · '+tloc(o.at)+'</div></div><button onclick="cuocoMarkCO('+o.id+')" style="background:#fff;color:#8a1f10;border:0;border-radius:9px;padding:9px 14px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap">✓ Fatto</button></div>';}).join('');
   return '<div class="penalebar" style="background:#8a1f10;box-shadow:0 3px 14px rgba(138,31,16,.5)"><div class="pb-t">🔔 '+esc(me)+' — LO CHEF TI HA CHIESTO '+pend.length+' '+(pend.length>1?'COSE':'COSA')+'</div><div class="pb-s">Falle PRIMA di chiudere il servizio, poi tocca ✓ Fatto</div>'+rows+'</div>';
 }
-async function cuocoMarkCO(id){var o=(CHEFORD||[]).find(function(x){return x.id===id;});if(!o)return;o.done=true;o.doneAt=new Date().toISOString();try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefordini|'+today,v:{items:CHEFORD}})});toast('Fatto ✓');render();}catch(e){toast('⚠️ Non salvato');o.done=null;render();}}
+async function cuocoMarkCO(id){var o=(CHEFORD||[]).find(function(x){return x.id===id;});if(!o)return;o.done=true;o.doneAt=new Date().toISOString();try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefordini',v:{items:CHEFORD}})});toast('Fatto ✓');render();}catch(e){toast('⚠️ Non salvato');o.done=null;render();}}
 function penaleBanner(cook){
   if(cook==='Gigio')return '';
   var raw=missingFor(cook);
@@ -543,6 +543,6 @@ function render(){
   document.getElementById('view').innerHTML=out;
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 14/07 15:35</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 14/07 16:00</div>
 </body>
 </html>
