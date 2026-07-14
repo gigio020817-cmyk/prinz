@@ -185,7 +185,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='14/07 14:55';
+const APP_VER='14/07 15:45';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -197,7 +197,7 @@ async function loadAll(silent){
   const day=document.getElementById('datePick').value;
   if(!silent)document.getElementById('status').textContent='Caricamento…';
   try{
-    const[ck,ckw,ent,meta,presa,ctrl,note,timb,pane,cnote,recmods,prevpass,pausa,sbl]=await Promise.all([
+    const[ck,ckw,ent,meta,presa,ctrl,note,timb,pane,cnote,recmods,prevpass,pausa,sbl,pen]=await Promise.all([
       sb('kitchen_checks?day=eq.'+day+'&select=*&order=at'),
       sb('kitchen_checks?day=eq.'+weekStart(day)+'&grp=like.pulizias%23*&select=*&order=at'),
       sb('kitchen_entries?day=eq.'+day+'&select=*&order=at'),
@@ -211,13 +211,14 @@ async function loadAll(silent){
       sb('kitchen_meta?k=like.*corr|*&select=*'),
       sb('kitchen_entries?day=gte.'+dayShift(day,-3)+'&day=lt.'+day+'&type=eq.passaggio&select=*&order=at'),
       sb('kitchen_meta?k=like.pausa|'+day+'*&select=*'),
-      sb('kitchen_meta?k=like.sblocco|'+day+'*&select=*')
+      sb('kitchen_meta?k=like.sblocco|'+day+'*&select=*'),
+      sb('kitchen_meta?k=like.penale|*&select=k,v')
     ]);
     window.PREVPASS=prevpass||[];
     window.CTRL={};(ctrl||[]).forEach(r=>{window.CTRL[r.k.slice(5)]=r.v;});
     window.NOTE=(note&&note[0]&&note[0].v)?(note[0].v.text||''):'';
     window.NOTE_AT=(note&&note[0]&&note[0].v)?(note[0].v.at||null):null;
-    window.TIMB={};(timb||[]).forEach(function(r){var p=r.k.split('|');window.TIMB[p[2]]=r.v;});window.SBLOCCHI={};(sbl||[]).forEach(function(r){var p=r.k.split('|');window.SBLOCCHI[p[2]]=r.v;});
+    window.TIMB={};(timb||[]).forEach(function(r){var p=r.k.split('|');window.TIMB[p[2]]=r.v;});window.SBLOCCHI={};(sbl||[]).forEach(function(r){var p=r.k.split('|');window.SBLOCCHI[p[2]]=r.v;});window.PENALI=pen||[];
     window.PAUSE=(pausa||[]).map(function(r){return {n:(r.v&&r.v.n)||'',out:(r.v&&r.v.out)||null,in:(r.v&&r.v.in)||null};}).sort(function(a,b){return (a.out||'').localeCompare(b.out||'');});
     window.PANESC={};(pane||[]).forEach(function(r){var id=r.k.slice(5);window.PANESC[id]=(r.v&&typeof r.v.scorta==='number')?r.v.scorta:0;});
     window.COOKNOTES=(cnote||[]).map(function(r){var p=(r.k||'').split('|');return {cook:p[1],day:p[2],text:(r.v&&r.v.text)||'',at:(r.v&&r.v.at)||null};}).filter(function(x){return x.day===day && x.text && x.text.trim();});
@@ -517,6 +518,21 @@ var DSEC_DEF={oggi:true,giornata:false,rif:false};
 function dsecOpen(id){try{var r=localStorage.getItem('dsec_'+id);return r===null?!!DSEC_DEF[id]:r==='1';}catch(e){return !!DSEC_DEF[id];}}
 function toggleDsec(id){try{localStorage.setItem('dsec_'+id,dsecOpen(id)?'0':'1');}catch(e){}rerenderDash();}
 function dsec(id,title,inner){var op=dsecOpen(id);return '<div class="dsec"><div class="dsech" onclick="toggleDsec(\''+id+'\')"><span>'+title+'</span><span class="dsecar">'+(op?'▾':'▸')+'</span></div>'+(op?('<div class="dsecb">'+inner+'</div>'):'')+'</div>';}
+function weeklyErrors(){
+  var day=(window.LAST&&window.LAST.day)||todayStr();
+  var wd=new Date(day+'T00:00:00');var k=(wd.getDay()+6)%7;var mon=new Date(wd);mon.setDate(mon.getDate()-k);
+  function y(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  var dates=[];for(var i=0;i<7;i++){var dd=new Date(mon);dd.setDate(mon.getDate()+i);dates.push(y(dd));}
+  var pen=window.PENALI||[];var by={};
+  pen.forEach(function(r){var p=(r.k||'').split('|');var dt=p[1],ck=p[2];if(dates.indexOf(dt)<0)return;var v=r.v||{};var n=(v.done===true)?0:(v.n||0);by[ck]=(by[ck]||0)+n;});
+  return by;
+}
+function penaliCard(){
+  var by=weeklyErrors();
+  var rows=TEAM.map(function(x){var c=x[0];var n=by[c]||0;var col=n>=7?'#c0392b':(n>=4?'#c9a227':'#1e7a46');return '<div class="row"><span>'+esc(c)+(n>=7?' <b style="color:#c0392b">— REVOCA privilegi</b>':'')+'</span><span style="background:'+col+';color:#fff;font-size:12px;font-weight:700;padding:2px 9px;border-radius:10px">'+n+'</span></div>';}).join('');
+  return '<div class="card" style="border-color:#c0392b"><div class="card-h"><div class="t">⚖️ Penali della settimana<div class="sub">compiti non completati da lunedì · a 7 → revoca mezzo libero in più + uscita concordata</div></div></div><div class="card-b">'+rows+'</div></div>';
+}
+
 function setTile(id){window.TILEVIEW=id;try{window.scrollTo(0,0);}catch(e){}rerenderDash();}
 function render(day,ck,ckw,ent,meta,presa){
   window.LAST={day:day,ck:ck,ckw:ckw,ent:ent,meta:meta,presa:presa};
@@ -537,6 +553,7 @@ function render(day,ck,ckw,ent,meta,presa){
   var resp2=resp;
   var VIEWS={
     sblocco: sbloccoCard(),
+    penali: penaliCard(),
     turni: timbraCardDash(),
     pause: pausaCardDash(),
     pulizie: pulizieCardH,
@@ -551,12 +568,13 @@ function render(day,ck,ckw,ent,meta,presa){
   };
   var _T=window.TIMB||{};
   function _cnt(f){return TEAM.filter(f).length;}
-  var nSbl=_cnt(function(x){var t=_T[x[0]];return t&&(t.pIn||t.in)&&!(t.sOut||t.out);});
+  var nSbl=_cnt(function(x){var t=_T[x[0]];return t&&(t.pIn||t.in)&&!(t.sOut||t.out);});var _we=weeklyErrors();var nPen=Object.keys(_we).filter(function(c){return _we[c]>=7;}).length;
   var nArr=_cnt(function(x){var c=x[0];var t=_T[c];var off=(typeof isOff==='function'&&isOff(c,day));return !off && !(t&&(t.pIn||t.sIn||t.in));});
   var nPau=(window.PAUSE||[]).filter(function(p){return !p.in;}).length;
   var nCons=(window.PASSL?window.PASSL.filter(function(x){return !x.done;}).length:0);
   var TILES=[
     {id:'sblocco',l:'Sblocca uscite',e:'🔓',b:'#F7C1C1',fg:'#501313',a:'#791F1F',n:(nSbl||'')},
+    {id:'penali',l:'Penali settimana',e:'⚖️',b:'#F09595',fg:'#501313',a:'#791F1F',n:(nPen||'')},
     {id:'turni',l:'Turni mattina / sera',e:'⏱️',b:'#B5D4F4',fg:'#042C53',a:'#0C447C',n:(nArr?('⚠ '+nArr):'')},
     {id:'pause',l:'Pause',e:'⏸️',b:'#FAC775',fg:'#412402',a:'#633806',n:(nPau||'')},
     {id:'pulizie',l:'Pulizie',e:'🧽',b:'#C0DD97',fg:'#173404',a:'#27500A',n:''},
@@ -700,6 +718,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 14/07 14:55</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 14/07 15:45</div>
 </body>
 </html>
