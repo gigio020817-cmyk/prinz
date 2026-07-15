@@ -137,5 +137,7 @@ async function loadArr(){try{var r=await sb('kitchen_meta?k=eq.'+encodeURICompon
 
 loadArr();
 </script>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 15/07 14:55</div>
+<script>var APP_VER='15/07 14:55';(async function selfUpdate(){try{if(sessionStorage.getItem('upd_banu'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_banu','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();</script>
 </body>
 </html>
