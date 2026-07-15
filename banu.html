@@ -113,20 +113,28 @@ const COOK="Banu";
 async function sb(path,opts){opts=opts||{};var h={apikey:SB_KEY,'Content-Type':'application/json'};if(opts.headers)Object.assign(h,opts.headers);var r=await fetch(SB_URL+'/rest/v1/'+path,{method:opts.method||'GET',headers:h,body:opts.body});if(!r.ok)throw new Error('HTTP '+r.status);var t=await r.text();return t?JSON.parse(t):null;}
 function thm(iso){try{var d=new Date(iso);return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}catch(e){return '';}}
 var TIMB=null;
-function renderArr(){var box=document.getElementById('arrbox');if(!box)return;var h='';
-  h+=(TIMB&&TIMB.in)?'<div class="arrdone"><span>Arrivo</span><span>segnato ✓</span></div>':'<button class="arrbtn" onclick="timbraIn()">Segna ARRIVO</button>';
-  if(TIMB&&TIMB.in){h+=TIMB.out?'<div class="arrdone" style="margin-top:8px"><span>Uscita</span><span>segnata ✓</span></div>':'<button class="arrbtn" style="margin-top:8px;background:#fff;color:var(--wine);border:1px solid var(--line)" onclick="timbraOut()">Segna USCITA (fine turno)</button>';}
+function renderArr(){var box=document.getElementById('arrbox');if(!box)return;var t=TIMB||{};
+  function seg(l){return '<div class="arrdone" style="margin-top:8px"><span>'+l+'</span><span>segnato ✓</span></div>';}
+  function bt(l,f,sec){return '<button class="arrbtn" style="margin-top:8px;'+(sec?'background:#fff;color:var(--wine);border:1px solid var(--line)':'')+'" onclick="timbraSet(\''+f+'\')">'+l+'</button>';}
+  var h='<div style="font-weight:700;margin:2px 0 0">🌅 Mattina</div>';
+  h+= t.pIn?seg('Arrivo mattina'):bt('Segna ARRIVO mattina','pIn',false);
+  h+= t.pOut?seg('Uscita pranzo'):bt('Segna USCITA pranzo','pOut',true);
+  h+='<div style="font-weight:700;margin:12px 0 0">🌙 Sera</div>';
+  h+= t.sIn?seg('Arrivo sera'):bt('Segna ARRIVO sera','sIn',false);
+  h+= t.sOut?seg('Uscita fine turno'):bt('Segna USCITA fine turno','sOut',true);
   box.innerHTML=h;}
-async function timbraOut(){if(!TIMB||!TIMB.in){alert('Segna prima l\'arrivo.');return;}if(TIMB.out)return;
-  var undone=[];document.querySelectorAll('.task[data-p="d"]').forEach(function(el){if(!el.classList.contains('done')){var l=el.querySelector('.lbl');undone.push(l?l.textContent:'');}});
-  if(undone.length){alert('Aspetta! Prima di chiudere il turno devi spuntare:\n\n- '+undone.join('\n- ')+'\n\nFalle, poi segna l\'uscita.');return;}
-  if(!confirm('Segnare la USCITA (fine turno)?'))return;TIMB.out=new Date().toISOString();renderArr();
-  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today()+'|'+COOK,v:TIMB})});}
-  catch(e){alert('Non salvato, controlla internet');TIMB.out=null;renderArr();}}
-async function loadArr(){try{var r=await sb('kitchen_meta?k=eq.'+encodeURIComponent('timbra|'+today()+'|'+COOK)+'&select=v');TIMB=(r&&r[0]&&r[0].v)||{};}catch(e){TIMB={};}renderArr();}
-async function timbraIn(){if(TIMB&&TIMB.in)return;var t=TIMB||{};t.in=new Date().toISOString();TIMB=t;renderArr();
+async function timbraSet(field){var t=TIMB||{};if(t[field])return;
+  if(field==='pOut'&&!t.pIn){alert('Segna prima l\'arrivo della mattina.');return;}
+  if(field==='sOut'&&!t.sIn){alert('Segna prima l\'arrivo della sera.');return;}
+  if(field==='sOut'){var undone=[];document.querySelectorAll('.task[data-p="d"]').forEach(function(el){if(!el.classList.contains('done')){var l=el.querySelector('.lbl');undone.push(l?l.textContent:'');}});
+    if(undone.length){alert('Aspetta! Prima di chiudere il turno devi spuntare:\n\n- '+undone.join('\n- ')+'\n\nFalle, poi segna l\'uscita.');return;}
+    if(!confirm('Segnare la USCITA (fine turno)?'))return;}
+  t[field]=new Date().toISOString();TIMB=t;renderArr();
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today()+'|'+COOK,v:t})});}
-  catch(e){alert('Non salvato, controlla internet');TIMB.in=null;renderArr();}}
+  catch(e){alert('Non salvato, controlla internet');t[field]=null;renderArr();}}
+
+async function loadArr(){try{var r=await sb('kitchen_meta?k=eq.'+encodeURIComponent('timbra|'+today()+'|'+COOK)+'&select=v');TIMB=(r&&r[0]&&r[0].v)||{};}catch(e){TIMB={};}renderArr();}
+
 loadArr();
 </script>
 </body>
