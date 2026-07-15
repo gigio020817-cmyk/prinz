@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='14/07 16:30';
+const APP_VER='15/07 14:20';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -399,7 +399,7 @@ function countDone(group){var d=0;Object.keys(CK).forEach(function(k){if(k.index
 // Fasce orarie: l'allarme conta una cosa come "mancante" solo dalla sua ora in poi (minuti dalla mezzanotte)
 var DUE_APERTURA=600;   // 10:00
 var DUE_PULIZIA=900;    // 15:00
-var DUE_CHIUSURA=1260;  // 21:00
+var DUE_CHIUSURA=1260;var DUE_PENALE=1350;  // 21:00
 var NOSCHEDA=["Majeet","Gigio"];
 function nowMin(){var d=new Date();return d.getHours()*60+d.getMinutes();}
 function hhmm(m){return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2);}
@@ -426,9 +426,10 @@ function missingFor(cook){
 }
 var _penSig=null;
 function updatePenale(cook,miss){try{
-  var sig=cook+'#'+((miss||[]).join('||'));if(sig===_penSig)return;_penSig=sig;
+  var lateEnough=(nowMin()>=DUE_PENALE)||(TIMBRA[cook]&&TIMBRA[cook].sOut);
+  var sig=cook+'#'+((miss||[]).join('||'))+'#'+(lateEnough?'L':'E');if(sig===_penSig)return;_penSig=sig;
   var k='penale|'+today+'|'+cook,sk='pen_since_'+cook+'_'+today;
-  if(miss&&miss.length){var since=null;try{since=localStorage.getItem(sk);}catch(e){}if(!since){since=new Date().toISOString();try{localStorage.setItem(sk,since);}catch(e){}}
+  if(miss&&miss.length&&lateEnough){var since=null;try{since=localStorage.getItem(sk);}catch(e){}if(!since){since=new Date().toISOString();try{localStorage.setItem(sk,since);}catch(e){}}
     sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:k,v:{cook:cook,n:miss.length,missing:miss,since:since,at:new Date().toISOString(),done:false}})}).catch(function(){});
   }else{try{localStorage.removeItem(sk);}catch(e){}
     sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:k,v:{cook:cook,n:0,missing:[],done:true,at:new Date().toISOString()}})}).catch(function(){});
@@ -543,6 +544,6 @@ function render(){
   document.getElementById('view').innerHTML=out;
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 14/07 16:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 15/07 14:20</div>
 </body>
 </html>
