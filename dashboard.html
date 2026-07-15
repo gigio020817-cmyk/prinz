@@ -185,7 +185,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='15/07 14:05';
+const APP_VER='15/07 14:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -535,10 +535,26 @@ function weeklyErrors(){
   pen.forEach(function(r){var p=(r.k||'').split('|');var dt=p[1],ck=p[2];if(dates.indexOf(dt)<0)return;var v=r.v||{};var n=(v.done===true)?0:(v.n||0);by[ck]=(by[ck]||0)+n;});
   return by;
 }
+function weeklyErrorDetail(){
+  var day=(window.LAST&&window.LAST.day)||todayStr();
+  var wd=new Date(day+'T00:00:00');var k=(wd.getDay()+6)%7;var mon=new Date(wd);mon.setDate(mon.getDate()-k);
+  function y(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  var dates=[];for(var i=0;i<7;i++){var dd=new Date(mon);dd.setDate(mon.getDate()+i);dates.push(y(dd));}
+  var pen=window.PENALI||[];var by={};
+  pen.forEach(function(r){var p=(r.k||'').split('|');var dt=p[1],ck=p[2];if(dates.indexOf(dt)<0)return;var v=r.v||{};if(v.done===true||!(v.n>0))return;var miss=(v.missing||[]).map(function(m){return (m&&m.t)?m.t:m;});by[ck]=by[ck]||[];by[ck].push({date:dt.split('-').reverse().slice(0,2).join('/'),missing:miss});});
+  return by;
+}
 function penaliCard(){
-  var by=weeklyErrors();
-  var rows=TEAM.map(function(x){var c=x[0];var n=by[c]||0;var col=n>=7?'#c0392b':(n>=4?'#c9a227':'#1e7a46');return '<div class="row"><span>'+esc(c)+(n>=7?' <b style="color:#c0392b">— REVOCA privilegi</b>':'')+'</span><span style="background:'+col+';color:#fff;font-size:12px;font-weight:700;padding:2px 9px;border-radius:10px">'+n+'</span></div>';}).join('');
-  return '<div class="card" style="border-color:#c0392b"><div class="card-h"><div class="t">⚖️ Penali della settimana<div class="sub">compiti non completati da lunedì · a 7 → revoca mezzo libero in più + uscita concordata</div></div></div><div class="card-b">'+rows+'</div></div>';
+  var by=weeklyErrors();var det=weeklyErrorDetail();
+  var rows=TEAM.map(function(x){var c=x[0];var n=by[c]||0;var col=n>=7?'#c0392b':(n>=4?'#c9a227':'#1e7a46');var open=foldOpen('pen_'+c);
+    var head='<div class="row" style="cursor:pointer" onclick="foldTP(\'pen_'+c+'\')"><span>'+esc(c)+(n>=7?' <b style="color:#c0392b">— REVOCA privilegi</b>':'')+' <span class="muted">'+(open?'▾':'▸')+'</span></span><span style="background:'+col+';color:#fff;font-size:12px;font-weight:700;padding:2px 9px;border-radius:10px">'+n+'</span></div>';
+    var body='';
+    if(open){var d=det[c]||[];
+      if(!d.length){body='<div class="readbox" style="margin:2px 0 8px">Nessuna penale questa settimana. 👍</div>';}
+      else{body='<div style="margin:2px 0 10px;padding-left:8px;border-left:2px solid #eee">'+d.map(function(g){return '<div style="font-size:13px;margin:4px 0"><b>'+g.date+'</b> — '+g.missing.map(esc).join(' · ')+'</div>';}).join('')+'</div>';}
+    }
+    return head+body;}).join('');
+  return '<div class="card" style="border-color:#c0392b"><div class="card-h"><div class="t">⚖️ Penali della settimana<div class="sub">tocca un nome per vedere cosa ha saltato · a 7 → revoca mezzo libero in più + uscita concordata</div></div></div><div class="card-b">'+rows+'</div></div>';
 }
 
 function apeChiuView(ck,day,resp){
@@ -727,6 +743,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 15/07 14:05</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 15/07 14:30</div>
 </body>
 </html>
