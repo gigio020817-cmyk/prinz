@@ -114,7 +114,6 @@
 <div id="app" style="display:none">
 <header>
   <div class="brand"><div class="mark">🥖</div><div><small>Prinz Rudolf · Cucina</small><h1>Panificazione</h1></div></div>
-  <div class="tabs" id="tabs"></div>
 </header>
 <main><div id="status">Caricamento…</div><div id="view"></div></main>
 <footer>Prinz Rudolf · Panificazione · tutto si produce e si congela</footer>
@@ -173,7 +172,7 @@ const CATS=["COLAZIONI — buffet","PANE SERALE — bistro / ristorante","RICETT
 const CATSHORT={"COLAZIONI — buffet":"Colazioni","PANE SERALE — bistro / ristorante":"Pane serale","RICETTE UTILI — quando serve":"Ricette utili"};
 const CATNOTE={"RICETTE UTILI — quando serve":"Ricette di pane non in produzione fissa: si fanno quando c'è tempo o all'occorrenza."};
 
-let SCORTA={},PRODAT={},CORR={},FILT="all";const OPEN=new Set();
+let CORR={},CTILE=null;const OPEN=new Set();
 const esc=s=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),1800);}
 function sb(path,opt){opt=opt||{};const h=Object.assign({apikey:SB_KEY,'Content-Type':'application/json'},opt.headers||{});return fetch(SB_URL+'/rest/v1/'+path,Object.assign({},opt,{headers:h})).then(async r=>{if(!r.ok){const t=await r.text();throw new Error('HTTP '+r.status+' '+t);}const t=await r.text();return t?JSON.parse(t):[];});}
@@ -189,46 +188,19 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(document.getElementById('pw').value,false);
 document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')unlock(e.target.value,false)});
-const APP_VER='16/07 22:40';
+const APP_VER='16/07 23:15';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_pane'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_pane','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_pane')!=='28/06 12:00'){localStorage.removeItem('pr_panepw');localStorage.setItem('pr_av_pane','28/06 12:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_panepw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>document.getElementById('pw').focus(),300);})();
 
 async function loadAll(){
   document.getElementById('status').textContent='Caricamento dal cloud…';
   try{
-    const rows=await sb('kitchen_meta?k=like.pane|*&select=*');
-    SCORTA={};PRODAT={};(rows||[]).forEach(r=>{var id=r.k.slice(5);SCORTA[id]=(r.v&&typeof r.v.scorta==='number')?r.v.scorta:0;PRODAT[id]=(r.v&&r.v.prod)||null;});
     try{const crows=await sb('kitchen_meta?k=like.panecorr|*&select=*');CORR={};(crows||[]).forEach(r=>{CORR[r.k]=(r.v&&r.v.text)||'';});}catch(_){}
     document.getElementById('status').textContent='✓ Collegato · aggiornato '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
     render();
   }catch(e){document.getElementById('status').textContent='⚠️ Problema di collegamento. Controlla internet e riapri.';console.error(e);}
 }
-function getScorta(id){return SCORTA[id]||0;}
-function daProdurre(p){if(p.soglia==null)return false;return getScorta(p.id)<=p.soglia;}
-
-async function setScorta(id,val){
-  if(val<0)val=0;SCORTA[id]=val;updateCardUI(id);
-  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pane|'+id,v:{scorta:val,prod:PRODAT[id]||null}})});}
-  catch(e){toast('⚠️ Non salvato');console.error(e);}
-}
-function badgeHTML(p,prod){return p.soglia==null?'<span class="badge req">A richiesta</span>':(prod?'<span class="badge prod">▶ PRODURRE</span>':'<span class="badge ok">OK</span>');}
-function updateCardUI(id){
-  const sc=getScorta(id),c=document.getElementById('c_'+id);
-  if(c){const n=c.querySelector('.val .n');if(n)n.textContent=sc;}
-}
-function step(id,d){setScorta(id,getScorta(id)+d);}
 function toggleRec(id){const c=document.getElementById('c_'+id);if(!c)return;c.classList.toggle('open');if(c.classList.contains('open'))OPEN.add(id);else OPEN.delete(id);}
-function setFilt(f){FILT=f;render();}
-
-function tabsBar(){
-  const T=[['all','Tutti']].concat(CATS.map(c=>[c,CATSHORT[c]]));
-  document.getElementById('tabs').innerHTML=T.map(t=>'<button class="tab'+(FILT===t[0]?' on':'')+'" onclick="setFilt(\''+t[0].replace(/'/g,"\\'")+'\')">'+esc(t[1])+'</button>').join('');
-}
-function alertCard(){
-  const due=PROD.filter(daProdurre);
-  if(!due.length)return '<div class="alert none"><div class="t">✓ Scorte a posto</div><div class="l">Nessun pane sotto soglia. Aggiorna le scorte quando consumi.</div></div>';
-  return '<div class="alert due"><div class="t">▶ DA PRODURRE · '+due.length+'</div><div class="l">'+due.map(p=>esc(p.nm)).join(' · ')+'</div></div>';
-}
 function splitRic(ric){
   var parts=ric.split(/\s\+\s/);
   var last=parts[parts.length-1],proc='';
@@ -236,31 +208,33 @@ function splitRic(ric){
   if(m>-1){proc=last.slice(m+1).trim();parts[parts.length-1]=last.slice(0,m+1).trim();}
   return {ingr:parts,proc:proc};
 }
-function fmtd(iso){try{var d=new Date(iso);return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}catch(e){return'';}}
-function lastProdHtml(id){return PRODAT[id]?('<div class="lastprod">ultima produzione: '+fmtd(PRODAT[id])+'</div>'):'';}
-function hoProdotto(id){var p=PROD.find(function(x){return x.id===id;});var u=p?p.unit:'';var n=prompt('Quanti '+u+' di "'+(p?p.nm:'')+'" hai prodotto? (li aggiungo alla scorta)','');if(n===null)return;n=parseFloat((''+n).replace(',','.'));if(isNaN(n)||n<=0)return;PRODAT[id]=new Date().toISOString();setScorta(id,getScorta(id)+n);render();toast('Aggiunto alla scorta');}
-function prodCard(p){
-  const sc=getScorta(p.id);
-  let sub=esc(p.pz)+(p.sminTxt?(' · '+esc(p.sminTxt)):'');
+const TILES=[
+ {id:'colazioni',l:'Pane colazioni',e:'🥐',b:'#FAC775',fg:'#412402',a:'#633806'},
+ {id:'serale',l:'Pane serale',e:'🍞',b:'#C0DD97',fg:'#173404',a:'#27500A'},
+ {id:'pizze',l:'Pizze',e:'🍕',b:'#F4C0D1',fg:'#4B1528',a:'#72243E'},
+ {id:'utili',l:'Ricette utili',e:'🧰',b:'#B5D4F4',fg:'#042C53',a:'#0C447C'}
+];
+function tileOf(p){if(/^pizza_/.test(p.id))return 'pizze';if(p.cat.indexOf('COLAZIONI')===0)return 'colazioni';if(p.cat.indexOf('PANE SERALE')===0)return 'serale';return 'utili';}
+function recipeCard(p){
   const R=splitRic(p.ric);
   const ingr=R.ingr.map(x=>'<div class="ing">'+esc(x)+'</div>').join('');
   const procH=R.proc?'<div class="k">Procedimento</div><div class="v">'+esc(R.proc)+'</div>':'';
   return '<div class="card'+(OPEN.has(p.id)?' open':'')+'" id="c_'+p.id+'">'
-   +'<div class="card-h" onclick="toggleRec(\''+p.id+'\')"><div class="info"><div class="nm">'+esc(p.nm)+'</div><div class="pz">'+sub+'</div></div><span class="chev">▸</span></div>'
-   +'<div class="stockbar"><span class="lab">In magazzino</span><div class="stepper"><button class="minus" onclick="step(\''+p.id+'\',-1)">–</button><div class="val"><span class="n">'+sc+'</span><small>'+esc(p.unit)+'</small></div><button class="plus" onclick="step(\''+p.id+'\',1)">+</button></div><button class="prodbtn" onclick="hoProdotto(\''+p.id+'\')">＋ Ho prodotto…</button>'+lastProdHtml(p.id)+'</div>'
-   +'<div class="rec"><div class="k">📖 Ricetta</div><div class="ingbox">'+ingr+'</div>'+procH+'<div class="k">Anticipo / cottura</div><div class="v">'+esc(p.cott)+'</div>'+corrBox(p.id)+'</div>'
+   +'<div class="card-h" onclick="toggleRec(\''+p.id+'\')"><div class="info"><div class="nm">'+esc(p.nm)+'</div><div class="pz">'+esc(p.pz)+'</div></div><span class="chev">▸</span></div>'
+   +'<div class="rec"><div class="k">📖 Ingredienti</div><div class="ingbox">'+ingr+'</div>'+procH+'<div class="k">Anticipo / cottura</div><div class="v">'+esc(p.cott)+'</div>'+corrBox(p.id)+'</div>'
    +'</div>';
 }
+function setPTile(id){CTILE=id;OPEN.clear();try{window.scrollTo(0,0);}catch(e){}render();}
 function render(){
-  tabsBar();
-  let h='';
-  if(FILT==='all'){
-    CATS.forEach(cat=>{const items=PROD.filter(p=>p.cat===cat);if(items.length)h+='<div class="sec">'+esc(CATSHORT[cat])+'</div>'+(CATNOTE[cat]?'<div class="readbox" style="margin:-2px 4px 10px">'+esc(CATNOTE[cat])+'</div>':'')+items.map(prodCard).join('');});
-  }else{
-    const items=PROD.filter(p=>p.cat===FILT);
-    h+='<div class="sec">'+esc(CATSHORT[FILT]||FILT)+'</div>'+(CATNOTE[FILT]?'<div class="readbox" style="margin:-2px 4px 10px">'+esc(CATNOTE[FILT])+'</div>':'')+items.map(prodCard).join('');
+  if(!CTILE){
+    var grid=TILES.map(function(t){var n=PROD.filter(function(p){return tileOf(p)===t.id;}).length;return '<div onclick="setPTile(\''+t.id+'\')" style="cursor:pointer;background:'+t.b+';border-radius:16px;padding:16px 12px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between"><div style="font-size:34px;line-height:1">'+t.e+'</div><div><div style="font-size:17px;font-weight:800;color:'+t.fg+'">'+t.l+'</div><div style="font-size:12px;font-weight:700;color:'+t.a+'">'+n+' ricette</div></div></div>';}).join('');
+    document.getElementById('view').innerHTML='<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">'+grid+'</div><button class="corrbtn exp" style="width:100%;margin-top:16px;padding:12px;border-radius:12px" onclick="exportCorr()">📤 Invia modifiche allo chef</button>';
+    return;
   }
-  document.getElementById('view').innerHTML=h;
+  var t=TILES.find(function(x){return x.id===CTILE;});
+  var items=PROD.filter(function(p){return tileOf(p)===CTILE;});
+  var note=(CTILE==='utili')?'<div style="margin:-2px 4px 10px;font-size:13px;color:var(--muted)">Ricette non in produzione fissa: si fanno quando c\'è tempo o all\'occorrenza.</div>':'';
+  document.getElementById('view').innerHTML='<button class="tab on" style="background:var(--yellow);color:var(--red-d);margin-bottom:12px" onclick="setPTile(null)">‹ Indietro ai quadrati</button><div class="sec">'+esc(t.l)+'</div>'+note+items.map(recipeCard).join('');
 }
 function getCorr(id){return CORR['panecorr|'+id]||'';}
 function corrBox(id){return '<div class="corrbox"><div class="corrlbl">✏️ Modifiche / ricetta da fare</div><textarea class="corrta" placeholder="Scrivi qui la ricetta o cosa cambiare…">'+esc(getCorr(id))+'</textarea><div class="corrrow"><button class="corrbtn save" onclick="saveCorr(\''+id+'\',this)">Salva</button></div></div>';}
@@ -269,6 +243,6 @@ function exportCorr(){var out='MODIFICHE PANE — Prinz Rudolf\n\n';var any=fals
 function copyCorr(){var t=document.getElementById('corrModal').querySelector('textarea');t.select();t.setSelectionRange(0,99999);try{navigator.clipboard.writeText(t.value);}catch(e){try{document.execCommand('copy')}catch(_){}}var b=event&&event.target;if(b){var x=b.textContent;b.textContent='✓ Copiato';setTimeout(function(){b.textContent=x;},1500);}}
 </script>
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Modifiche da inviare</h3><p>Copia questo testo e mandalo a Gigio (o incollalo a Claude in chat).</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 16/07 22:40</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 16/07 23:15</div>
 </body>
 </html>
