@@ -76,7 +76,7 @@
  </div><!--/view3d-->
  <div id="menuview" style="display:none"></div>
 </div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 14/07 16:55</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 16/07 21:10</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -87,7 +87,7 @@ function el(id){return document.getElementById(id);}
 function unlock(p,fs){var e=el('err');if(p!==APP_PW){e.textContent='Password errata';el('pw').value='';return;}if(el('remember').checked||fs){try{localStorage.setItem('pr_b3d','1')}catch(_){}}el('lock').style.display='none';el('app').style.display='block';initApp();}
 el('enter').onclick=function(){unlock(el('pw').value,false);};
 el('pw').addEventListener('keydown',function(e){if(e.key==='Enter')unlock(e.target.value,false);});
-const APP_VER='14/07 16:55';
+const APP_VER='16/07 21:10';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_b3d'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_b3d','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_b3d')!=='26/06 16:54'){localStorage.removeItem('pr_b3d');localStorage.setItem('pr_av_b3d','26/06 16:54');}}catch(_e){}var s=null;try{s=localStorage.getItem('pr_b3d')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(function(){el('pw').focus();},300);})();
 
@@ -190,4 +190,5 @@ tick();
 window.addEventListener('resize',function(){var nw=wrap.clientWidth,nh=wrap.clientHeight;if(nw){W=nw;H=nh;cam.aspect=W/H;cam.updateProjectionMatrix();rnd.setSize(W,H);}});
 }
 </script>
+<script>(function(){function wmName(){try{return localStorage.getItem('pr_cook')||'';}catch(e){return '';}}function draw(){var nm=wmName();var d=new Date();var t=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);var dd=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);var label=(nm?nm+' · ':'')+'Prinz Rudolf · '+dd+' '+t;var esc=label.replace(/&/g,'&amp;').replace(/</g,'&lt;');var svg='<svg xmlns="http://www.w3.org/2000/svg" width="330" height="200"><text x="6" y="105" transform="rotate(-30 165 100)" fill="rgba(110,110,110,0.17)" font-size="15" font-family="-apple-system,sans-serif" font-weight="700">'+esc+'</text></svg>';var uri='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));var el=document.getElementById('__wm');if(!el){el=document.createElement('div');el.id='__wm';el.style.cssText='position:fixed;inset:0;z-index:9998;pointer-events:none;background-repeat:repeat';document.body.appendChild(el);}el.style.backgroundImage='url('+uri+')';}draw();setInterval(draw,15000);document.addEventListener('visibilitychange',function(){if(!document.hidden)draw();});})();</script>
 </body></html>
