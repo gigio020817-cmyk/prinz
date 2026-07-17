@@ -66,6 +66,14 @@
   #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s;z-index:80;pointer-events:none;max-width:90%}
   #toast.show{opacity:.95}
   footer{text-align:center;font-size:11px;color:var(--muted);padding:18px}
+
+ .penalebar{background:#c0392b;color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:0 3px 14px rgba(192,57,43,.4);animation:pblink 1.1s ease-in-out infinite}
+ @keyframes pblink{0%,100%{box-shadow:0 3px 14px rgba(192,57,43,.30)}50%{box-shadow:0 0 0 4px rgba(192,57,43,.35),0 3px 20px rgba(192,57,43,.65)}}
+ .penalebar .pb-t{font-size:18px;font-weight:900;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+ .penalebar .pb-s{font-size:12.5px;opacity:.96;margin:4px 0 8px;font-weight:600}
+ .penalebar .pb-l{margin:0;padding-left:20px;font-size:14.5px;font-weight:700}
+ .penalebar .pb-l li{margin:4px 0}
+ .okbar{background:#eaf7ee;color:#1e6b46;border:1px solid #bfe6cd;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-weight:800;font-size:14px}
 </style>
 </head>
 <body>
@@ -80,7 +88,7 @@
 </div>
 <div id="app" style="display:none">
 <header>
-  <div class="brand"><div class="mark">PR</div><div><small>Prinz Rudolf · Kitchen</small><h1>Cooks Dashboard</h1></div></div>
+  <div class="brand"><div class="mark">PR</div><div><small>Prinz Rudolf · Kitchen</small><h1>Prinz Kitchen Dashboard</h1></div></div>
   <div class="who" id="whoBar"></div>
 </header>
 <main><div id="status">Loading…</div><div id="view"></div></main>
@@ -91,57 +99,69 @@
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="lavoroprinz";
-const TEAM=[["Gigio","Head chef"],["Gianluca","Second chef · Tournant"],["Alex","Mains (Secondi)"],["Mattia","First courses (Primi)"],["Ubaldo","Pizza + Bakery · evening shift"],["Erjola","Pastry"],["Badr","Mains (Secondi)"],["Majeet","Commis"]];
-const PULIZIA=["Worktops and work area (worktop sanitised · lids tidy · no dirt near the plates)","Cooking (stoves/griddle/grill · oven top and front · salamander)","Station equipment (scales, bimby/pacojet, vacuum sealer, fryer, microwave · change roner water)","Cold (fridge counter: tidy, dates, FIFO · blast chiller front)","Pass (behind, on top, garnishes)"];
-const APERTURA=["Turn on the morning equipment","Check the weekly ATTENDANCE","Receive and store deliveries (FIFO)","Check mise en place and stock","Cutting boards and containers in their place","Staff meal ready by 11:30","Check leftovers and store them","Clean cloths, stations tidy"];
-const CHIUSURA=["Everything switched off (equipment)","Evening cleaning of everything (microwave, potato peeler, fryers if needed)","Cold rooms closed and tidy, products labelled","Cutting boards and containers away (plastic/organic)"];
-const PULIZIA_SETT=["Cold deep clean (inside fridge counter/drawers incl. seals · your cold room + expiry dates)","Cooking deep clean (oven and griddle)","Shelves and small appliances (including low ones)","Roner deep clean (water and vinegar at 90°C for 1 hour)","Every 2 weeks: defrost small freezers · hood filters to dishwashers"];
+const TEAM=[["Gigio","Head Chef"],["Gianluca","Sous chef · Tournant"],["Alex","Mains"],["Mattia","Firsts (pasta/risotto)"],["Ubaldo","Pizzeria + Bakery · evening shift"],["Erjola","Pastry"],["Badr","Mains"],["Majeet","Commis"],["Banu","Breakfast + starters (evening)"]];
+const PULIZIA=["Counters and work area (surface sanitised · lids tidy · no dirt near the plates)","Cooking line (burners/griddle/grill · oven top and front · salamander)","Station equipment (scales, Bimby/Pacojet, vacuum sealer, fryer, microwave · change roner water)","Cold section (fridge counter: tidy, dates, FIFO · blast chiller front)","Pass (behind, on top, garnishes)"];
+const APERTURA=["Turn on the morning equipment","Check the weekly ATTENDANCE","Receive and store the goods (FIFO)","Check mise en place and stock","Staff meal out by 11:30","Check leftovers and store them"];
+const CHIUSURA=["Everything switched off (equipment)","Evening cleaning of everything (microwave, potato peeler, fryers if needed)","Cutting boards and containers put away (plastic/organic)"];
+const PULIZIA_SETT=["Deep-clean cold section (inside fridge counter/drawers and gaskets · your walk-in + expiry dates)","Deep-clean cooking line (oven and griddle)","Shelves and small appliances (including the low ones)","Deep-clean roner (water and vinegar at 90°C for 1 hour)","Every 2 weeks: defrost small freezers · hood filters through the dishwasher"];
+const MONFRIG=["Deep-clean the fryer"];
+const MONFRIG_WHO=["Badr","Mattia"];
 const RESP=[["Week 1","Ubaldo"],["Week 2","Mattia"],["Week 3","Badr"],["Week 4","Alex"],["Week 5","Gianluca"]];
-const RESPFISSI=["Gianluca","Ubaldo"];;
+const RESPFISSI=["Gianluca","Ubaldo"]; // responsabili fissi: apertura e chiusura;
 const CHIUSI=[]; // partite chiuse: pulizie sospese, solo produzione
 const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[5],Erjola:[2],Badr:[6],Majeet:[3],Ubaldo:[4]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
 function isOff(cook){var wd=new Date(today+"T00:00:00").getDay();return !!(RIPOSO[cook]&&RIPOSO[cook].indexOf(wd)>=0);}
-function badrCovers(){var L=["Alex","Mattia","Erjola"];for(var k=0;k<L.length;k++){if(isOff(L[k]))return L[k];}return "";}
+function badrCovers(){var L=["Alex","Mattia","Erjola","Ubaldo"];for(var k=0;k<L.length;k++){if(isOff(L[k]))return L[k];}return "";}
 const GTOT={apertura:APERTURA.length,chiusura:CHIUSURA.length,pulizia:PULIZIA.length};
 const ITEMS={apertura:APERTURA,chiusura:CHIUSURA,pulizia:PULIZIA};
 const PEOPLE={
  "Erjola":{noResp:true,noApe:true,noChiu:true,
-   pulizia:["Equipment: scales, pacojet, pastry oven, pastry fridges, bimby and microwave","Fridge counter: tidy up, check dates, FIFO","Lids clean and tidy","Blast chiller front: clean","Check for dirt near the plates"],
-   puliziaSett:["Pastry fridges (inside · in and out)","Pastry shelves (incl. mise en place tidy-up)","Small pastry appliances","Small stand mixers and their blast chiller","Large stand mixers: if you use them, clean right after use"]},
- "Ubaldo":{pulizia:["Worktops and work area (worktop sanitised · lids tidy · dirt in pizza drawers)","Pizzeria equipment (slicer, drawers, knives, sink, display · diving-arm mixer after kneading)","Pizza oven (wipe down)","Cold (fridge counter: tidy, dates, FIFO · fridge and proofer clean)","Bakery (doughs and bread baking of the day · restock bread in the fridge if out)"],puliziaSett:["Cold deep clean (inside fridge counter/drawers incl. seals · cold room + expiry dates · pizzeria fridges and dough drawers)","Pizza oven (clean inside)","Pizzeria deep clean (low area · display · boxes area)","Small appliances · large mixers (deep clean)","Blast chiller front (inside and out)","Bakery deep clean (bread oven and bread mixers)"]},
+   pulizia:["Equipment: scales, Pacojet, pastry oven, pastry fridges, Bimby and microwave","Fridge counter: tidy, check dates, FIFO","Lids clean and tidy","Blast chiller front: clean","Check for dirt near the plates"],
+   puliziaSett:["Pastry fridges (inside · in and out)","Pastry shelves (also tidy mise en place)","Pastry small appliances","Small stand mixers and your blast chiller","Large stand mixers: if you use them, clean right after use"]},
+ "Ubaldo":{pulizia:["Counters and work area (surface sanitised · lids tidy · pizzeria drawers dirt)","Pizzeria equipment (slicer, drawers, knives, sink, display case · spiral mixer after the dough)","Pizza oven (wipe-down)","Cold section (fridge counter: tidy, dates, FIFO · fridge and proofer clean)","Bakery (doughs and baking of the daily bread · restock bread in the fridge if out)"],puliziaSett:["Deep-clean cold section (inside fridge counter/drawers and gaskets · walk-in + expiry dates · pizzeria fridges and dough drawers)","Pizza oven (interior cleaning)","Deep-clean pizzeria (low area · display case · boxes area)","Small appliances · large stand mixers (deep cleaning)","Blast chiller front (inside and out)","Deep-clean bakery (bread oven and bread mixers)"]},
  "Badr":{},
- "Gianluca":{tournant:true,pulizia:["Cover the stations of whoever is off","Help the stations in trouble","Help clean the stations until everyone has finished"]},
- "Majeet":{noResp:true,noApe:true,noChiu:true,pulizia:["Help the stations wherever needed","Help clean the stations until everyone has finished","Prepare mise en place and bases for the stations","Keep shared worktops and equipment clean","Help at the pass during service"],puliziaSett:["Deep clean the assigned shared area","Help with the weekly deep clean of the stations"]}
+ "Gianluca":{tournant:true,pulizia:["Help the stations of whoever is off (cover)","Help stations that are struggling","Help clean the stations until everyone is done"]},
+ "Majeet":{noResp:true,noApe:true,noChiu:true,pulizia:["Help the stations where needed","Help clean the stations until everyone is done","Prep mise en place and bases for the stations","Keep shared counters and equipment clean","Help at the pass during service"],puliziaSett:["Deep-clean the assigned shared area","Help with the weekly deep clean of the stations"]},
+ "Nuovo":{pulizia:["Counters and work area (surface sanitised · lids tidy · no dirt near the plates)","Station equipment (scales, Bimby/Pacojet, vacuum sealer, fryer, microwave · change roner water)","Cold section (fridge counter: tidy, dates, FIFO · blast chiller front)","Pass (behind, on top, garnishes)"],puliziaSett:["Deep-clean cold section (inside fridge counter/drawers and gaskets · walk-in + expiry dates)","Shelves and small appliances (including the low ones)","Deep-clean roner (water and vinegar at 90°C for 1 hour)","Vision blast chiller (inside, outside and on top)","Every 2 weeks: defrost small freezers"]}
 };
-const MENU_INFO='Lunch ~30 people · Dinner ~25 people · quantities next to each dish';
+PEOPLE.Banu={noResp:true,noApe:true};RIPOSO.Banu=[1];
+const MENU_INFO='Lunch ~30 pax · Dinner ~25 pax · quantities next to each dish';
 const MENU_PRANZO=[
- ['Mon','Pasta with tomato and basil (~1.2 kg)','Sous-vide pork collar in sauce (~1.6 kg)','Chicken cacciatora (~0.7 kg)','Vegetable parmigiana (~0.8 kg)','Mash ~1.8 kg + vegetables ~2 kg'],
- ['Tue','Pasta with beef ragù (~1.2 kg)','Chicken curry (~1.8 kg)','—','Vegetable and chickpea curry (~0.9 kg)','Potatoes ~1.5 kg + frozen vegetables ~2 kg'],
- ['Wed','Baked pasta (~1.2 kg)','Sous-vide braised beef (~1.6 kg)','Chicken bites (~0.7 kg)','Vegetable bake (~0.8 kg)','Mash ~1.8 kg + vegetables ~2 kg'],
- ['Thu','Rice / risotto (~1.5 kg)','Turkey stew (~1.8 kg)','—','Baked pasta (veg) (~1 kg)','Roast potatoes ~1.8 kg + frozen vegetables ~2 kg'],
- ['Fri','Tuna pasta (~1.2 kg)','Fried fish (~1.8 kg)','Stewed chicken (~0.7 kg)','Couscous with vegetables (~0.9 kg)','Parsley potatoes ~1.8 kg + vegetables ~2 kg'],
- ['Sat','Pasta arrabbiata (~1.2 kg)','Sous-vide pork collar, mushroom sauce (~1.6 kg)','Stewed chicken (~0.7 kg)','Gratin vegetables (~0.8 kg)','Polenta/potatoes ~1.8 kg + frozen vegetables ~2 kg'],
- ['Sun','Mushroom rice (~1.5 kg)','Roast beef in sauce (~1.6 kg)','Roast chicken (~0.8 kg)','Gratin vegetables (~0.8 kg)','Mash ~1.8 kg + vegetables ~2 kg']
+ ['Mon','Pasta with tomato and basil (~1.2 kg) · 1.5 kg plain rice','Chicken cacciatora (~1.8 kg)','—','Iceberg salad','Vegetables ~2 kg + roast potatoes ~1.8 kg'],
+ ['Tue','Pasta with courgette pesto (~1.2 kg) · 1.5 kg plain rice','Turkey stew (~1.8 kg)','—','Greek salad','Vegetables ~2 kg + polenta ~1.8 kg'],
+ ['Wed','Baked pasta (~1.2 kg) · 1.5 kg plain rice','Fried fish (~1.8 kg)','—','Tomato and onion','Vegetables ~2 kg + couscous ~1.5 kg'],
+ ['Thu','Risotto of choice (~1.5 kg) · 1.5 kg plain rice','Braised chicken with mushrooms (~1.8 kg)','—','Tomatoes and cucumbers','Vegetables ~2 kg + roast potatoes ~1.8 kg'],
+ ['Fri','Tuna pasta (~1.2 kg) · 1.5 kg plain rice','Roast chicken legs (~1.8 kg)','—','Mixed salad','Vegetables ~2 kg + polenta ~1.8 kg'],
+ ['Sat','Pasta arrabbiata (~1.2 kg) · 1.5 kg plain rice','Chicken curry (~1.8 kg)','—','Carrots and sweetcorn','Vegetables ~2 kg + potatoes ~1.8 kg'],
+ ['Sun','Pasta with sun-dried tomato pesto (~1.2 kg) · 1.5 kg plain rice','Braised chicken (~1.8 kg)','—','Green salad','Vegetables ~2 kg + polenta ~1.8 kg']
 ];
-const MENU_PRANZO_NOTE='Always available: boiled white rice (1 kg) · salad of the day (~1 kg) · cold extra: tuna (~0.8 kg) or 12 boiled eggs · grated cheese. Trays under the pass: 6 hot (top: first course · main · alternative/veg — bottom: white rice · vegetables · potatoes/mash) + separate cold counter (salad · cold extra).';
+const MENU_PRANZO_NOTE='Always available: salad of the day (~1 kg) · extra cold dish: tuna (~0.8 kg) or 12 boiled eggs · grated cheese. Trays under the pass: 6 hot (top: first course · main · alternative/veg — bottom: plain rice · vegetables · potatoes/mash) + separate cold counter (salad · extra cold dish).';
+const MENU_PRANZO_PREP='👥 Who preps (in the morning): FIRSTS → <b>Mattia</b> · MAINS (main dishes) → <b>Badr</b> · SALADS and VEGETABLES/sides → <b>Manjeet and Alex</b> (at the bistro).';
+const MENU_PRANZO_AVANZO='♻️ Every morning: take out the half-board leftovers, tidy them and add them to the staff meal — so nothing goes to waste.';
 const MENU_CENA=[
- ['Mon','Pasta salad ~1.5 kg (tuna, corn, mozzarella)','Green salad + bread','No tuna, with cheese','Majeet'],
- ['Tue','Burger in a bun (~38 pcs · 2 each for half)','Fries/croquettes ~2.5 kg + salad','Veggie burger','Alex'],
- ['Wed','Baked pasta (~1.5 kg)','Salad + bread','Vegetarian baked pasta','Mattia'],
- ['Thu','Tray pizza (~2.5 kg dough)','Salad','Vegetable pizza','Badr'],
- ['Fri','Rice salad ~1.5 kg (tuna, eggs, corn)','Salad + bread','Veg version with chickpeas/cheese','Majeet'],
- ['Sat','Chicken wrap / kebab (~38 pcs · 2 each for half)','Fries/croquettes ~2.5 kg + salad','Vegetable and cheese wrap','Badr'],
- ['Sun','Filled pita / focaccia (~38 pcs · 2 each for half)','Fries/croquettes ~2.5 kg + salad','Vegetarian version','Alex']
+ ['Mon','Pasta salad ~1.5 kg (tuna, sweetcorn, mozzarella)','Green salad + bread','No tuna, with cheese','Mattia or Badr'],
+ ['Tue','Baked pasta (~1.5 kg)','Salad + bread','Vegetarian baked pasta','Mattia'],
+ ['Wed','Tray pizza (~2.5 kg dough)','Salad','Vegetable pizza','Ubaldo'],
+ ['Thu','Chicken wrap / kebab (~38 pcs · 2 each for half)','Fries/croquettes ~2.5 kg + salad','Vegetable and cheese wrap','Badr'],
+ ['Fri','Rice salad ~1.5 kg (tuna, eggs, sweetcorn)','Salad + bread','Veg version with chickpeas/cheese','Alex and Manjeet'],
+ ['Sat','Burger in a bun (~38 pcs · 2 each for half)','Fries/croquettes ~2.5 kg + salad','Veggie burger','Alex and Manjeet'],
+ ['Sun','Filled pita / focaccia (~38 pcs · 2 each for half)','Fries/croquettes ~2.5 kg + salad','Vegetarian version','Alex and Manjeet']
 ];
-const MENU_CENA_NOTE='Assembled dishes (burger, wrap, pita): ~2 each for half the covers (~38 pcs for 25 people). Dinner: pork ok, no beef (except the Tuesday burger). Salad and white rice always available.';
+const MENU_CENA_NOTE='Composed dishes (burger, wrap, pita): ~2 each for half the covers (~38 pcs for 25 pax). Dinner: pork ok, no beef (except the Tuesday burger). Salad and plain rice always available.';
 function puliziaFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].pulizia)||PULIZIA;}
 function puliziaSettFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].puliziaSett)||PULIZIA_SETT;}
 function ymd(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
 function weekStart(ds){var d=new Date(ds+'T00:00:00');var k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return ymd(d);}
-function itemsFor(g){return g.indexOf('pulizias#')===0?(puliziaSettFor(g.slice(9))||[]):(g.indexOf('pulizia#')===0?puliziaFor(g.slice(8)):(g.indexOf('pulizia')===0?PULIZIA:(ITEMS[g]||[])));}
+function itemsFor(g){if(g.indexOf('lunfrig')===0)return MONFRIG;return g.indexOf('pulizias#')===0?(puliziaSettFor(g.slice(9))||[]):(g.indexOf('pulizia#')===0?puliziaFor(g.slice(8)):(g.indexOf('pulizia')===0?PULIZIA:(ITEMS[g]||[])));}
+function mondayFryerCard(cook){
+  if(new Date(today+'T00:00:00').getDay()!==1)return '';
+  if(MONFRIG_WHO.indexOf(cook)<0)return '';
+  var note='<div class="card open" id="cmonnote" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">🍟 Every Monday — fryer</div></div><div class="card-b" style="display:block"><div class="readbox">Today it is your turn to <b>clean the fryer</b>. And always use it <b>sensibly</b>: filter the oil at the end of service, do not leave it on empty, and change the oil when it is dark.</div></div></div>';
+  return note+checklistCard('cmonfrig','Fryer cleaning (Monday)','lunfrig#'+cook,MONFRIG);
+}
 function scopeId(group){var dd=group.indexOf('pulizias#')===0?weekStart(today):today;return group+'@'+dd;}
-function ctrlFooter(group){var st=CTRL[scopeId(group)];if(st&&st.stato==='ok')return '<div class="ctrlbar okc">✔ Checked by the chef'+(st.chef?(' ('+esc(st.chef)+')'):'')+'</div>';if(st&&st.stato==='richiesto')return '<div class="ctrlbar waitc">⏳ Waiting for the chef to check</div>';return '<button class="ctrlbtn" onclick="requestControl(\''+group+'\')">Done → request check</button>';}
-async function requestControl(group){var c=getCook();if(!c){alert('Pick your name first.');return;}var sid=scopeId(group);CTRL[sid]={stato:'richiesto',by:c,at:new Date().toISOString()};try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'ctrl|'+sid,v:CTRL[sid]})});toast('Check requested from the chef');render();}catch(e){toast('⚠️ Not sent');console.error(e);}}
+function ctrlFooter(group){return '';var st=CTRL[scopeId(group)];if(st&&st.stato==='ok')return '<div class="ctrlbar okc">✔ Checked by the chef'+(st.chef?(' ('+esc(st.chef)+')'):'')+'</div>';if(st&&st.stato==='richiesto')return '<div class="ctrlbar waitc">⏳ Waiting for chef check</div>';return '<button class="ctrlbtn" onclick="requestControl(\''+group+'\')">I am done → request check</button>';}
+async function requestControl(group){var c=getCook();if(!c){alert('Choose your name first.');return;}var sid=scopeId(group);CTRL[sid]={stato:'richiesto',by:c,at:new Date().toISOString()};try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'ctrl|'+sid,v:CTRL[sid]})});toast('Check requested from the chef');render();}catch(e){toast('⚠️ Not sent');console.error(e);}}
 function totalFor(g){return itemsFor(g).length;}
 const today=ymd(new Date());
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}
@@ -150,7 +170,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 async function sb(path,opts){opts=opts||{};const h={apikey:SB_KEY,'Content-Type':'application/json'};if(opts.headers)Object.assign(h,opts.headers);const r=await fetch(SB_URL+'/rest/v1/'+path,{method:opts.method||'GET',headers:h,body:opts.body});if(!r.ok)throw new Error('HTTP '+r.status+' '+await r.text());const txt=await r.text();return txt?JSON.parse(txt):null;}
 
 /* state */
-let CK={},ENT=[],META=null,PRESA=[],CTRL={},TIMBRA={},PREVPASS=[],PAUSE=[];
+let CK={},ENT=[],META=null,PRESA=[],CTRL={},TIMBRA={},PREVPASS=[],NOTECUOCO={},PAUSE=[],PASSL=[],CHEFORD=[];var SBLOCCHI={};
 function dayShift(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return ymd(d);}
 function getCook(){return localStorage.getItem('pr_cook')||''}
 function setCook(n){localStorage.setItem('pr_cook',n);render();}
@@ -162,18 +182,19 @@ function unlock(p,fromStore){
   if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_kpw','1')}catch(e){}}
   document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';
   loadAll();
+  if(!window._tick)window._tick=setInterval(function(){try{var a=document.getElementById('app');if(a&&a.style.display!=='none'&&getCook()){var ae=document.activeElement;if(!(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT')))render();}}catch(e){}},180000);
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='17/07 01:30';
+const APP_VER='17/07 02:00';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochien'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochien','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
-(function(){try{if(localStorage.getItem('pr_av_cuochien')!=='24/06 18:45'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochien','24/06 18:45');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
+(function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 
 async function loadAll(){
-  document.getElementById('status').textContent='Loading from cloud…';
+  document.getElementById('status').textContent='Loading from the cloud…';
   try{
-    const[ck,ckw,ent,meta,presa,ctrl,timb,prevp,pausa]=await Promise.all([
+    const[ck,ckw,ent,meta,presa,ctrl,timb,prevp,ncuoco,pausa]=await Promise.all([
       sb('kitchen_checks?day=eq.'+today+'&select=*'),
       sb('kitchen_checks?day=eq.'+weekStart(today)+'&grp=like.pulizias%23*&select=*'),
       sb('kitchen_entries?day=eq.'+today+'&select=*&order=at'),
@@ -182,6 +203,7 @@ async function loadAll(){
       sb('kitchen_meta?k=like.ctrl|*&select=*'),
       sb('kitchen_meta?k=like.timbra|'+today+'*&select=*'),
       sb('kitchen_entries?day=gte.'+dayShift(today,-3)+'&day=lt.'+today+'&type=eq.passaggio&select=*&order=at'),
+      sb('kitchen_meta?k=like.notacuoco|*&select=*'),
       sb('kitchen_meta?k=like.pausa|'+today+'*&select=*')
     ]);
     CK={};(ck||[]).concat(ckw||[]).forEach(r=>{CK[r.grp+'_'+r.idx]={by:r.cook,at:r.at};});
@@ -189,21 +211,20 @@ async function loadAll(){
     CTRL={};(ctrl||[]).forEach(r=>{CTRL[r.k.slice(5)]=r.v;});
     TIMBRA={};(timb||[]).forEach(r=>{var p=r.k.split('|');TIMBRA[p[2]]=r.v;});
     PREVPASS=prevp||[];
+    NOTECUOCO={};(ncuoco||[]).forEach(function(r){NOTECUOCO[r.k]=(r.v&&r.v.text)||'';});
     PAUSE=(pausa||[]).map(function(r){return {key:r.k,n:(r.v&&r.v.n)||'',out:(r.v&&r.v.out)||null,in:(r.v&&r.v.in)||null};}).sort(function(a,b){return (a.out||'').localeCompare(b.out||'');});
+    try{var _co=await sb('kitchen_meta?k=eq.chefordini'+''+'&select=v');CHEFORD=(_co&&_co[0]&&_co[0].v&&_co[0].v.items)?_co[0].v.items:[];}catch(e){CHEFORD=[];}
+    try{var _pl=await sb('kitchen_meta?k=eq.passlist&select=*');PASSL=(_pl&&_pl[0]&&_pl[0].v&&_pl[0].v.items)?_pl[0].v.items:[];}catch(e){PASSL=[];}
     document.getElementById('status').textContent='✓ Connected · '+today.split('-').reverse().join('/');
     render();
-  }catch(e){document.getElementById('status').textContent='⚠️ Connection problem. Check the internet and reopen.';console.error(e);}
+  }catch(e){document.getElementById('status').textContent='⚠️ Connection problem. Check your internet and reopen.';console.error(e);}
 }
 function tloc(iso){try{return new Date(iso).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}catch(e){return''}}
 
-function timbraCard(){
-  var c=getCook();
-  if(!c)return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Arrival time</div></div><div class="card-b" style="display:block"><div class="readbox">Pick your name at the top to log your arrival time.</div></div></div>';
-  var t=TIMBRA[c]||{};
-  var inH=t.in?('<div class="row" style="display:flex;justify-content:space-between;padding:6px 0"><span>Arrival</span><span class="donerow" style="font-weight:700">'+tloc(t.in)+' &#10003;</span></div>'):'<button class="btn" style="width:100%;margin-top:0" onclick="timbraIn()">Log ARRIVAL</button>';
-  return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Arrival time &mdash; '+esc(c)+'</div></div><div class="card-b" style="display:block"><div class="readbox" style="margin-bottom:10px">⚠️ Log your arrival only when you are <b>already changed and in the kitchen</b>, not when you enter the building.</div>'+inH+'</div></div>';
-}
-async function timbraIn(){var c=getCook();if(!c){alert("Pick your name first.");return;}var t=TIMBRA[c]||{};if(t.in)return;t.in=new Date().toISOString();TIMBRA[c]=t;try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today+'|'+c,v:t})});toast('Arrival logged: '+now());render();}catch(e){toast('⚠️ Not saved');console.error(e);}}
+function timbraCard(){var c=getCook();if(!c)return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Hours (lunch and evening)</div></div><div class="card-b" style="display:block"><div class="readbox">Choose your name at the top to record your hours.</div></div></div>';if(c==='Gigio')return '';var t=TIMBRA[c]||{};function seg(l){return '<div class="row" style="display:flex;justify-content:space-between;padding:6px 0"><span>'+l+'</span><span class="donerow" style="font-weight:700;color:#1e7a46">marked &#10003;</span></div>';}function bt(l,fld,sec){return '<button class="btn" style="width:100%;margin-top:8px;'+(sec?'background:#fff;color:var(--bordeaux);border:1px solid var(--line)':'')+'" onclick="timbraSet(\''+fld+'\')">'+l+'</button>';}var h='<div class="readbox" style="margin:6px 0 2px;font-weight:700">\uD83C\uDF05 Morning</div>';h+= t.pIn?seg('Morning arrival'):bt('Mark MORNING arrival','pIn',false);h+= t.pOut?seg('Lunch exit'):bt('Mark LUNCH exit','pOut',true);h+='<div class="readbox" style="margin:12px 0 2px;font-weight:700">\uD83C\uDF19 Evening</div>';h+= t.sIn?seg('Evening arrival'):bt('Mark EVENING arrival','sIn',false);h+= t.sOut?seg('End-of-shift exit'):bt('Mark END-OF-SHIFT exit','sOut',true);return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Hours \u2014 '+esc(c)+'</div></div><div class="card-b" style="display:block"><div class="readbox" style="margin-bottom:6px">\u26A0\uFE0F Only mark when you are <b>already changed and in the kitchen</b>. Only <b>the chef</b> sees the times.</div>'+h+'</div></div>';}
+async function timbraSet(field){var c=getCook();if(!c){alert("Choose your name first.");return;}var t=TIMBRA[c]||{};if(t[field])return;if(field==='pOut'&&!t.pIn){alert('Mark the LUNCH arrival first.');return;}if(field==='sOut'&&!t.sIn){alert('Mark the EVENING arrival first.');return;}if(field==='sOut'){var _m=missingFor(c)||[];if(_m.length){alert('Wait! Before closing the evening you must complete:\n\n- '+_m.map(function(x){return x.t;}).join('\n- ')+'\n\nDo them, then mark the exit.');return;}if(!confirm('\u26A0\uFE0F STAND MIXERS and BLAST CHILLERS\n\nHave you checked they are CLEAN? If they are dirty, clean them BEFORE leaving.\n\nPress OK only if you have really checked them.'))return;var _sv=null;try{var _s=await sb('kitchen_meta?k=eq.sblocco|'+today+'|'+c+'&select=v');_sv=(_s&&_s[0]&&_s[0].v)||null;}catch(e){}if(!_sv||_sv.used){alert('\uD83D\uDD12 Exit to be unlocked.\n\nAsk the CHEF: once he has checked cleaning, stand mixers and blast chillers he unlocks your exit from his dashboard. Then press Evening exit again.');return;}t[field]=new Date().toISOString();TIMBRA[c]=t;try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today+'|'+c,v:t})});try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'sblocco|'+today+'|'+c,v:{by:((_sv&&_sv.by)||'chef'),at:(_sv&&_sv.at)||null,used:true,usedAt:new Date().toISOString()}})});}catch(_e){}toast('Evening exit recorded \u2713');render();}catch(e){toast('\u26A0\uFE0F Not saved');console.error(e);}return;}t[field]=new Date().toISOString();TIMBRA[c]=t;try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today+'|'+c,v:t})});toast('Marked \u2713');render();}catch(e){toast('\u26A0\uFE0F Not saved');console.error(e);}}
+async function timbraIn(){return timbraSet('pIn');}
+async function timbraOut(){return timbraSet('sOut');}
 function durMinC(a,b){try{return Math.max(0,Math.round((new Date(b)-new Date(a))/60000));}catch(e){return 0;}}
 function pausaListHtml(){
   if(!PAUSE.length)return '<div class="readbox" style="margin-top:8px">No breaks today.</div>';
@@ -214,22 +235,22 @@ function pausaListHtml(){
 }
 function pausaCard(){
   var c=getCook();var btn;
-  if(!c){btn='<div class="readbox">Pick your name above to use breaks.</div>';}
+  if(!c){btn='<div class="readbox">Choose your name at the top to use breaks.</div>';}
   else{var open=null;for(var i=0;i<PAUSE.length;i++){if(PAUSE[i].n===c&&!PAUSE[i].in)open=PAUSE[i];}
-    if(open)btn='<div class="readbox" style="margin-bottom:10px;color:#c0392b;font-weight:700">🔴 On break since '+tloc(open.out)+'</div><button class="btn" style="width:100%;margin-top:0" onclick="pausaIn()">↩️ I am back</button>';
-    else btn='<button class="btn" style="width:100%;margin-top:0" onclick="pausaOut()">🚬 Take a break</button>';}
+    if(open)btn='<div class="readbox" style="margin-bottom:10px;color:#c0392b;font-weight:700">🔴 You are on break since '+tloc(open.out)+'</div><button class="btn" style="width:100%;margin-top:0" onclick="pausaIn()">↩️ I am back</button>';
+    else btn='<button class="btn" style="width:100%;margin-top:0" onclick="pausaOut()">🚬 Going on break</button>';}
   return '<div class="card open" id="cpausa"><div class="card-h" onclick="toggleCard(\'cpausa\')"><div class="t">⏸️ Break</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'+btn+pausaListHtml()+'</div></div>';
 }
-async function pausaOut(){var c=getCook();if(!c){alert('Pick your name first.');return;}for(var i=0;i<PAUSE.length;i++){if(PAUSE[i].n===c&&!PAUSE[i].in){toast('Already on break');return;}}var key='pausa|'+today+'|'+c+'|'+Date.now();var v={n:c,out:new Date().toISOString(),in:null};PAUSE.push({key:key,n:c,out:v.out,in:null});render();try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:key,v:v})});toast('Break started: '+now());}catch(e){toast('⚠️ Not saved');console.error(e);}}
-async function pausaIn(){var c=getCook();if(!c)return;var open=null;for(var i=0;i<PAUSE.length;i++){if(PAUSE[i].n===c&&!PAUSE[i].in)open=PAUSE[i];}if(!open){render();return;}open.in=new Date().toISOString();render();try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:open.key,v:{n:open.n,out:open.out,in:open.in}})});toast('Back logged: '+now());}catch(e){toast('⚠️ Not saved');console.error(e);}}
+async function pausaOut(){var c=getCook();if(!c){alert('Choose your name first.');return;}for(var i=0;i<PAUSE.length;i++){if(PAUSE[i].n===c&&!PAUSE[i].in){toast('You are already on break');return;}}var key='pausa|'+today+'|'+c+'|'+Date.now();var v={n:c,out:new Date().toISOString(),in:null};PAUSE.push({key:key,n:c,out:v.out,in:null});render();openCard('cpausa');try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:key,v:v})});toast('Break started: '+now());}catch(e){toast('⚠️ Not saved');console.error(e);}}
+async function pausaIn(){var c=getCook();if(!c)return;var open=null;for(var i=0;i<PAUSE.length;i++){if(PAUSE[i].n===c&&!PAUSE[i].in)open=PAUSE[i];}if(!open){render();return;}open.in=new Date().toISOString();render();openCard('cpausa');try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:open.key,v:{n:open.n,out:open.out,in:open.in}})});toast('Return recorded: '+now());}catch(e){toast('⚠️ Not saved');console.error(e);}}
 function whoBar(){
-  let o='<option value="">— pick your name —</option>'+TEAM.filter(function(t){return t[0]!=='Gigio';}).map(t=>'<option '+(t[0]===getCook()?'selected':'')+'>'+t[0]+'</option>').join('');
+  let o='<option value="">— choose your name —</option>'+TEAM.filter(function(t){return t[0]!=='Gigio';}).map(t=>'<option '+(t[0]===getCook()?'selected':'')+'>'+t[0]+'</option>').join('');
   document.getElementById('whoBar').innerHTML='You are: <select onchange="setCook(this.value)">'+o+'</select>';
 }
 function toggleCard(id){document.getElementById(id).classList.toggle('open')}
 
 async function checkItem(group,idx,el){
-  const c=getCook();if(!c){alert('Pick your name at the top first.');return;}
+  const c=getCook();if(!c){alert('Choose your name at the top first.');return;}
   const key=group+'_'+idx;const on=!CK[key];
   if(on && /^pulizia/.test(group) && nowMin()<1080){alert('Cleaning can only be checked from 18:00 onwards. Do it at the end of service, then check it off.');return;}
   el.classList.toggle('on',on);el.textContent=on?'✓':'';
@@ -241,7 +262,7 @@ async function checkItem(group,idx,el){
   try{
     if(on)await sb('kitchen_checks?on_conflict=day,grp,idx',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({day:dd,grp:group,idx:idx,label:itemsFor(group)[idx],cook:c})});
     else await sb('kitchen_checks?day=eq.'+dd+'&grp=eq.'+group+'&idx=eq.'+idx,{method:'DELETE',headers:{Prefer:'return=minimal'}});
-  }catch(e){toast('⚠️ Tick not saved, try again');el.classList.toggle('on',!on);console.error(e);}
+  }catch(e){toast('⚠️ Check not saved, try again');el.classList.toggle('on',!on);console.error(e);}
 }
 function checklistCard(id,title,group,items){
   let d=0;Object.keys(CK).forEach(k=>{if(k.indexOf(group+'_')===0)d++});
@@ -249,27 +270,31 @@ function checklistCard(id,title,group,items){
   return '<div class="card" id="'+id+'"><div class="card-h" onclick="toggleCard(\''+id+'\')"><div class="t">'+title+'</div><div class="meta">'+d+'/'+items.length+'</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'+((/^pulizia/.test(group)&&nowMin()<1080)?'<div class="readbox" style="background:#fff6da;border:1px solid var(--gold);color:#5a4600;margin-bottom:6px">⏰ Cleaning can be checked <b>from 18:00</b> (end of service).</div>':'')+rows+ctrlFooter(group)+'</div></div>';
 }
 function respCard(){
-  return '<div class="card open" id="cresp"><div class="card-h" onclick="toggleCard(\'cresp\')"><div class="t">People in charge this week</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'
-    +'<div class="readbox">Fixed: <b>Gianluca</b> and <b>Ubaldo</b>. Both do <b>opening</b> and <b>closing</b>.</div></div></div>';
+  return '<div class="card open" id="cresp"><div class="card-h" onclick="toggleCard(\'cresp\')"><div class="t">This week leads</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'
+    +'<div class="readbox">Permanent leads: <b>Gianluca</b> and <b>Ubaldo</b>. They both do <b>opening</b> and <b>closing</b> (goods shift, walk-ins, deep cleaning of stand mixers).</div></div></div>';
 }
 async function saveResp(){const c=getCook();const v={name:document.getElementById('respName').value,dal:document.getElementById('respDal').value,al:document.getElementById('respAl').value,by:c,at:new Date().toISOString()};
-  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'responsabile',v:v})});META=v;toast('Person in charge saved');}catch(e){toast('⚠️ Not saved');console.error(e);}}
+  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'responsabile',v:v})});META=v;toast('Lead saved');}catch(e){toast('⚠️ Not saved');console.error(e);}}
 function schedaCard(){
   const list=ENT.filter(e=>e.type==='scheda');
+  const me=getCook();const mine=list.filter(e=>e.cook===me);
   let rows=list.map(e=>'<div class="it"><div class="chk on">✓</div><div class="lab">'+esc(e.data.cosa)+(e.data.entro?' <span class="readbox">(by '+esc(e.data.entro)+')</span>':'')+'<span class="sig">✓ '+esc(e.cook)+' · '+tloc(e.at)+'</span></div></div>').join('');
   if(!list.length)rows='<div class="readbox">No entries yet.</div>';
-  return '<div class="card" id="csch"><div class="card-h" onclick="toggleCard(\'csch\')"><div class="t">Service sheet (mise en place)</div><div class="meta">'+list.length+'</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'+rows
+  var todo=(me&&!mine.length&&NOSCHEDA.indexOf(me)<0);
+  var warn=todo?'<div class="readbox" style="background:#ffe9e9;border:1px solid #f2b8b8;color:#a12b2b;font-weight:700;margin-bottom:8px">⚠️ MANDATORY — you must write what you prepared today. EVERYONE fills it in, every day.</div>':(me?'<div class="readbox" style="background:#eef7f0;border:1px solid #bfe0cc;color:#1e7a46;margin-bottom:8px">✅ You have filled in your sheet today. Thanks!</div>':'');
+  var bcol=todo?'#c0392b':'var(--gold)';
+  return '<div class="card'+(todo?' open':'')+'" id="csch" style="border-color:'+bcol+'"><div class="card-h" onclick="toggleCard(\'csch\')"><div class="t">📝 Service sheet — MANDATORY</div><div class="meta">'+(mine.length?'✓':'⚠️')+'</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'+warn+rows
     +'<label class="fl">What and how much (e.g. "Bread: 8 kg done")</label><input class="txt" id="schCosa" placeholder="Work done…">'
     +'<label class="fl">Ready by (optional)</label><input class="txt" id="schEntro" placeholder="e.g. 12:00">'
     +'<button class="btn" onclick="addScheda()">+ Add entry</button></div></div>';
 }
-async function addScheda(){const c=getCook();if(!c){alert('Pick your name first.');return;}const cosa=document.getElementById('schCosa').value.trim();if(!cosa)return;
+async function addScheda(){const c=getCook();if(!c){alert('Choose your name first.');return;}const cosa=document.getElementById('schCosa').value.trim();if(!cosa)return;
   const row={day:today,type:'scheda',cook:c,data:{cosa:cosa,entro:document.getElementById('schEntro').value.trim()}};
   try{await sb('kitchen_entries',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(row)});ENT.push({type:'scheda',cook:c,at:new Date().toISOString(),data:row.data});render();openCard('csch');toast('Added');}catch(e){toast('⚠️ Not saved');console.error(e);}}
 function passCard(){
   const list=ENT.filter(e=>e.type==='passaggio');
   let prev=list.length?'<div class="readbox" style="margin-bottom:8px"><b>Sent today:</b> '+list.map(p=>esc(p.data.partita||'?')+' ('+esc(p.cook)+')').join(', ')+'</div>':'';
-  const F=[['partita','Station covered',0],['da','From (station chef)',0],['a','To (who covers)',0],['pronto','What is READY',1],['manca','What is MISSING / to finish',1],['dove','Where things are',1],['urgenti','Urgent preparations',1],['note','Notes',1]];
+  const F=[['partita','Station covered',0],['da','From (station lead)',0],['a','To (who covers)',0],['pronto','What is READY',1],['manca','What is MISSING / to finish',1],['dove','Where things are',1],['urgenti','Urgent preps',1],['note','Notes',1]];
   let fields=F.map(f=>'<label class="fl">'+f[1]+'</label>'+(f[2]?'<textarea class="txt" id="pc_'+f[0]+'"></textarea>':'<input class="txt" id="pc_'+f[0]+'">')).join('');
   return '<div class="card" id="cpass"><div class="card-h" onclick="toggleCard(\'cpass\')"><div class="t">Handover</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'+prev+fields+'<button class="btn" onclick="savePass()">Send handover</button></div></div>';
 }
@@ -283,21 +308,21 @@ function prevPassCard(){
     var body=FL.filter(f=>(d[f[0]]||'').trim()).map(f=>'<div style="margin-top:4px"><b>'+f[1]+':</b> '+esc(d[f[0]])+'</div>').join('');
     return '<div class="readbox" style="border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-bottom:8px;color:var(--ink)"><div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:2px">📅 '+esc(dlabel(p.day))+'</div><div style="font-weight:700;color:var(--bordeaux)">'+esc(d.partita||'?')+(d.da?(' — from '+esc(d.da)):'')+(d.a?(' → '+esc(d.a)):'')+'</div>'+(body||'<div class="muted" style="margin-top:4px">(no details)</div>')+'</div>';
   }).join('');
-  return '<div class="card open" id="cprevpass" style="border-color:var(--gold)"><div class="card-h" onclick="toggleCard(\'cprevpass\')"><div class="t">Handover</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:8px">What the station chefs left in the last days (most recent on top).</div>'+blocks+'</div></div>';
+  return '<div class="card open" id="cprevpass" style="border-color:var(--gold)"><div class="card-h" onclick="toggleCard(\'cprevpass\')"><div class="t">Handover</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:8px">What the station leads left over the last few days (most recent on top).</div>'+blocks+'</div></div>';
 }
-async function savePass(){const c=getCook();if(!c){alert('Pick your name first.');return;}const ids=['partita','da','a','pronto','manca','dove','urgenti','note'];const data={};ids.forEach(k=>data[k]=document.getElementById('pc_'+k).value.trim());if(!data.partita){alert('Enter at least the station.');return;}
+async function savePass(){const c=getCook();if(!c){alert('Choose your name first.');return;}const ids=['partita','da','a','pronto','manca','dove','urgenti','note'];const data={};ids.forEach(k=>data[k]=document.getElementById('pc_'+k).value.trim());if(!data.partita){alert('Enter at least the station.');return;}
   try{await sb('kitchen_entries',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({day:today,type:'passaggio',cook:c,data:data})});ENT.push({type:'passaggio',cook:c,at:new Date().toISOString(),data:data});render();openCard('cpass');toast('Handover sent');}catch(e){toast('⚠️ Not sent');console.error(e);}}
 function presaCard(){
   const c=getCook();const mine=PRESA.find(p=>p.cook===c);
-  return '<div class="card" id="cpv"><div class="card-h" onclick="toggleCard(\'cpv\')"><div class="t">Job description acknowledgement</div>'+(mine?'<span class="pill ok">signed</span>':'')+'<svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:10px">I confirm I have read and understood the job description and the kitchen rules.</div>'+(mine?'<div class="pill ok">✓ Firmato da '+esc(c)+'</div>':'<button class="btn" onclick="firmaPresa()">I confirm I have read it</button>')+'</div></div>';
+  return '<div class="card" id="cpv"><div class="card-h" onclick="toggleCard(\'cpv\')"><div class="t">Job description acknowledgement</div>'+(mine?'<span class="pill ok">signed</span>':'')+'<svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:10px">I confirm I have read and understood the job description and the kitchen rules.</div>'+(mine?'<div class="pill ok">✓ Signed by '+esc(c)+'</div>':'<button class="btn" onclick="firmaPresa()">I confirm acknowledgement</button>')+'</div></div>';
 }
-async function firmaPresa(){const c=getCook();if(!c){alert('Pick your name first.');return;}const role=(TEAM.find(t=>t[0]===c)||['',''])[1];
+async function firmaPresa(){const c=getCook();if(!c){alert('Choose your name first.');return;}const role=(TEAM.find(t=>t[0]===c)||['',''])[1];
   try{await sb('kitchen_presa?on_conflict=cook',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({cook:c,role:role})});PRESA.push({cook:c,role:role,at:new Date().toISOString()});render();openCard('cpv');toast('Signed');}catch(e){toast('⚠️ Not saved');console.error(e);}}
-function readCard(){return '<div class="card" id="cread"><div class="card-h" onclick="toggleCard(\'cread\')"><div class="t">📖 Job description & guides (to read)</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox">Here we will put the full job description, org chart, briefing, fryers, plating photos and reminders — to consult. (To be added.)</div></div></div>';}
+function readCard(){return '<div class="card" id="cread"><div class="card-h" onclick="toggleCard(\'cread\')"><div class="t">📖 Job description & guides (to read)</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox">Here we will put the full job description, org chart, briefing, fryers, plating photos and reminders — for reference. (To be added.)</div><div class="readbox" style="margin-top:8px;background:#fbecec;border:1px solid #c0392b;color:#7a1f1f;font-weight:700">\u2696\uFE0F PENALTIES: at 7 weekly errors on the app, the extra half-day off and the agreed early exit are revoked. Please take this very seriously.</div></div></div>';}
 
 let openIds=new Set();
 function openCard(id){const e=document.getElementById(id);if(e)e.classList.add('open');}
-const COVER=[["Alex","Mains (Secondi)"],["Mattia","First courses (Primi)"],["Erjola","Pastry"]];
+const COVER=[["Alex","Mains"],["Mattia","Firsts (pasta/risotto)"],["Erjola","Pastry"]];
 function getCover(){return localStorage.getItem('prcover_'+today)||'';}
 function setCover(st){localStorage.setItem('prcover_'+today,st);render();}
 function weekdaysWork(cook){
@@ -316,18 +341,18 @@ function weeklyTodayCard(cook){
   var idxs=weeklyDue(cook);if(!idxs.length)return '';
   var items=puliziaSettFor(cook)||[];var group='pulizias#'+cook;
   var rows=idxs.map(function(i){var on=CK[group+'_'+i];return '<div class="it"><div class="chk'+(on?' on':'')+'" onclick="checkItem(\''+group+'\','+i+',this)">'+(on?'✓':'')+'</div><div class="lab">'+esc(items[i])+(on?'<span class="sig">✓ '+esc(on.by)+' · '+tloc(on.at)+'</span>':'')+'</div></div>';}).join('');
-  return '<div class="card open" id="cwtoday" style="border-color:var(--gold)"><div class="card-h" onclick="toggleCard(\'cwtoday\')"><div class="t">🧽 Today\'s weekly ('+idxs.length+')</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">On top of the daily list, today you also do this: the weekly cleaning is spread over the days (a little each day, no big block to finish by Sunday).</div>'+rows+'</div></div>';
+  return '<div class="card open" id="cwtoday" style="border-color:var(--gold)"><div class="card-h" onclick="toggleCard(\'cwtoday\')"><div class="t">🧽 Today weekly ('+idxs.length+')</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">On top of the daily one, this is due today too: the weekly cleaning is spread across the days (a little each day, no big block to finish by Sunday).</div>'+rows+'</div></div>';
 }
 function puliziaSection(){
   var cook=getCook();
   if(CHIUSI.indexOf(cook)>=0){return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Gourmet cleaning — 🔒 suspended</div></div><div class="card-b" style="display:block"><div class="readbox">The gourmet is closed: cleaning is suspended. Log what you produce in the <b>Service sheet</b> below.</div></div></div>';}
-  if(isOff(cook)){return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">🔓 Today is your day off</div></div><div class="card-b" style="display:block"><div class="readbox">Enjoy your day off!'+(['Alex','Mattia','Erjola'].indexOf(cook)>=0?' Gianluca is covering your cleaning today.':'')+' You do not have to tick anything.</div></div></div>';}
+  if(isOff(cook)){return '<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">🔓 You are off today</div></div><div class="card-b" style="display:block"><div class="readbox">Enjoy your day off!'+(['Alex','Mattia','Erjola','Ubaldo'].indexOf(cook)>=0?' Your cleaning today is covered by <b>Gianluca</b>.':'')+' You do not need to mark anything.</div></div></div>';}
   if(PEOPLE[cook]&&PEOPLE[cook].tournant){
     var cov=getCover();if(!cov)cov=badrCovers();
-    var opts='<option value="">— no coverage —</option>'+COVER.map(function(x){return '<option value="'+x[0]+'" '+(x[0]===cov?'selected':'')+'>'+x[1]+' ('+x[0]+')</option>';}).join('');
+    var opts='<option value="">— no cover —</option>'+COVER.map(function(x){return '<option value="'+x[0]+'" '+(x[0]===cov?'selected':'')+'>'+x[1]+' ('+x[0]+')</option>';}).join('');
     var sel='<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">Today you cover the station of:</div></div><div class="card-b" style="display:block">'+(badrCovers()?'<div class="readbox" style="margin-bottom:8px">🔓 Today <b>'+esc(badrCovers())+'</b> is off: cover their station.</div>':'')+'<select class="txt" onchange="setCover(this.value)">'+opts+'</select></div></div>';
     if(cov){
-      var info='<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">🔒 Today you are on a station</div></div><div class="card-b" style="display:block"><div class="readbox">Today you cover the station of <b>'+esc(cov)+'</b>: do the <b>tasks of that station</b> below. Your tournant tasks are suspended today, you do not need to tick them.</div></div></div>';
+      var info='<div class="card" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">🔒 Today you are on a station</div></div><div class="card-b" style="display:block"><div class="readbox">Today you cover <b>'+esc(cov)+'</b> station: do <b>their station tasks</b> below. Your tournant tasks are suspended today, no need to mark them.</div></div></div>';
       var covCards=checklistCard('cpul','Cleaning — '+esc(cov)+' (you cover)','pulizia#'+cov,puliziaFor(cov))+(puliziaSettFor(cov)?checklistCard('cpuls','Weekly cleaning (by SUNDAY) — '+esc(cov),'pulizias#'+cov,puliziaSettFor(cov)):'');
       return sel+info+covCards;
     }
@@ -335,36 +360,192 @@ function puliziaSection(){
     var mySett=weeklyTodayCard(cook);
     return base+mySett+sel;
   }
-  return checklistCard('cpul','My cleaning (station chef)','pulizia#'+(cook||'_'),puliziaFor(cook||'_'))+weeklyTodayCard(cook);
+  return checklistCard('cpul','My cleaning (station lead)','pulizia#'+(cook||'_'),puliziaFor(cook||'_'))+weeklyTodayCard(cook)+mondayFryerCard(cook);
 }
 function menuCard(){
-  var p=MENU_PRANZO.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — <b>First:</b> '+esc(d[1])+' · <b>Main:</b> '+esc(d[2])+(d[3]&&d[3]!=='—'?' · <b>Meat alt.:</b> '+esc(d[3]):'')+' · <b>Veg:</b> '+esc(d[4])+' · <b>Sides:</b> '+esc(d[5])+'</div>';}).join('');
-  var c=MENU_CENA.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — '+esc(d[1])+' · <b>Side:</b> '+esc(d[2])+' · <b>Veg:</b> '+esc(d[3])+(d[4]?' · <b>Prepares:</b> '+esc(d[4]):'')+'</div>';}).join('');
-  return '<div class="card" id="cmenu"><div class="card-h" onclick="toggleCard(\'cmenu\')"><div class="t">📋 Staff menu</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">'+MENU_INFO+'</div><div style="font-weight:700;margin:4px 0 2px">LUNCH (~30 people)</div>'+p+'<div class="readbox" style="margin-top:8px">'+MENU_PRANZO_NOTE+'</div><div style="font-weight:700;margin:12px 0 2px">DINNER (~25 people)</div>'+c+'<div class="readbox" style="margin-top:8px">'+MENU_CENA_NOTE+'</div></div></div>';
+  function sec(t){return '<div style="font-size:13px;font-weight:800;letter-spacing:.5px;color:var(--bordeaux);border-bottom:2px solid var(--gold);padding-bottom:4px;margin:14px 0 6px">'+t+'</div>';}
+  function prow(g,val){return '<div style="padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+g+'</b> — '+val+'</div>';}
+  var primi=MENU_PRANZO.map(function(d){return prow(d[0],esc(d[1]));}).join('');
+  var carne=MENU_PRANZO.map(function(d){return prow(d[0],'<b>Main:</b> '+esc(d[2])+(d[3]&&d[3]!=='—'?' · <b>Alt:</b> '+esc(d[3]):''));}).join('');
+  var verd=MENU_PRANZO.map(function(d){return prow(d[0],'<b>Salad:</b> '+esc(d[4])+' · <b>Side:</b> '+esc(d[5]));}).join('');
+  var c=MENU_CENA.map(function(d){return '<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>'+d[0]+'</b> — '+esc(d[1])+' · <b>Side:</b> '+esc(d[2])+' · <b>Veg:</b> '+esc(d[3])+(d[4]?' · <b>Preps:</b> '+esc(d[4]):'')+'</div>';}).join('');
+  return '<div class="card" id="cmenu"><div class="card-h" onclick="toggleCard(\'cmenu\')"><div class="t">📋 Staff menu</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'
+    +'<div class="readbox" style="margin-bottom:6px">'+MENU_INFO+'</div>'
+    +'<div class="readbox" style="margin:6px 0;background:#eafaf0;border:1px solid #2e7d5b;font-weight:600">'+MENU_PRANZO_AVANZO+'</div>'
+    +'<div style="font-weight:700;margin:4px 0 2px">LUNCH (~30 pax)</div>'
+    +sec('🍝 FIRSTS — Mattia')+primi
+    +sec('🥩 MAINS & MEAT — Badr')+carne
+    +sec('🥗 SALADS, VEGETABLES & SIDES — Manjeet and Alex')+verd
+    +'<div class="readbox" style="margin-top:8px">'+MENU_PRANZO_NOTE+'</div>'
+    +'<div style="font-weight:700;margin:12px 0 2px">DINNER (~25 pax)</div>'+c
+    +'<div class="readbox" style="margin-top:8px">'+MENU_CENA_NOTE+'</div></div></div>';
 }
+function notaCard(){
+  var cook=getCook();
+  if(['Alex','Gianluca'].indexOf(cook)<0) return '';
+  var key='notacuoco|'+cook+'|'+today;var cur=NOTECUOCO[key]||'';
+  return '<div class="card open" id="cnota" style="border-color:var(--gold)"><div class="card-h" onclick="toggleCard(\'cnota\')"><div class="t">📝 Today notes</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">Write here any problems, reports or things to tell the chef. He reads and reviews them.</div><textarea class="txt" id="notaTxt" placeholder="Write here…">'+esc(cur)+'</textarea><button class="btn" onclick="saveNota()">Save note</button></div></div>';
+}
+async function saveNota(){
+  var cook=getCook();if(!cook){alert('Choose your name first.');return;}
+  var v=document.getElementById('notaTxt').value;var key='notacuoco|'+cook+'|'+today;NOTECUOCO[key]=v;
+  var payload={k:key,v:{text:v,cook:cook,at:new Date().toISOString()}};
+  async function put(){return sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(payload)});}
+  async function verify(){try{var r=await sb('kitchen_meta?k=eq.'+encodeURIComponent(key)+'&select=v');return !!(r&&r[0]&&r[0].v&&(r[0].v.text||'')===v);}catch(e){return false;}}
+  try{await put();toast('Note saved');return;}catch(e){console.error(e);}
+  try{await put();toast('Note saved');return;}catch(e){console.error(e);}
+  if(await verify()){toast('Note saved');}else{toast('⚠️ Not saved, try again');}
+}
+function countDone(group){var d=0;Object.keys(CK).forEach(function(k){if(k.indexOf(group+'_')===0)d++;});return d;}
+// Fasce orarie: l'allarme conta una cosa come "mancante" solo dalla sua ora in poi (minuti dalla mezzanotte)
+var DUE_APERTURA=600;   // 10:00
+var DUE_PULIZIA=900;    // 15:00
+var DUE_CHIUSURA=1260;var DUE_PENALE=1350;  // 21:00
+var NOSCHEDA=["Majeet","Gigio"];
+function nowMin(){var d=new Date();return d.getHours()*60+d.getMinutes();}
+function hhmm(m){return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2);}
+function missingFor(cook){
+  if(!cook)return null;
+  if(isOff(cook))return [];
+  if(CHIUSI.indexOf(cook)>=0)return [];
+  if(cook==='Gigio')return [];
+  var miss=[];
+  if(cook!=='Gigio'&&!(TIMBRA[cook]&&TIMBRA[cook].pIn))miss.push({t:"Mark the lunch arrival",from:0});
+  var tour=PEOPLE[cook]&&PEOPLE[cook].tournant;
+  var cov=tour?(getCover()||badrCovers()):'';
+  if(tour&&cov){var g='pulizia#'+cov,tot=puliziaFor(cov).length,d=countDone(g);if(d<tot)miss.push({t:"Cleaning of "+cov+" station ("+d+"/"+tot+")",from:DUE_PULIZIA});}
+  else{var g2='pulizia#'+cook,tot2=puliziaFor(cook).length,d2=countDone(g2);if(d2<tot2)miss.push({t:(tour?"Tournant tasks":"My cleaning")+" ("+d2+"/"+tot2+")",from:DUE_PULIZIA});var wd=weeklyDue(cook);if(wd.length)miss.push({t:"Today weekly cleaning ("+wd.length+")",from:DUE_PULIZIA});}
+  var showApe=RESPFISSI.indexOf(cook)>=0;
+  var showChiu=RESPFISSI.indexOf(cook)>=0;
+  if(showApe){var da=countDone('apertura');if(da<APERTURA.length)miss.push({t:"Opening checklist ("+da+"/"+APERTURA.length+")",from:DUE_APERTURA});}
+  if(showChiu){var dc=countDone('chiusura');if(dc<CHIUSURA.length)miss.push({t:"Closing checklist ("+dc+"/"+CHIUSURA.length+")",from:DUE_CHIUSURA});}
+  var nsch=ENT.filter(function(e){return e.type==='scheda'&&e.cook===cook;}).length;
+  if(nsch===0&&NOSCHEDA.indexOf(cook)<0)miss.push({t:"Write what you prepared (service sheet)",from:DUE_PULIZIA});
+  var _myco=(CHEFORD||[]).filter(function(o){return o.cook===cook&&o.done!==true;});
+  if(_myco.length)miss.push({t:"Chef orders to do ("+_myco.length+")",from:DUE_CHIUSURA});
+  return miss;
+}
+var _penSig=null;
+function updatePenale(cook,miss){try{
+  var lateEnough=(nowMin()>=DUE_PENALE)||(TIMBRA[cook]&&TIMBRA[cook].sOut);
+  var sig=cook+'#'+((miss||[]).join('||'))+'#'+(lateEnough?'L':'E');if(sig===_penSig)return;_penSig=sig;
+  var k='penale|'+today+'|'+cook,sk='pen_since_'+cook+'_'+today;
+  if(miss&&miss.length&&lateEnough){var since=null;try{since=localStorage.getItem(sk);}catch(e){}if(!since){since=new Date().toISOString();try{localStorage.setItem(sk,since);}catch(e){}}
+    sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:k,v:{cook:cook,n:miss.length,missing:miss,since:since,at:new Date().toISOString(),done:false}})}).catch(function(){});
+  }else{try{localStorage.removeItem(sk);}catch(e){}
+    sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:k,v:{cook:cook,n:0,missing:[],done:true,at:new Date().toISOString()}})}).catch(function(){});
+  }
+}catch(e){}}
+function progressFor(cook){
+  if(cook==='Gigio')return {tot:0,done:0,pct:100};
+  var tot=0,done=0;
+  if(cook!=='Gigio'){tot++; if(TIMBRA[cook]&&TIMBRA[cook].pIn)done++;}
+  var tour=PEOPLE[cook]&&PEOPLE[cook].tournant;var cov=tour?(getCover()||badrCovers()):'';
+  if(tour&&cov){tot+=puliziaFor(cov).length;done+=countDone('pulizia#'+cov);}
+  else{tot+=puliziaFor(cook).length;done+=countDone('pulizia#'+cook);}
+  if(RESPFISSI.indexOf(cook)>=0){tot+=APERTURA.length;done+=countDone('apertura');tot+=CHIUSURA.length;done+=countDone('chiusura');}
+  if(NOSCHEDA.indexOf(cook)<0){tot++; if(ENT.filter(function(e){return e.type==='scheda'&&e.cook===cook;}).length>0)done++;}
+  var pct=tot?Math.round(done/tot*100):100;if(pct>100)pct=100;if(pct<0)pct=0;
+  return {tot:tot,done:done,pct:pct};
+}
+function _ydayC(){var d=new Date(today+'T00:00:00');d.setDate(d.getDate()-1);return ymd(d);}
+function maybeStreak(cook){try{var k='pr_streak_'+cook;var o=JSON.parse(localStorage.getItem(k)||'{}');if(o.last===today)return;o.n=(o.last===_ydayC())?((o.n||0)+1):1;o.last=today;localStorage.setItem(k,JSON.stringify(o));}catch(e){}}
+function streakHtml(cook){try{var o=JSON.parse(localStorage.getItem('pr_streak_'+cook)||'{}');if(o.last===today&&(o.n||0)>=2)return ' · 🔥 <b>'+o.n+'</b> days in a row at 100%';}catch(e){}return '';}
+function chefOrdCard(){
+  var me=getCook();if(!me)return '';
+  var mine=(CHEFORD||[]).filter(function(o){return o.cook===me;});
+  if(!mine.length)return '';
+  var pend=mine.filter(function(o){return o.done!==true;});
+  if(!pend.length)return '<div class="okbar">✅ Chef orders: all done ('+mine.length+'). Thanks!</div>';
+  var rows=pend.map(function(o){return '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.14);border-radius:10px;padding:10px 12px;margin:8px 0"><div style="flex:1;font-size:15px;font-weight:800;color:#fff">'+esc(o.txt)+'<div style="font-size:11.5px;opacity:.85;font-weight:600">requested by the chef · '+tloc(o.at)+'</div></div><button onclick="cuocoMarkCO('+o.id+')" style="background:#fff;color:#8a1f10;border:0;border-radius:9px;padding:9px 14px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap">✓ Done</button></div>';}).join('');
+  return '<div class="penalebar" style="background:#8a1f10;box-shadow:0 3px 14px rgba(138,31,16,.5)"><div class="pb-t">🔔 '+esc(me)+' — THE CHEF ASKED YOU FOR '+pend.length+' '+(pend.length>1?'THINGS':'THING')+'</div><div class="pb-s">Do them BEFORE closing service, then tap ✓ Done</div>'+rows+'</div>';
+}
+async function cuocoMarkCO(id){var o=(CHEFORD||[]).find(function(x){return x.id===id;});if(!o)return;o.done=true;o.doneAt=new Date().toISOString();try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefordini',v:{items:CHEFORD}})});toast('Done ✓');render();}catch(e){toast('⚠️ Not saved');o.done=null;render();}}
+function penaleBanner(cook){
+  if(cook==='Gigio')return '';
+  var raw=missingFor(cook);
+  if(raw===null)return '';
+  var nm=nowMin();
+  var due=raw.filter(function(m){return nm>=m.from;});
+  updatePenale(cook,due.map(function(m){return m.t;}));
+  var pr=progressFor(cook);var _RULE='<div style="margin-top:8px;font-size:11.5px;font-weight:700;line-height:1.4;border-top:1px solid rgba(120,120,120,.45);padding-top:6px">\u2696\uFE0F At 7 weekly ERRORS on the app, the extra HALF-DAY OFF and the agreed early EXIT are revoked. Please take this very seriously.</div>';
+  if(!raw.length){maybeStreak(cook);return '<div class="okbar">✅ '+esc(cook)+', you have completed everything today! 🎉'+streakHtml(cook)+'</div>';}
+  var lis=raw.map(function(m){return '<li>'+esc(m.t)+'</li>';}).join('');
+  var barcol=due.length?'#c0392b':'#c9a227';
+  var bar='<div style="background:rgba(0,0,0,.12);border-radius:8px;height:9px;margin:9px 0 4px;overflow:hidden"><div style="height:100%;width:'+pr.pct+'%;background:'+barcol+'"></div></div><div style="font-size:12px;opacity:.92;margin-bottom:6px">Completed today: <b>'+pr.pct+'%</b> ('+pr.done+'/'+pr.tot+')'+streakHtml(cook)+'</div>';
+  if(due.length){
+    return '<div class="penalebar"><div class="pb-t">⚠️ '+esc(cook)+' — YOU ARE MISSING '+raw.length+' THINGS</div><div class="pb-s">Complete them now: the chef sees who has not finished · PENALTY risk</div>'+bar+'<ul class="pb-l">'+lis+'</ul>'+_RULE+'</div>';
+  }
+  return '<div class="penalebar" style="background:#ffcf3f;color:#3a2c00;border-color:#d6a800;box-shadow:0 3px 14px rgba(214,168,0,.35);animation:none"><div class="pb-t" style="color:#3a2c00">📋 '+esc(cook)+' — you are missing '+raw.length+' things today</div><div class="pb-s" style="color:#5a4400">Complete everything before end of shift · the chef sees who has not finished</div>'+bar+'<ul class="pb-l" style="color:#3a2c00">'+lis+'</ul>'+_RULE+'</div>';
+}
+function fineTurnoCard(){var c=getCook();if(!c||c==='Gigio'||isOff(c)||CHIUSI.indexOf(c)>=0)return '';var t=TIMBRA[c]||{};if(t.sOut)return '<div class="okbar">👋 '+esc(c)+', shift closed. See you tomorrow!</div>';return '<div class="card" style="border-color:var(--gold)"><div class="card-b" style="display:block"><button class="btn" style="width:100%;font-size:16px;padding:14px" onclick="fineTurno()">✅ I have finished my shift</button><div class="readbox" style="margin-top:8px">If something is missing I will tell you. Then the chef (or Gianluca) unlocks the exit after checking the cleaning — ask them in person. Before closing it asks you to confirm stand mixers and blast chillers.</div></div></div>';}
+function fineTurno(){var c=getCook();if(!c){alert('Choose your name first.');return;}var miss=missingFor(c)||[];if(miss.length){alert('Wait! Before you go you are missing:\n\n- '+miss.map(function(m){return m.t;}).join('\n- ')+'\n\nComplete them, then mark end of shift.');return;}if(!(TIMBRA[c]&&TIMBRA[c].pIn)){alert('Mark the lunch arrival first.');return;}timbraSet('sOut');}
+function toggleConsDone(){var e=document.getElementById('cconsdone');if(e)e.style.display=(e.style.display==='none'?'block':'none');}
+function consegneCard(){
+  var c=getCook();var isG=(c==='Gianluca'||c==='Gigio');
+  var src=isG?PASSL.slice():PASSL.filter(function(x){return x.by===c;});
+  var openL=src.filter(function(x){return !x.done;});var doneL=src.filter(function(x){return x.done;});
+  function dtagOf(x){var _d=(x.at||'').slice(0,10);return (_d&&_d!==today)?(' · '+_d.split('-').reverse().slice(0,2).join('/')):'';}
+  function rowG(x){var dn=!!x.done;return '<div class="it"><div class="chk'+(dn?' on':'')+'" onclick="togglePass(\''+x.id+'\')">'+(dn?'✓':'')+'</div><div class="lab"'+(dn?' style="text-decoration:line-through;color:var(--muted)"':'')+'>'+esc(x.t)+'<span class="sig">'+(dn?('✓ done by '+esc(x.doneBy||'')+' · '+tloc(x.doneAt)):('from '+esc(x.by||'')+dtagOf(x)+' · '+tloc(x.at)))+'</span></div></div>';}
+  function rowMine(x){return '<div class="it"><div class="lab" style="flex:1">'+esc(x.t)+'<span class="sig">'+(x.done?('✓ done by '+esc(x.doneBy||'')):'pending')+dtagOf(x)+'</span></div><button class="ctrlbtn" style="width:auto;padding:6px 10px" onclick="removePass(\''+x.id+'\')">Remove</button></div>';}
+  var rows;
+  if(isG){var openRows=openL.length?openL.map(rowG).join(''):'<div class="readbox">Nothing to hand over right now. 👍</div>';var arch=doneL.length?('<button class="btn" style="background:#fff;color:var(--bordeaux);border:1px solid var(--line);margin-top:10px" onclick="toggleConsDone()">📋 Handovers done ('+doneL.length+')</button><div id="cconsdone" style="display:none;margin-top:6px">'+doneL.map(rowG).join('')+'<button class="btn" style="background:#fff;color:#c0392b;border:1px solid #c0392b;margin-top:6px" onclick="clearDonePass()">🗑 Clear handover archive</button></div>'):'';rows=openRows+arch;}
+  else{rows=src.length?src.map(rowMine).join(''):'<div class="readbox">You have not left any handovers. Write below what the cover person should do.</div>';}
+  var title=isG?'📋 Handovers to do (for you)':'📋 Leave a handover';
+  var intro=isG?'The things left by the station leads: do them and check them off.':'Write the things for the cover person (whoever covers your station). Gianluca and the chef can see them.';
+  return '<div class="card open" id="ccons" style="border-color:var(--gold)"><div class="card-h" onclick="toggleCard(\'ccons\')"><div class="t">'+title+'</div>'+(isG?'<div class="meta">'+openL.length+'</div>':'')+'<svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b"><div class="readbox" style="margin-bottom:6px">'+intro+'</div>'+rows+'<label class="fl">Add a task</label><input class="txt" id="consIn" placeholder="e.g. Finish the flan mise en place"><button class="btn" onclick="addPass()">+ Add</button>'+'</div></div>';
+}
+function removePass(id){var c=getCook();var x=PASSL.find(function(y){return y.id===id;});if(!x)return;if(x.by!==c){alert('You can only remove handovers you wrote.');return;}if(!confirm('Remove this handover?'))return;PASSL=PASSL.filter(function(y){return y.id!==id;});savePassList();render();openCard('ccons');}
+async function savePassList(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'passlist',v:{items:PASSL}})});}catch(e){toast('⚠️ Not saved');console.error(e);}}
+function addPass(){var c=getCook();if(!c){alert('Choose your name first.');return;}var el=document.getElementById('consIn');var t=(el.value||'').trim();if(!t)return;PASSL.push({id:'p'+Date.now()+Math.floor(Math.random()*1000),t:t,by:c,at:new Date().toISOString(),done:false});savePassList();render();openCard('ccons');setTimeout(function(){var i=document.getElementById('consIn');if(i)i.focus();},50);}
+function togglePass(id){var c=getCook();if(!c){alert('Choose your name first.');return;}var x=PASSL.find(function(y){return y.id===id;});if(!x)return;x.done=!x.done;if(x.done){x.doneBy=c;x.doneAt=new Date().toISOString();}else{delete x.doneBy;delete x.doneAt;}savePassList();render();openCard('ccons');}
+function clearDonePass(){if(!confirm('Remove the already-done items from the list?'))return;PASSL=PASSL.filter(function(x){return !x.done;});savePassList();render();openCard('ccons');}
+function setCTile(id){window.CTILE=id;try{window.scrollTo(0,0);}catch(e){}render();}
 function render(){
   whoBar();
   var ME=getCook();
   var isResp = RESPFISSI.indexOf(ME)>=0;
-  var showApe = isResp;
-  var showChiu = isResp;
-  var apeTitle = 'Opening checklist (person in charge)';
-  var chiTitle = 'Closing checklist (person in charge)';
-  document.getElementById('view').innerHTML=
-    timbraCard()+
-    pausaCard()+
-    (RESPFISSI.indexOf(ME)>=0?respCard():'')
-    +(showApe?checklistCard('cap',apeTitle,'apertura',APERTURA):'')
-    +puliziaSection()
-    +schedaCard()
-    +(showChiu?checklistCard('cch',chiTitle,'chiusura',CHIUSURA):'')
-    +prevPassCard()
-    +passCard()
-    +presaCard()
-    +menuCard()
-    +readCard();
+  var apeTitle = 'Opening checklist (lead)';
+  var chiTitle = 'Closing checklist (lead)';
+  var VIEWS={
+    orari: timbraCard(),
+    pause: pausaCard(),
+    pulizie: puliziaSection(),
+    consegne: consegneCard(),
+    scheda: schedaCard(),
+    note: notaCard(),
+    menu: menuCard(),
+    info: readCard()
+  };
+  if(isResp){ VIEWS.apertura=checklistCard('cap',apeTitle,'apertura',APERTURA); VIEWS.chiusura=checklistCard('cch',chiTitle,'chiusura',CHIUSURA); VIEWS.resp=respCard(); }
+  var TILES=[
+    {id:'orari',l:'Morning / evening hours',e:'⏱️',b:'#B5D4F4',fg:'#042C53',a:'#0C447C'},
+    {id:'pulizie',l:'My cleaning',e:'🧽',b:'#C0DD97',fg:'#173404',a:'#27500A'},
+    {id:'pause',l:'Breaks',e:'⏸️',b:'#FAC775',fg:'#412402',a:'#633806'},
+    {id:'consegne',l:'Handovers',e:'📋',b:'#D3D1C7',fg:'#2C2C2A',a:'#444441'},
+    {id:'scheda',l:'Service sheet',e:'📝',b:'#F4C0D1',fg:'#4B1528',a:'#72243E'}
+  ];
+  if(isResp){
+    TILES.push({id:'apertura',l:'Opening',e:'🌅',b:'#9FE1CB',fg:'#04342C',a:'#085041',s:'week lead'});
+    TILES.push({id:'chiusura',l:'Closing',e:'🌙',b:'#CECBF6',fg:'#26215C',a:'#3C3489',s:'week lead'});
+    TILES.push({id:'resp',l:'Lead',e:'⭐',b:'#FAC775',fg:'#412402',a:'#633806'});
+  }
+  if(['Alex','Gianluca'].indexOf(ME)>=0)TILES.push({id:'note',l:'Notes (issues)',e:'🗒️',b:'#F5C4B3',fg:'#4A1B0C',a:'#712B13'});
+  TILES.push({id:'menu',l:'Staff menu',e:'🍽️',b:'#FAC775',fg:'#412402',a:'#633806'});
+  TILES.push({id:'info',l:'Info / rules',e:'ℹ️',b:'#9FE1CB',fg:'#04342C',a:'#085041'});
+  var LBL={};TILES.forEach(function(t){LBL[t.id]=t.l;});
+  var top=penaleBanner(ME)+chefOrdCard();
+  var out;
+  if(window.CTILE && VIEWS[window.CTILE]!==undefined){
+    out=top+'<button class="btn" style="width:100%;margin-bottom:12px;font-size:15px" onclick="setCTile(null)">‹ Back to the tiles</button><div style="font-size:18px;font-weight:700;margin:2px 0 10px">'+esc(LBL[window.CTILE]||'')+'</div>'+VIEWS[window.CTILE];
+  } else {
+    var grid=TILES.map(function(t){return '<div onclick="setCTile(\''+t.id+'\')" style="cursor:pointer;background:'+t.b+';border-radius:14px;padding:12px 10px;min-height:96px;display:flex;flex-direction:column;justify-content:space-between"><div style="font-size:28px;line-height:1">'+t.e+'</div><div><div style="font-size:14px;font-weight:700;color:'+t.fg+'">'+t.l+'</div>'+(t.s?('<div style="font-size:11px;font-weight:700;color:'+t.a+'">'+t.s+'</div>'):'')+'</div></div>';}).join('');
+    out=top+'<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">'+grid+'</div>';
+  }
+  document.getElementById('view').innerHTML=out;
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 17/07 01:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 17/07 02:00</div>
+<script>(function(){function wmName(){try{return localStorage.getItem('pr_cook')||'';}catch(e){return '';}}function draw(){var nm=wmName();var d=new Date();var t=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);var dd=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);var label=(nm?nm+' · ':'')+'Prinz Rudolf · '+dd+' '+t;var esc=label.replace(/&/g,'&amp;').replace(/</g,'&lt;');var svg='<svg xmlns="http://www.w3.org/2000/svg" width="330" height="200"><text x="6" y="105" transform="rotate(-30 165 100)" fill="rgba(110,110,110,0.17)" font-size="15" font-family="-apple-system,sans-serif" font-weight="700">'+esc+'</text></svg>';var uri='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));var el=document.getElementById('__wm');if(!el){el=document.createElement('div');el.id='__wm';el.style.cssText='position:fixed;inset:0;z-index:9998;pointer-events:none;background-repeat:repeat';document.body.appendChild(el);}el.style.backgroundImage='url('+uri+')';}draw();setInterval(draw,15000);document.addEventListener('visibilitychange',function(){if(!document.hidden)draw();});})();</script>
 </body>
 </html>
