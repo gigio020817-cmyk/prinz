@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='15/07 14:20';
+const APP_VER='17/07 01:30';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -252,6 +252,7 @@ function toggleCard(id){document.getElementById(id).classList.toggle('open')}
 async function checkItem(group,idx,el){
   const c=getCook();if(!c){alert('Prima scegli il tuo nome in alto.');return;}
   const key=group+'_'+idx;const on=!CK[key];
+  if(on && /^pulizia/.test(group) && nowMin()<1080){alert('Le pulizie della giornata si possono spuntare solo dalle 18:00 in poi. Falle a fine servizio, poi spunta.');return;}
   el.classList.toggle('on',on);el.textContent=on?'✓':'';
   const lab=el.parentNode.querySelector('.lab');let sig=lab.querySelector('.sig');
   if(on){CK[key]={by:c,at:new Date().toISOString()};if(!sig){sig=document.createElement('span');sig.className='sig';lab.appendChild(sig);}sig.textContent='✓ '+c+' · '+now();}
@@ -266,7 +267,7 @@ async function checkItem(group,idx,el){
 function checklistCard(id,title,group,items){
   let d=0;Object.keys(CK).forEach(k=>{if(k.indexOf(group+'_')===0)d++});
   let rows=items.map((it,i)=>{const on=CK[group+'_'+i];return '<div class="it"><div class="chk'+(on?' on':'')+'" onclick="checkItem(\''+group+'\','+i+',this)">'+(on?'✓':'')+'</div><div class="lab">'+esc(it)+(on?'<span class="sig">✓ '+esc(on.by)+' · '+tloc(on.at)+'</span>':'')+'</div></div>';}).join('');
-  return '<div class="card" id="'+id+'"><div class="card-h" onclick="toggleCard(\''+id+'\')"><div class="t">'+title+'</div><div class="meta">'+d+'/'+items.length+'</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'+rows+ctrlFooter(group)+'</div></div>';
+  return '<div class="card" id="'+id+'"><div class="card-h" onclick="toggleCard(\''+id+'\')"><div class="t">'+title+'</div><div class="meta">'+d+'/'+items.length+'</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'+((/^pulizia/.test(group)&&nowMin()<1080)?'<div class="readbox" style="background:#fff6da;border:1px solid var(--gold);color:#5a4600;margin-bottom:6px">⏰ Le pulizie si spuntano <b>dalle 18:00</b> in poi (a fine servizio).</div>':'')+rows+ctrlFooter(group)+'</div></div>';
 }
 function respCard(){
   return '<div class="card open" id="cresp"><div class="card-h" onclick="toggleCard(\'cresp\')"><div class="t">Responsabili della settimana</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'
@@ -544,6 +545,6 @@ function render(){
   document.getElementById('view').innerHTML=out;
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 15/07 14:20</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 17/07 01:30</div>
 </body>
 </html>
