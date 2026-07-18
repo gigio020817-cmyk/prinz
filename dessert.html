@@ -96,7 +96,7 @@
 .ordnotelab{font-size:12px;font-weight:700;color:#8a8378;margin:14px 0 4px}
 .ordnote{width:100%;min-height:52px;border:1px solid #ececec;border-radius:10px;padding:10px;font-size:14px;font-family:inherit;box-sizing:border-box}
 .ordsend{display:block;width:100%;margin:22px 0 10px;border:none;border-radius:14px;padding:16px;font-size:17px;font-weight:800;background:#7a1f2b;color:#fff;cursor:pointer}
-</style>
+.dgal{margin:14px auto 8px;max-width:100%}.dgcount{font-size:11.5px;color:#8a6d00;font-weight:700;margin-bottom:6px;text-align:center}.dgscroll{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;border-radius:12px;-webkit-overflow-scrolling:touch}.dgscroll::-webkit-scrollbar{display:none}.dgimg{flex:0 0 100%;width:100%;scroll-snap-align:center;display:block;cursor:zoom-in;border-radius:12px}.dgdots{display:flex;justify-content:center;gap:7px;margin-top:9px}.dgdot{width:8px;height:8px;border-radius:50%;background:#00000028}.dgdot.on{background:#c9a227}</style>
 </head>
 <body>
 <div id="lock">
@@ -142,7 +142,7 @@ async function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='03/07 18:15';
+const APP_VER='17/07 04:20';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dessert'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dessert','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dessert')!=='28/06 21:20'){localStorage.removeItem('pr_dspw');localStorage.setItem('pr_av_dessert','28/06 21:20');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dspw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function buildTabs(){document.getElementById('tabs').innerHTML=TABS.map(t=>'<button class="'+(t[0]===curTab?'on':'')+'" onclick="setTab(\''+t[0]+'\')">'+t[1]+'</button>').join('');}
@@ -187,7 +187,7 @@ function renderMezza(v){
   var wk=DATA.mezza[curW];
   wk.dishes.forEach(function(d,i){
     html+='<div class="daylab">'+esc(d.giorno)+'</div>';
-    html+='<div class="card" id="m_'+curW+'_'+i+'"><div class="card-h" onclick="tog(this.closest(\'.card\'))"><div class="t">'+esc(d.title)+'</div><span class="tog">›</span></div><div class="card-b">'+(d.img?'<img class="dishphoto" src="'+d.img+'" alt="" onclick="zoomImg(this.src)">':'')+'<div class="grid2">'+comps(d.comps)+'</div>'+corrBox('mezza|'+curW+'|'+i)+'</div></div>';
+    html+='<div class="card" id="m_'+curW+'_'+i+'"><div class="card-h" onclick="tog(this.closest(\'.card\'))"><div class="t">'+esc(d.title)+'</div><span class="tog">›</span></div><div class="card-b">'+(pgS(d,'zoomImg(this.src)'))+'<div class="grid2">'+comps(d.comps)+'</div>'+corrBox('mezza|'+curW+'|'+i)+'</div></div>';
   });
   v.innerHTML=html;
 }
@@ -212,7 +212,7 @@ function renderSection(v,sec){
         +'</div>'
         +'<span class="tog" onclick="tog(this.closest(\'.card\'))">›</span>'
       +'</div>'
-      +'<div class="card-b">'+(it.img?'<img class="dishphoto" src="'+it.img+'" alt="" onclick="zoomImg(this.src)">':'')+comps(it.comps)+corrBox(sec+'|'+it.id)+'</div></div>';
+      +'<div class="card-b">'+(pgS(it,'zoomImg(this.src)'))+comps(it.comps)+corrBox(sec+'|'+it.id)+'</div></div>';
   });
   v.innerHTML=html;
 }
@@ -220,7 +220,7 @@ function tog(card){card.classList.toggle('open');}
 function chg(ev,sec,id,delta){ev.stopPropagation();var key='dessert|'+sec+'|'+id;var q=Math.max(0,(SCOUNT[key]||0)+delta);SCOUNT[key]=q;var el=document.getElementById('q_'+sec+'_'+id);if(el)el.textContent=q;saveQ(key,q);}
 function setQ(sec,id){var key='dessert|'+sec+'|'+id;var cur=SCOUNT[key]||0;var n=prompt('Quantità prodotta:',cur);if(n===null)return;n=parseInt(n,10);if(isNaN(n)||n<0)return;SCOUNT[key]=n;var el=document.getElementById('q_'+sec+'_'+id);if(el)el.textContent=n;saveQ(key,n);}
 async function saveQ(key,q){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:key,v:{q:q}})});}catch(e){console.error(e);}}
-function zoomImg(src){var lb=document.getElementById('lightbox');lb.querySelector('img').src=src;lb.style.display='flex';}
+function _pgPhotos(d){return (d&&d.imgs&&d.imgs.length)?d.imgs:((d&&d.img)?[d.img]:[]);}function pgS(d,zc){var ph=_pgPhotos(d);if(!ph.length)return '';var cls=(zc.indexOf('mzoom')>=0)?'mdishphoto':'dishphoto';if(ph.length===1)return '<img class="'+cls+'" src="'+ph[0]+'" alt="" onclick="'+zc+'">';var imgs=ph.map(function(src){return '<img class="dgimg" src="'+src+'" alt="" onclick="'+zc+'">';}).join('');var dots=ph.map(function(_x,pi){return '<span class="dgdot'+(pi===0?' on':'')+'"></span>';}).join('');return '<div class="dgal"><div class="dgcount">\uD83D\uDCF8 '+ph.length+' impiattamenti \u00b7 scorri \u2039 \u203a</div><div class="dgscroll" onscroll="dgDots(this)">'+imgs+'</div><div class="dgdots">'+dots+'</div></div>';}function dgDots(el){var idx=Math.round(el.scrollLeft/Math.max(1,el.clientWidth));var box=el.parentNode&&el.parentNode.querySelector('.dgdots');if(!box)return;var dots=box.querySelectorAll('.dgdot');for(var k=0;k<dots.length;k++)dots[k].classList.toggle('on',k===idx);}function zoomImg(src){var lb=document.getElementById('lightbox');lb.querySelector('img').src=src;lb.style.display='flex';}
 function corrBox(cid){return '<div class="corrbox"><div class="corrlbl">✏️ Modifiche da fare (Erjola)</div><textarea class="corrta" placeholder="Scrivi qui cosa cambiare in questa ricetta…">'+esc(getCorr(cid))+'</textarea><div class="corrrow"><button class="corrbtn save" onclick="saveCorr(\''+cid+'\',this)">Salva</button></div></div>';}
 function getCorr(cid){return CORR['dcorr|'+cid]||'';}
 function saveCorr(cid,btn){var ta=btn.closest('.corrbox').querySelector('textarea');var v=ta.value;CORR['dcorr|'+cid]=v;var _lab='';try{var _pp=cid.split('|');if(_pp[0]==='mezza'){_lab=(DATA.mezza[_pp[1]].dishes[_pp[2]]||{}).title||'';}else{var _it=(DATA[_pp[0]]||[]).find(function(x){return x.id===_pp[1];});_lab=_it?_it.nm:'';}}catch(e){}sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'dcorr|'+cid,v:{text:v,label:_lab,at:new Date().toISOString()}})}).catch(function(e){console.error(e);});var t=btn.textContent;btn.textContent='✓ Salvato';setTimeout(function(){btn.textContent=t;},1500);}
@@ -229,6 +229,6 @@ function copyCorr(){var t=document.getElementById('corrModal').querySelector('te
 </script>
 <div id="lightbox" onclick="this.style.display='none'"><img alt=""></div>
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Modifiche da inviare</h3><p>Copia questo testo e mandalo a Gigio (o incollalo a Claude in chat).</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 03/07 18:15</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 17/07 04:20</div>
 </body>
 </html>
