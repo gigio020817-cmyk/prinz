@@ -194,7 +194,7 @@ async function tryUnlock(password,fromStore){
 }
 document.getElementById('enter').onclick=()=>tryUnlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(pw.value,false)});
-const APP_VER='18/07 20:31';
+const APP_VER='19/07 18:46';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_sec'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_sec','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){if(!window.crypto||!crypto.subtle){err.textContent="Apri l'app dal sito (https), non come file locale.";return;}
   try{if(localStorage.getItem('pr_av_sec')!=='28/06 08:00'){localStorage.removeItem('pr_pw');localStorage.setItem('pr_av_sec','28/06 08:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_pw')}catch(e){}
@@ -247,7 +247,7 @@ function findMeat(id){for(var i=0;i<MEAT.length;i++)if(MEAT[i].id===id)return ME
 function mq(id){var v=MSTOCK[id];return (v&&typeof v.q==='number')?v.q:0;}
 function mmin(id){var v=MSTOCK[id];return (v&&typeof v.min==='number')?v.min:null;}
 function munit(id){var v=MSTOCK[id];if(v&&v.u)return v.u;var it=findMeat(id);return it?it.u:'';}
-function mtoggleUnit(id){var v=MSTOCK[id]||(MSTOCK[id]={});var _cur=munit(id);v.u=(_cur==='kg')?'pz':((_cur==='pz')?'cassa':'kg');saveMeat(id);renderMeat();}
+function mtoggleUnit(id){var v=MSTOCK[id]||(MSTOCK[id]={});var _cur=munit(id);v.u=(_cur==='kg')?'pz':((_cur==='pz')?'cassa':((_cur==='cassa')?'cassa rossa':'kg'));saveMeat(id);renderMeat();}
 function mtloc(iso){try{return new Date(iso).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})}catch(e){return''}}
 async function saveMeat(id){var v=MSTOCK[id]||{};try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'seccarne|'+id,v:v})});}catch(e){alert('\u26a0\ufe0f Non salvato, controlla internet');}}
 function mchg(id,d){var v=MSTOCK[id]||(MSTOCK[id]={});var q=(typeof v.q==='number'?v.q:0)+d;v.q=q<0?0:q;saveMeat(id);renderMeat();}
@@ -258,7 +258,7 @@ function renderMeat(){var host=document.getElementById('meatview');if(!host)retu
  var h='<div class="mchint">Tocca <b>\uff0b Ho prodotto\u2026</b> quando fai una produzione: si aggiunge alla giacenza. Usa <b>\u2212</b> quando consumi. Tocca il numero per correggerlo a mano. Imposta un minimo per farti avvisare con <b>DA PRODURRE</b>.</div>';
  groups.forEach(function(g){var items=MEAT.filter(function(m){return m.cat===g[1];});h+='<div class="mccat">'+g[0]+'</div>';
   items.forEach(function(it){var q=mq(it.id),mn=mmin(it.id),low=(mn!=null&&q<=mn);var pr=(MSTOCK[it.id]&&MSTOCK[it.id].prod)?'<span class="mcm">ult. prod. '+mtloc(MSTOCK[it.id].prod)+'</span>':'';var minl='<span class="mcmin" onclick="mminset(\''+it.id+'\')">'+(mn!=null?('min '+mn+' '+munit(it.id)):'\uff0b imposta minimo')+'</span>';
-   h+='<div class="mcrow'+(low?' low':'')+'"><div class="mcinfo"><div class="mcnm">'+ce(it.n)+(low?' <span class="mcpill">DA PRODURRE</span>':'')+'</div><div class="mcmeta">'+minl+pr+'</div></div><div class="mcstep"><button class="mcminus" onclick="mchg(\''+it.id+'\',-1)">\u2212</button><div class="mcval" onclick="mset(\''+it.id+'\')"><span class="mcn">'+q+'</span><small class="mcunit" onclick="event.stopPropagation();mtoggleUnit(\''+it.id+'\')" title="tocca per kg/pz/cassa" style="cursor:pointer;border-bottom:1px dotted #b58a2a">'+munit(it.id)+'</small></div><button class="mcplus" onclick="mchg(\''+it.id+'\',1)">+</button></div><button class="mcprod" onclick="mprod(\''+it.id+'\')">\uff0b Ho prodotto\u2026</button></div>';});});
+   h+='<div class="mcrow'+(low?' low':'')+'"><div class="mcinfo"><div class="mcnm">'+ce(it.n)+(low?' <span class="mcpill">DA PRODURRE</span>':'')+'</div><div class="mcmeta">'+minl+pr+'</div></div><div class="mcstep"><button class="mcminus" onclick="mchg(\''+it.id+'\',-1)">\u2212</button><div class="mcval" onclick="mset(\''+it.id+'\')"><span class="mcn">'+q+'</span><small class="mcunit" onclick="event.stopPropagation();mtoggleUnit(\''+it.id+'\')" title="tocca per kg/pz/cassa/cassa rossa" style="cursor:pointer;border-bottom:1px dotted #b58a2a">'+munit(it.id)+'</small></div><button class="mcplus" onclick="mchg(\''+it.id+'\',1)">+</button></div><button class="mcprod" onclick="mprod(\''+it.id+'\')">\uff0b Ho prodotto\u2026</button></div>';});});
  host.innerHTML=h;}
 function showSecView(v){if(v!=='carne')SECVIEW=v;
  var main=document.querySelector('main'),mv=document.getElementById('meatview'),sr=document.querySelector('.search'),ht=document.getElementById('hTitle'),q=document.getElementById('q');
@@ -269,7 +269,7 @@ function showSecView(v){if(v!=='carne')SECVIEW=v;
 
 </script>
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Modifiche da inviare</h3><p>Copia questo testo e mandalo a Gigio (o incollalo a Claude in chat).</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/07 20:31</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/07 18:46</div>
 
 <script>
 /* Sezione Ordini — Secondi (diviso per settimana) */
