@@ -146,7 +146,7 @@ async function tryUnlock(password,fromStore){
 }
 document.getElementById('enter').onclick=()=>tryUnlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(pw.value,false)});
-const APP_VER='19/07 18:50';
+const APP_VER='19/07 19:04';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_primi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_primi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){if(!window.crypto||!crypto.subtle){err.textContent="Apri l'app dal sito (https).";return;}
   try{if(localStorage.getItem('pr_av_primi')!=='24/06 15:00'){localStorage.removeItem('pr_pw');localStorage.setItem('pr_av_primi','24/06 15:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_pw')}catch(e){}
@@ -172,10 +172,10 @@ function renderList(filter){
   });
   list.innerHTML=html;
 }
-function openDish(i){
+function openDish(i){window._listScroll=window.scrollY;
   const d=WEEKS[curW].dishes[i],list=document.getElementById('list'),detail=document.getElementById('detail');
   list.style.display='none';detail.style.display='block';window.scrollTo(0,0);document.getElementById('hTitle').textContent=WEEKS[curW].sett;
-  detail.innerHTML='<button class="back" onclick="renderList(document.getElementById(\'q\').value)">'
+  detail.innerHTML='<button class="back" onclick="renderList(document.getElementById(\'q\').value);setTimeout(function(){window.scrollTo(0,window._listScroll||0)},0)">'
     +'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> Tutti i primi</button>'
     +'<div class="dhead"><div class="day">'+esc(d.giorno)+' &middot; '+esc(WEEKS[curW].sett)+'</div><h2>'+esc(d.title)+'</h2></div>'+(pgS(d,'zoomImg(this.src)'))
     +d.comps.map((c,j)=>'<div class="comp" id="c'+i+'-'+j+'"><div class="comp-h" onclick="toggle(\'c'+i+'-'+j+'\')"><h4>'+esc(c.n)+'</h4>'+freqBadge(c.fr)
@@ -196,7 +196,7 @@ function copyCorr(){var t=document.getElementById('corrModal').querySelector('te
 </script>
 <div id="lightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:100000;overflow:auto;-webkit-overflow-scrolling:touch;text-align:center" onclick="lbClose(event)"><div onclick="lbClose(event)" style="position:fixed;top:10px;right:16px;color:#fff;font-size:32px;font-weight:700;z-index:2;cursor:pointer;line-height:1">&times;</div><div style="position:fixed;bottom:12px;left:0;right:0;color:rgba(255,255,255,.75);font-size:12px;text-align:center;z-index:2;pointer-events:none">Tocca la foto per ingrandire · scorri per spostarti</div><img alt="" style="max-width:100%;display:inline-block;vertical-align:middle;cursor:zoom-in" onclick="lbZoom(event)"></div>
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Correzioni da inviare a Claude</h3><p>Copia questo testo e incollalo a Claude in chat.</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/07 18:50</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/07 19:04</div>
 
 <script>
 /* Sezione Ordini — Primi (diviso per settimana) */
