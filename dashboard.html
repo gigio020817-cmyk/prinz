@@ -185,7 +185,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='17/07 03:40';
+const APP_VER='19/07 17:48';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -554,7 +554,7 @@ function weeklyErrorDetail(){
   function y(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
   var dates=[];for(var i=0;i<7;i++){var dd=new Date(mon);dd.setDate(mon.getDate()+i);dates.push(y(dd));}
   var pen=window.PENALI||[];var by={};
-  pen.forEach(function(r){var p=(r.k||'').split('|');var dt=p[1],ck=p[2];if(dates.indexOf(dt)<0)return;var v=r.v||{};if(v.done===true||!(v.n>0))return;var miss=(v.missing||[]).map(function(m){return (m&&m.t)?m.t:m;});by[ck]=by[ck]||[];by[ck].push({date:dt.split('-').reverse().slice(0,2).join('/'),missing:miss});});
+  pen.forEach(function(r){var p=(r.k||'').split('|');var dt=p[1],ck=p[2];if(dates.indexOf(dt)<0)return;var v=r.v||{};if(v.done===true||!(v.n>0))return;var miss=(v.missing||[]).map(function(m){return (m&&m.t)?m.t:m;});by[ck]=by[ck]||[];by[ck].push({date:dt.split('-').reverse().slice(0,2).join('/'),missing:miss,key:r.k,manual:!!v.manual});});
   return by;
 }
 function penaliCard(){
@@ -564,11 +564,31 @@ function penaliCard(){
     var body='';
     if(open){var d=det[c]||[];
       if(!d.length){body='<div class="readbox" style="margin:2px 0 8px">Nessuna penale questa settimana. 👍</div>';}
-      else{body='<div style="margin:2px 0 10px;padding-left:8px;border-left:2px solid #eee">'+d.map(function(g){return '<div style="font-size:13px;margin:4px 0"><b>'+g.date+'</b> — '+g.missing.map(esc).join(' · ')+'</div>';}).join('')+'</div>';}
+      else{body='<div style="margin:2px 0 10px;padding-left:8px;border-left:2px solid #eee">'+d.map(function(g){return '<div style="font-size:13px;margin:4px 0"><b>'+g.date+'</b> — '+g.missing.map(esc).join(' · ')+(g.manual?' <span style="color:#8a6d00;font-weight:700">a mano</span> <button onclick="delPenale(\''+g.key+'\')" style="border:none;background:none;color:#c0392b;cursor:pointer;font-size:14px;padding:0 2px">✕</button>':'')+'</div>';}).join('')+'</div>';}
     }
     return head+body;}).join('');
-  return '<div class="card" style="border-color:#c0392b"><div class="card-h"><div class="t">⚖️ Penali della settimana<div class="sub">tocca un nome per vedere cosa ha saltato · a 7 → revoca mezzo libero in più + uscita concordata</div></div></div><div class="card-b">'+rows+'</div></div>';
+  var addForm='<div style="margin-top:12px;padding-top:10px;border-top:1px solid #eee"><div style="font-weight:700;font-size:13px;margin-bottom:6px">➕ Aggiungi penale a mano</div><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><select id="penCook" style="padding:7px;border:1px solid #ddd;border-radius:8px;font:inherit">'+TEAM.map(function(x){return '<option value="'+esc(x[0])+'">'+esc(x[0])+'</option>';}).join('')+'</select><input id="penMotivo" placeholder="Motivo (pausa saltata, scheda fatta male, dimenticanza...)" style="flex:1;min-width:150px;padding:7px;border:1px solid #ddd;border-radius:8px;font:inherit"><input id="penPunti" type="number" min="1" value="1" title="punti" style="width:52px;padding:7px;border:1px solid #ddd;border-radius:8px;font:inherit"><input id="penData" type="date" value="'+todayStr()+'" style="padding:7px;border:1px solid #ddd;border-radius:8px;font:inherit"><button onclick="addManualPenale()" style="background:#c0392b;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer">Aggiungi</button></div><div style="font-size:11.5px;color:#888;margin-top:5px">La penale a mano si somma al conteggio della settimana. Tocca ✕ nel dettaglio per toglierla.</div></div>';
+  return '<div class="card" style="border-color:#c0392b"><div class="card-h"><div class="t">⚖️ Penali della settimana<div class="sub">tocca un nome per vedere cosa ha saltato · a 7 → revoca mezzo libero in più + uscita concordata</div></div></div><div class="card-b">'+rows+addForm+'</div></div>';
 }
+async function addManualPenale(){
+  var c=(document.getElementById('penCook')||{}).value||'';
+  var mot=((document.getElementById('penMotivo')||{}).value||'').trim();
+  var pts=Math.max(1,parseInt(((document.getElementById('penPunti')||{}).value)||'1',10)||1);
+  var dt=((document.getElementById('penData')||{}).value)||todayStr();
+  if(!c){alert('Scegli il cuoco.');return;}
+  if(!mot){alert('Scrivi il motivo della penale.');return;}
+  var key='penale|'+dt+'|'+c+'|m'+Date.now();
+  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:key,v:{n:pts,missing:[{t:mot}],manual:true,at:new Date().toISOString()}})});await loadAll(true);}
+  catch(e){alert('Non salvato, controlla internet');}
+}
+async function delPenale(key){
+  if(!confirm('Togliere questa penale?'))return;
+  var rec=(window.PENALI||[]).find(function(r){return r.k===key;});
+  var v=Object.assign({},(rec&&rec.v)||{},{done:true});
+  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:key,v:v})});await loadAll(true);}
+  catch(e){alert('Non tolta, riprova');}
+}
+
 
 function apeChiuView(ck,day,resp){
   var aO=foldOpen('ape'),cO=foldOpen('chi');
@@ -756,6 +776,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 17/07 03:40</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/07 17:48</div>
 </body>
 </html>
