@@ -69,6 +69,18 @@
       <div class="go">›</div>
     </a>
 
+    <div class="sec" id="colsec">
+      <style>.cstep{width:30px;height:30px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:18px;font-weight:700;color:var(--wine);line-height:1}.cunit{min-width:46px;height:30px;border:1px solid var(--line);background:var(--cream);border-radius:8px;font-size:12px;font-weight:700;color:var(--wine)}.colrow span.cn{flex:1;font-size:14.5px}</style>
+      <h2>🥐 Ordini colazioni</h2>
+      <div class="grp">
+        <div class="arrnote">Segna le quantità di cosa manca per le colazioni, poi <b>invia allo chef</b>. Niente più bigliettini!</div>
+        <div id="colbox"><div class="arrload">…</div></div>
+        <div class="grplbl" style="margin-top:12px">📝 Altro / dimenticati</div>
+        <textarea id="colnote" placeholder="Es. manca il decaffeinato…" style="width:100%;min-height:52px;border:1px solid var(--line);border-radius:10px;padding:8px;font:inherit;box-sizing:border-box"></textarea>
+        <button class="arrbtn" style="margin-top:10px;width:100%" onclick="inviaColazioni()">📤 Invia l'ordine allo chef</button>
+      </div>
+    </div>
+
     <div class="sec">
       <h2>🧽 Le tue pulizie <span class="day" id="oggi"></span></h2>
       <div class="grp">
@@ -136,8 +148,30 @@ async function timbraSet(field){var t=TIMB||{};if(t[field])return;
 async function loadArr(){try{var r=await sb('kitchen_meta?k=eq.'+encodeURIComponent('timbra|'+today()+'|'+COOK)+'&select=v');TIMB=(r&&r[0]&&r[0].v)||{};}catch(e){TIMB={};}renderArr();}
 
 loadArr();
+
+/* ===== Ordini colazioni (Banu -> inbox Ordini chef) ===== */
+var COL={
+ "Latticini e freschi":["Latte","Burro porzioni","Panna","Yogurt","Uova","Philadelphia","Formaggi assortiti"],
+ "Salumi e affettati":["Speck","Prosciutto cotto","Salame","Mortadella","Würstel"],
+ "Pane e forno":["Pane","Brezel","Cornetti","Brioche","Pane per toast"],
+ "Dolce e conserve":["Marmellate","Miele","Nutella","Cereali","Muesli","Zucchero","Zucchero bustine"],
+ "Frutta e succhi":["Frutta fresca","Macedonia","Succo d'arancia","Succo di mela","Succo ACE","Spremute"],
+ "Bevande calde":["Caffè in grani","Cialde caffè","Decaffeinato","Tè","Camomilla","Cacao / cioccolata","Latte in polvere"]
+};
+var COLUNITS=['pz','kg','cassa','cart','l'];
+var COLORD={};try{COLORD=JSON.parse(localStorage.getItem('banu_colord')||'{}')}catch(e){COLORD={}}
+var COLNAMES={};
+function colKey(n){return n.toLowerCase().replace(/[^a-z0-9]+/g,'_');}
+function colGet(k){return COLORD[k]||{q:0,u:'pz'};}
+function colSave(){try{localStorage.setItem('banu_colord',JSON.stringify(COLORD))}catch(e){}}
+function colChg(k,d){var o=colGet(k);var q=Math.max(0,(o.q||0)+d);COLORD[k]={q:q,u:o.u||'pz'};var qs=document.getElementById('cq_'+k);if(qs)qs.textContent=q;var row=document.getElementById('cr_'+k);if(row)row.style.background=q>0?'#fff8e6':'';colSave();}
+function colUnit(k){var o=colGet(k);var i=COLUNITS.indexOf(o.u||'pz');var u=COLUNITS[(i+1)%COLUNITS.length];COLORD[k]={q:o.q||0,u:u};var b=document.getElementById('cu_'+k);if(b)b.textContent=u;colSave();}
+function renderCol(){var box=document.getElementById('colbox');if(!box)return;var h='';Object.keys(COL).forEach(function(cat){h+='<div class="grplbl">'+cat+'</div>';COL[cat].forEach(function(n){var k=colKey(n);COLNAMES[k]=n;var o=colGet(k);h+='<div class="colrow" id="cr_'+k+'" style="display:flex;align-items:center;gap:6px;padding:7px 2px;border-bottom:1px solid var(--line);'+(o.q>0?'background:#fff8e6':'')+'"><span class="cn">'+n+'</span><button class="cstep" onclick="colChg(\''+k+'\',-1)">−</button><span id="cq_'+k+'" style="min-width:22px;text-align:center;font-weight:700">'+(o.q||0)+'</span><button class="cstep" onclick="colChg(\''+k+'\',1)">+</button><button class="cunit" id="cu_'+k+'" onclick="colUnit(\''+k+'\')">'+(o.u||'pz')+'</button></div>';});});box.innerHTML=h;}
+async function inviaColazioni(){var add=[];Object.keys(COLORD).forEach(function(k){var o=COLORD[k];if(o&&o.q>0){add.push({n:(COLNAMES[k]||k),q:''+o.q,u:o.u||'pz',wk:'🥐 Colazioni (Banu)'});}});var note=(document.getElementById('colnote').value||'').trim();var notes=[];if(note)notes.push({n:'📝 Colazioni: '+note,q:'',u:'',wk:'Nota colazioni (Banu)',note:true});if(!add.length&&!notes.length){alert('Segna prima le quantità con le freccette (o scrivi una nota).');return;}if(!confirm('Inviare l\'ordine colazioni allo chef? ('+add.length+' prodotti'+(notes.length?' + nota':'')+')'))return;try{var r=await sb('kitchen_meta?k=eq.pastreq&select=v');var cur=(r&&r[0]&&r[0].v&&r[0].v.items)?r[0].v.items:[];var at=new Date().toISOString();add.concat(notes).forEach(function(x){x.at=at;cur.push(x);});await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pastreq',v:{items:cur}})});COLORD={};colSave();document.getElementById('colnote').value='';renderCol();alert('Inviato allo chef ✓');}catch(e){alert('Non inviato, controlla internet');}}
+renderCol();
+
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 15/07 14:55</div>
-<script>var APP_VER='15/07 14:55';(async function selfUpdate(){try{if(sessionStorage.getItem('upd_banu'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_banu','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();</script>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 19/07 12:53</div>
+<script>var APP_VER='19/07 12:53';(async function selfUpdate(){try{if(sessionStorage.getItem('upd_banu'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_banu','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();</script>
 </body>
 </html>
