@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='17/07 02:00';
+const APP_VER='19/07 18:40';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochien'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochien','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -215,6 +215,7 @@ async function loadAll(){
     PAUSE=(pausa||[]).map(function(r){return {key:r.k,n:(r.v&&r.v.n)||'',out:(r.v&&r.v.out)||null,in:(r.v&&r.v.in)||null};}).sort(function(a,b){return (a.out||'').localeCompare(b.out||'');});
     try{var _co=await sb('kitchen_meta?k=eq.chefordini'+''+'&select=v');CHEFORD=(_co&&_co[0]&&_co[0].v&&_co[0].v.items)?_co[0].v.items:[];}catch(e){CHEFORD=[];}
     try{var _pl=await sb('kitchen_meta?k=eq.passlist&select=*');PASSL=(_pl&&_pl[0]&&_pl[0].v&&_pl[0].v.items)?_pl[0].v.items:[];}catch(e){PASSL=[];}
+    try{var _pn=await sb('kitchen_meta?k=like.penale|*&select=k,v');window.PENALI=_pn||[];}catch(e){window.PENALI=[];}
     document.getElementById('status').textContent='✓ Connected · '+today.split('-').reverse().join('/');
     render();
   }catch(e){document.getElementById('status').textContent='⚠️ Connection problem. Check your internet and reopen.';console.error(e);}
@@ -461,6 +462,8 @@ function chefOrdCard(){
   return '<div class="penalebar" style="background:#8a1f10;box-shadow:0 3px 14px rgba(138,31,16,.5)"><div class="pb-t">🔔 '+esc(me)+' — THE CHEF ASKED YOU FOR '+pend.length+' '+(pend.length>1?'THINGS':'THING')+'</div><div class="pb-s">Do them BEFORE closing service, then tap ✓ Done</div>'+rows+'</div>';
 }
 async function cuocoMarkCO(id){var o=(CHEFORD||[]).find(function(x){return x.id===id;});if(!o)return;o.done=true;o.doneAt=new Date().toISOString();try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefordini',v:{items:CHEFORD}})});toast('Done ✓');render();}catch(e){toast('⚠️ Not saved');o.done=null;render();}}
+function myPenaliCount(cook){var pen=window.PENALI||[];var n=0;pen.forEach(function(r){var q=(r.k||'').split('|');if(q[2]!==cook)return;var v=r.v||{};if(v.done===true)return;n+=(v.n||0);});return n;}
+function penaliTotalCard(cook){if(!cook||cook==='Gigio')return '';var n=myPenaliCount(cook);var bg,fg,msg;if(n>=7){bg='#8a1f10';fg='#fff';msg='<b>\u26A0\uFE0F YOU HAVE A PROBLEM.</b> The extra HALF-DAY OFF and the agreed early EXIT are revoked. Talk to the chef \u00b7 be serious.';}else if(n>=4){bg='#b5651d';fg='#fff';msg='Careful: at <b>7 penalties</b> the consequences kick in (half-day off + early exit). You have '+(7-n)+' left.';}else if(n>=1){bg='#c9a227';fg='#3a2c00';msg='At <b>7 penalties</b> the consequences kick in. Don\u2019t pile them up.';}else{bg='#1e7a46';fg='#fff';msg='No penalties \uD83D\uDC4D Keep it up.';}return '<div class="penalebar" style="background:'+bg+';color:'+fg+';box-shadow:0 3px 14px rgba(0,0,0,.25);animation:none"><div class="pb-t" style="color:'+fg+'">\u2696\uFE0F '+esc(cook)+' \u2014 YOUR PENALTIES: '+n+' / 7</div><div class="pb-s" style="color:'+fg+'">'+msg+'</div></div>';}
 function penaleBanner(cook){
   if(cook==='Gigio')return '';
   var raw=missingFor(cook);
@@ -468,7 +471,7 @@ function penaleBanner(cook){
   var nm=nowMin();
   var due=raw.filter(function(m){return nm>=m.from;});
   updatePenale(cook,due.map(function(m){return m.t;}));
-  var pr=progressFor(cook);var _RULE='<div style="margin-top:8px;font-size:11.5px;font-weight:700;line-height:1.4;border-top:1px solid rgba(120,120,120,.45);padding-top:6px">\u2696\uFE0F At 7 weekly ERRORS on the app, the extra HALF-DAY OFF and the agreed early EXIT are revoked. Please take this very seriously.</div>';
+  var pr=progressFor(cook);var _RULE='<div style="margin-top:8px;font-size:11.5px;font-weight:700;line-height:1.4;border-top:1px solid rgba(120,120,120,.45);padding-top:6px">\u2696\uFE0F At 7 total PENALTIES, the extra HALF-DAY OFF and the agreed early EXIT are revoked. Please take this very seriously.</div>';
   if(!raw.length){maybeStreak(cook);return '<div class="okbar">✅ '+esc(cook)+', you have completed everything today! 🎉'+streakHtml(cook)+'</div>';}
   var lis=raw.map(function(m){return '<li>'+esc(m.t)+'</li>';}).join('');
   var barcol=due.length?'#c0392b':'#c9a227';
@@ -534,7 +537,7 @@ function render(){
   TILES.push({id:'menu',l:'Staff menu',e:'🍽️',b:'#FAC775',fg:'#412402',a:'#633806'});
   TILES.push({id:'info',l:'Info / rules',e:'ℹ️',b:'#9FE1CB',fg:'#04342C',a:'#085041'});
   var LBL={};TILES.forEach(function(t){LBL[t.id]=t.l;});
-  var top=penaleBanner(ME)+chefOrdCard();
+  var top=penaliTotalCard(ME)+penaleBanner(ME)+chefOrdCard();
   var out;
   if(window.CTILE && VIEWS[window.CTILE]!==undefined){
     out=top+'<button class="btn" style="width:100%;margin-bottom:12px;font-size:15px" onclick="setCTile(null)">‹ Back to the tiles</button><div style="font-size:18px;font-weight:700;margin:2px 0 10px">'+esc(LBL[window.CTILE]||'')+'</div>'+VIEWS[window.CTILE];
@@ -545,7 +548,7 @@ function render(){
   document.getElementById('view').innerHTML=out;
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 17/07 02:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/07 18:40</div>
 <script>(function(){function wmName(){try{return localStorage.getItem('pr_cook')||'';}catch(e){return '';}}function draw(){var nm=wmName();var d=new Date();var t=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);var dd=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);var label=(nm?nm+' · ':'')+'Prinz Rudolf · '+dd+' '+t;var esc=label.replace(/&/g,'&amp;').replace(/</g,'&lt;');var svg='<svg xmlns="http://www.w3.org/2000/svg" width="330" height="200"><text x="6" y="105" transform="rotate(-30 165 100)" fill="rgba(110,110,110,0.17)" font-size="15" font-family="-apple-system,sans-serif" font-weight="700">'+esc+'</text></svg>';var uri='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));var el=document.getElementById('__wm');if(!el){el=document.createElement('div');el.id='__wm';el.style.cssText='position:fixed;inset:0;z-index:9998;pointer-events:none;background-repeat:repeat';document.body.appendChild(el);}el.style.backgroundImage='url('+uri+')';}draw();setInterval(draw,15000);document.addEventListener('visibilitychange',function(){if(!document.hidden)draw();});})();</script>
 </body>
 </html>
