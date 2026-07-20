@@ -175,13 +175,13 @@ img{max-width:100%;height:auto}
 </div></div>
 <div id="viewer"><div class="vbar"><button class="vback" onclick="closeViewer()">‹ Indietro</button><span class="vt" id="vtitle"></span></div><div id="vbody"></div></div>
 <div id="toast"></div>
-<div id="verbadge">v 09/07 18:45</div>
+<div id="verbadge">v 20/07 10:50</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 const CHEF_CODE="Capo2026";
-const APP_VER='09/07 18:45';
+const APP_VER='20/07 10:50';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
@@ -299,7 +299,7 @@ function renderForm(isNew){CUR._isnew=isNew;el('detail').style.display='block';e
  h+='<div class="field"><label>Stato</label><div class="statosel">'+['da','corso','ok'].map(function(s){return '<button class="'+STATI[s].s+(CUR.stato===s?' on':'')+'" onclick="setStato(\''+s+'\')">'+STATI[s].t+'</button>';}).join('')+'</div></div>';
  h+='<div class="field"><label>Fornitore</label><select id="f_fornsel" onchange="pickForn()">'+fopts+'</select></div>';
  h+='<div class="row2"><div class="field"><label>Nome ditta</label><input id="f_ditta" placeholder="chi interviene" value="'+esc(CUR.ditta)+'"></div><div class="field"><label>Telefono</label><input id="f_tel" type="tel" placeholder="numero" value="'+esc(CUR.tel||'')+'"></div></div>';
- h+='<div class="callrow"><a class="callbtn call" onclick="doCall()">📞 Chiama</a><a class="callbtn wa" onclick="doWa()">💬 WhatsApp</a><a class="callbtn share" onclick="doShare()">📤 Invia scheda al capo</a><a class="callbtn share" onclick="schedaA3()">📄 Scheda A4 (stampa/PDF)</a></div>';
+ h+='<div class="callrow"><a class="callbtn call" onclick="doCall()">📞 Chiama</a><a class="callbtn wa" onclick="doWa()">💬 WhatsApp</a><a class="callbtn share" onclick="schedaA3()">📄 Scheda A4 (stampa/PDF)</a></div>';
  h+='<div class="row2"><div class="field"><label>Data segnalazione</label><input id="f_segn" type="date" value="'+esc(CUR.dataSegn)+'"></div><div class="field"><label>Data riparazione</label><input id="f_rip" type="date" value="'+esc(CUR.dataRip)+'"></div></div>';
  h+='<div class="field"><label>Costo</label><input id="f_costo" placeholder="es. 120 €" value="'+esc(CUR.costo)+'"></div>';
  var _logs=CUR.log.map(function(e,i){return {e:e,i:i};});_logs.sort(function(a,b){return (b.e.at||'').localeCompare(a.e.at||'');});
