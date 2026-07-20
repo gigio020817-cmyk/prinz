@@ -152,12 +152,12 @@ function puliziaFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].pulizia)||PULIZIA;}
 function puliziaSettFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].puliziaSett)||PULIZIA_SETT;}
 function ymd(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
 function weekStart(ds){var d=new Date(ds+'T00:00:00');var k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return ymd(d);}
-function itemsFor(g){if(g.indexOf('lunfrig')===0)return MONFRIG;return g.indexOf('pulizias#')===0?(puliziaSettFor(g.slice(9))||[]):(g.indexOf('pulizia#')===0?puliziaFor(g.slice(8)):(g.indexOf('pulizia')===0?PULIZIA:(ITEMS[g]||[])));}
+function itemsFor(g){if(g.indexOf('marfrig')===0)return MONFRIG;return g.indexOf('pulizias#')===0?(puliziaSettFor(g.slice(9))||[]):(g.indexOf('pulizia#')===0?puliziaFor(g.slice(8)):(g.indexOf('pulizia')===0?PULIZIA:(ITEMS[g]||[])));}
 function mondayFryerCard(cook){
-  if(new Date(today+'T00:00:00').getDay()!==1)return '';
+  if(new Date(today+'T00:00:00').getDay()!==2)return '';
   if(MONFRIG_WHO.indexOf(cook)<0)return '';
-  var note='<div class="card open" id="cmonnote" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">🍟 Every Monday — fryer</div></div><div class="card-b" style="display:block"><div class="readbox">Today it is your turn to <b>clean the fryer</b>. And always use it <b>sensibly</b>: filter the oil at the end of service, do not leave it on empty, and change the oil when it is dark.</div></div></div>';
-  return note+checklistCard('cmonfrig','Fryer cleaning (Monday)','lunfrig#'+cook,MONFRIG);
+  var note='<div class="card open" id="cmonnote" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">🍟 Every Tuesday — fryer</div></div><div class="card-b" style="display:block"><div class="readbox">Today it is your turn to <b>clean the fryer</b>. And always use it <b>sensibly</b>: filter the oil at the end of service, do not leave it on empty, and change the oil when it is dark.</div></div></div>';
+  return note+checklistCard('cmonfrig','Fryer cleaning (Tuesday)','marfrig#'+cook,MONFRIG);
 }
 function scopeId(group){var dd=group.indexOf('pulizias#')===0?weekStart(today):today;return group+'@'+dd;}
 function ctrlFooter(group){return '';var st=CTRL[scopeId(group)];if(st&&st.stato==='ok')return '<div class="ctrlbar okc">✔ Checked by the chef'+(st.chef?(' ('+esc(st.chef)+')'):'')+'</div>';if(st&&st.stato==='richiesto')return '<div class="ctrlbar waitc">⏳ Waiting for chef check</div>';return '<button class="ctrlbtn" onclick="requestControl(\''+group+'\')">I am done → request check</button>';}
@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='19/07 18:40';
+const APP_VER='20/07 21:27';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochien'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochien','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -548,7 +548,7 @@ function render(){
   document.getElementById('view').innerHTML=out;
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/07 18:40</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 20/07 21:27</div>
 <script>(function(){function wmName(){try{return localStorage.getItem('pr_cook')||'';}catch(e){return '';}}function draw(){var nm=wmName();var d=new Date();var t=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);var dd=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);var label=(nm?nm+' · ':'')+'Prinz Rudolf · '+dd+' '+t;var esc=label.replace(/&/g,'&amp;').replace(/</g,'&lt;');var svg='<svg xmlns="http://www.w3.org/2000/svg" width="330" height="200"><text x="6" y="105" transform="rotate(-30 165 100)" fill="rgba(110,110,110,0.17)" font-size="15" font-family="-apple-system,sans-serif" font-weight="700">'+esc+'</text></svg>';var uri='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));var el=document.getElementById('__wm');if(!el){el=document.createElement('div');el.id='__wm';el.style.cssText='position:fixed;inset:0;z-index:9998;pointer-events:none;background-repeat:repeat';document.body.appendChild(el);}el.style.backgroundImage='url('+uri+')';}draw();setInterval(draw,15000);document.addEventListener('visibilitychange',function(){if(!document.hidden)draw();});})();</script>
 </body>
 </html>

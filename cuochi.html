@@ -152,12 +152,12 @@ function puliziaFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].pulizia)||PULIZIA;}
 function puliziaSettFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].puliziaSett)||PULIZIA_SETT;}
 function ymd(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
 function weekStart(ds){var d=new Date(ds+'T00:00:00');var k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return ymd(d);}
-function itemsFor(g){if(g.indexOf('lunfrig')===0)return MONFRIG;return g.indexOf('pulizias#')===0?(puliziaSettFor(g.slice(9))||[]):(g.indexOf('pulizia#')===0?puliziaFor(g.slice(8)):(g.indexOf('pulizia')===0?PULIZIA:(ITEMS[g]||[])));}
-function mondayFryerCard(cook){
-  if(new Date(today+'T00:00:00').getDay()!==1)return '';
+function itemsFor(g){if(g.indexOf('marfrig')===0)return MONFRIG;return g.indexOf('pulizias#')===0?(puliziaSettFor(g.slice(9))||[]):(g.indexOf('pulizia#')===0?puliziaFor(g.slice(8)):(g.indexOf('pulizia')===0?PULIZIA:(ITEMS[g]||[])));}
+function tuesdayFryerCard(cook){
+  if(new Date(today+'T00:00:00').getDay()!==2)return '';
   if(MONFRIG_WHO.indexOf(cook)<0)return '';
-  var note='<div class="card open" id="cmonnote" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">🍟 Ogni lunedì — friggitrice</div></div><div class="card-b" style="display:block"><div class="readbox">Oggi tocca <b>pulire la friggitrice</b>. E usala sempre <b>con criterio</b>: filtra l\'olio a fine servizio, non tenerla accesa a vuoto e cambia l\'olio quando è scuro.</div></div></div>';
-  return note+checklistCard('cmonfrig','Pulizia friggitrice (lunedì)','lunfrig#'+cook,MONFRIG);
+  var note='<div class="card open" id="cmonnote" style="border-color:var(--gold)"><div class="card-h" style="cursor:default"><div class="t">🍟 Ogni martedì — friggitrice</div></div><div class="card-b" style="display:block"><div class="readbox">Oggi tocca <b>pulire la friggitrice</b>. E usala sempre <b>con criterio</b>: filtra l\'olio a fine servizio, non tenerla accesa a vuoto e cambia l\'olio quando è scuro.</div></div></div>';
+  return note+checklistCard('cmonfrig','Pulizia friggitrice (martedì)','marfrig#'+cook,MONFRIG);
 }
 function scopeId(group){var dd=group.indexOf('pulizias#')===0?weekStart(today):today;return group+'@'+dd;}
 function ctrlFooter(group){return '';var st=CTRL[scopeId(group)];if(st&&st.stato==='ok')return '<div class="ctrlbar okc">✔ Controllato dallo chef'+(st.chef?(' ('+esc(st.chef)+')'):'')+'</div>';if(st&&st.stato==='richiesto')return '<div class="ctrlbar waitc">⏳ In attesa di controllo dello chef</div>';return '<button class="ctrlbtn" onclick="requestControl(\''+group+'\')">Ho finito → chiedi controllo</button>';}
@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='19/07 18:39';
+const APP_VER='20/07 21:27';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -361,7 +361,7 @@ function puliziaSection(){
     var mySett=weeklyTodayCard(cook);
     return base+mySett+sel;
   }
-  return checklistCard('cpul','La mia pulizia (capo partita)','pulizia#'+(cook||'_'),puliziaFor(cook||'_'))+weeklyTodayCard(cook)+mondayFryerCard(cook);
+  return checklistCard('cpul','La mia pulizia (capo partita)','pulizia#'+(cook||'_'),puliziaFor(cook||'_'))+weeklyTodayCard(cook)+tuesdayFryerCard(cook);
 }
 function menuCard(){
   function sec(t){return '<div style="font-size:13px;font-weight:800;letter-spacing:.5px;color:var(--bordeaux);border-bottom:2px solid var(--gold);padding-bottom:4px;margin:14px 0 6px">'+t+'</div>';}
@@ -548,6 +548,6 @@ function render(){
   document.getElementById('view').innerHTML=out;
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/07 18:39</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 20/07 21:27</div>
 </body>
 </html>
