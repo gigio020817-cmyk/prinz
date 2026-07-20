@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='20/07 21:33';
+const APP_VER='20/07 21:36';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -533,6 +533,12 @@ async function revocaUscitaG(cook){
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'sblocco|'+today+'|'+cook,v:SBLOCCHI[cook]})});toast('Sblocco tolto');}catch(e){toast('⚠️ Non salvato');console.error(e);}
   render();
 }
+function dessertMartediCard(ME){
+  if(!ME||ME==='Gigio')return '';
+  if(new Date(today+'T00:00:00').getDay()!==2)return '';
+  var ec=isOff('Erjola')?'Oggi <b>Erjola è in riposo</b>. ':'';
+  return '<div class="card" style="border:2px solid #c9a227"><div class="card-h" style="cursor:default"><div class="t">🍰 Martedì — dessert (aiuto di tutti)</div></div><div class="card-b" style="display:block"><div class="readbox" style="background:#fff8e6;border:1px solid #ecdca0;font-weight:600;font-size:14.5px;line-height:1.5">'+ec+'Promemoria dello chef:<br><br>• <b>Dessert della mezza pensione</b>: completateli voi, come sono indicati nell\'app.<br>• <b>Dessert à la carte del bistro</b>: quando arrivano gli ordini, aiutatevi a farli.<br><br>È un <b>compito di tutti</b> — organizzatevi tra di voi.</div></div></div>';
+}
 function render(){
   whoBar();
   var ME=getCook();
@@ -566,7 +572,7 @@ function render(){
   TILES.push({id:'menu',l:'Menu del personale',e:'🍽️',b:'#FAC775',fg:'#412402',a:'#633806'});
   TILES.push({id:'info',l:'Info / regole',e:'ℹ️',b:'#9FE1CB',fg:'#04342C',a:'#085041'});
   var LBL={};TILES.forEach(function(t){LBL[t.id]=t.l;});
-  var top=penaliTotalCard(ME)+penaleBanner(ME)+sbloccoGianlucaCard(ME)+chefOrdCard();
+  var top=penaliTotalCard(ME)+penaleBanner(ME)+sbloccoGianlucaCard(ME)+dessertMartediCard(ME)+chefOrdCard();
   var out;
   if(window.CTILE && VIEWS[window.CTILE]!==undefined){
     out=top+'<button class="btn" style="width:100%;margin-bottom:12px;font-size:15px" onclick="setCTile(null)">‹ Indietro ai quadrati</button><div style="font-size:18px;font-weight:700;margin:2px 0 10px">'+esc(LBL[window.CTILE]||'')+'</div>'+VIEWS[window.CTILE];
@@ -577,6 +583,6 @@ function render(){
   document.getElementById('view').innerHTML=out;
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 20/07 21:33</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 20/07 21:36</div>
 </body>
 </html>

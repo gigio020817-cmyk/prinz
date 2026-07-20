@@ -186,7 +186,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='20/07 21:27';
+const APP_VER='20/07 21:36';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochien'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochien','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -504,6 +504,12 @@ function addPass(){var c=getCook();if(!c){alert('Choose your name first.');retur
 function togglePass(id){var c=getCook();if(!c){alert('Choose your name first.');return;}var x=PASSL.find(function(y){return y.id===id;});if(!x)return;x.done=!x.done;if(x.done){x.doneBy=c;x.doneAt=new Date().toISOString();}else{delete x.doneBy;delete x.doneAt;}savePassList();render();openCard('ccons');}
 function clearDonePass(){if(!confirm('Remove the already-done items from the list?'))return;PASSL=PASSL.filter(function(x){return !x.done;});savePassList();render();openCard('ccons');}
 function setCTile(id){window.CTILE=id;try{window.scrollTo(0,0);}catch(e){}render();}
+function dessertMartediCard(ME){
+  if(!ME||ME==='Gigio')return '';
+  if(new Date(today+'T00:00:00').getDay()!==2)return '';
+  var ec=isOff('Erjola')?'Today <b>Erjola is off</b>. ':'';
+  return '<div class="card" style="border:2px solid #c9a227"><div class="card-h" style="cursor:default"><div class="t">🍰 Tuesday — desserts (everyone helps)</div></div><div class="card-b" style="display:block"><div class="readbox" style="background:#fff8e6;border:1px solid #ecdca0;font-weight:600;font-size:14.5px;line-height:1.5">'+ec+'Reminder from the chef:<br><br>• <b>Half-board desserts</b>: you finish them, as shown in the app.<br>• <b>Bistro à la carte desserts</b>: when the orders come in, help each other make them.<br><br>It is <b>everyone\'s job</b> — organise among yourselves.</div></div></div>';
+}
 function render(){
   whoBar();
   var ME=getCook();
@@ -537,7 +543,7 @@ function render(){
   TILES.push({id:'menu',l:'Staff menu',e:'🍽️',b:'#FAC775',fg:'#412402',a:'#633806'});
   TILES.push({id:'info',l:'Info / rules',e:'ℹ️',b:'#9FE1CB',fg:'#04342C',a:'#085041'});
   var LBL={};TILES.forEach(function(t){LBL[t.id]=t.l;});
-  var top=penaliTotalCard(ME)+penaleBanner(ME)+chefOrdCard();
+  var top=penaliTotalCard(ME)+penaleBanner(ME)+dessertMartediCard(ME)+chefOrdCard();
   var out;
   if(window.CTILE && VIEWS[window.CTILE]!==undefined){
     out=top+'<button class="btn" style="width:100%;margin-bottom:12px;font-size:15px" onclick="setCTile(null)">‹ Back to the tiles</button><div style="font-size:18px;font-weight:700;margin:2px 0 10px">'+esc(LBL[window.CTILE]||'')+'</div>'+VIEWS[window.CTILE];
@@ -548,7 +554,7 @@ function render(){
   document.getElementById('view').innerHTML=out;
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 20/07 21:27</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 20/07 21:36</div>
 <script>(function(){function wmName(){try{return localStorage.getItem('pr_cook')||'';}catch(e){return '';}}function draw(){var nm=wmName();var d=new Date();var t=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);var dd=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);var label=(nm?nm+' · ':'')+'Prinz Rudolf · '+dd+' '+t;var esc=label.replace(/&/g,'&amp;').replace(/</g,'&lt;');var svg='<svg xmlns="http://www.w3.org/2000/svg" width="330" height="200"><text x="6" y="105" transform="rotate(-30 165 100)" fill="rgba(110,110,110,0.17)" font-size="15" font-family="-apple-system,sans-serif" font-weight="700">'+esc+'</text></svg>';var uri='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));var el=document.getElementById('__wm');if(!el){el=document.createElement('div');el.id='__wm';el.style.cssText='position:fixed;inset:0;z-index:9998;pointer-events:none;background-repeat:repeat';document.body.appendChild(el);}el.style.backgroundImage='url('+uri+')';}draw();setInterval(draw,15000);document.addEventListener('visibilitychange',function(){if(!document.hidden)draw();});})();</script>
 </body>
 </html>
