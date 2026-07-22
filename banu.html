@@ -151,12 +151,10 @@ loadArr();
 
 /* ===== Ordini colazioni (Banu -> inbox Ordini chef) ===== */
 var COL={
- "Latticini e freschi":["Latte","Burro porzioni","Panna","Yogurt","Uova","Philadelphia","Formaggi assortiti"],
- "Salumi e affettati":["Speck","Prosciutto cotto","Salame","Mortadella","Würstel"],
- "Pane e forno":["Pane","Brezel","Cornetti","Brioche","Pane per toast"],
- "Dolce e conserve":["Marmellate","Miele","Nutella","Cereali","Muesli","Zucchero","Zucchero bustine"],
- "Frutta e succhi":["Frutta fresca","Macedonia","Succo d'arancia","Succo di mela","Succo ACE","Spremute"],
- "Bevande calde":["Caffè in grani","Cialde caffè","Decaffeinato","Tè","Camomilla","Cacao / cioccolata","Latte in polvere"]
+ "Latticini e freschi":["Burro Rost Frei","Uova L 360","Formaggio Mila Mix","Yogurt greco","Edamer","Emmenthal","Mozzarelline grandi colazioni","Rotolo caprino","Ricotta 1,5kg Brimi"],
+ "Salumi e affettati":["Speck","Prosciutto cotto","Salame ungherese","Mini würstel normali","Mini würstel bianco","Mini würstel käse","Würstel grosso bianco","Prosciutto tacchino","Pastrami","Porchetta","Kamin cervo","Kamin maiale","Bacon colazioni","Carne salada"],
+ "Pane e forno (congelato)":["Brioche jolly","Brioche integrale","Brioche vegano","Mini strudel","Mini krapfen cioccolato","Mini waffel","Pancake","Scudo nocciola","Bretzel"],
+ "Frutta fresca e magazzino":["Succo mele 5l","Ananas","Melone","Fragole","Anguria","Passione","Pesca","Albicocca","Uva nera","Uva bianca","Mele Granny Smith","Zenzero","Cetrioli olandesi","Pomodorini","Pomodori ramato","Pomodori secchi","Cetrioli sottaceto","Erba cipollina secca"]
 };
 var COLUNITS=['pz','kg','cassa','cart','l'];
 var COLORD={};try{COLORD=JSON.parse(localStorage.getItem('banu_colord')||'{}')}catch(e){COLORD={}}
@@ -171,7 +169,7 @@ async function inviaColazioni(){var add=[];Object.keys(COLORD).forEach(function(
 renderCol();
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 19/07 12:53</div>
-<script>var APP_VER='19/07 12:53';(async function selfUpdate(){try{if(sessionStorage.getItem('upd_banu'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_banu','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();</script>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 22/07 18:47</div>
+<script>var APP_VER='22/07 18:47';(async function selfUpdate(){try{if(sessionStorage.getItem('upd_banu'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_banu','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();</script>
 </body>
 </html>
