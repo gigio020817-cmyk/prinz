@@ -64,7 +64,8 @@
  .attbox .lbl{font-size:10px;text-align:center;color:#666;margin-top:3px;font-weight:700}
  .attbox .del{position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;background:var(--rosso);color:#fff;border:2px solid #fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1}
  .diary{display:flex;flex-direction:column;gap:8px;margin-top:4px}
- .logentry{background:#faf6ee;border:1px solid #e7ddca;border-left:4px solid #c9a227;border-radius:10px;padding:9px 30px 9px 11px;position:relative}
+ .logentry{background:#faf6ee;border:1px solid #e7ddca;border-left:4px solid #c9a227;border-radius:10px;padding:9px 52px 9px 11px;position:relative}
+ .logentry .ledit{position:absolute;top:6px;right:32px;color:#6b1f2a;font-weight:800;cursor:pointer;font-size:15px;line-height:1}
  .logentry .ld{font-size:11.5px;font-weight:800;color:#6b1f2a;margin-bottom:2px}
  .logentry .lt{font-size:14px;white-space:pre-wrap;line-height:1.35}
  .logentry .lx{position:absolute;top:6px;right:9px;color:#c0392b;font-weight:800;cursor:pointer;font-size:16px;line-height:1}
@@ -175,13 +176,13 @@ img{max-width:100%;height:auto}
 </div></div>
 <div id="viewer"><div class="vbar"><button class="vback" onclick="closeViewer()">‹ Indietro</button><span class="vt" id="vtitle"></span></div><div id="vbody"></div></div>
 <div id="toast"></div>
-<div id="verbadge">v 20/07 10:50</div>
+<div id="verbadge">v 22/07 17:52</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 const CHEF_CODE="Capo2026";
-const APP_VER='20/07 10:50';
+const APP_VER='22/07 17:52';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
@@ -303,7 +304,9 @@ function renderForm(isNew){CUR._isnew=isNew;el('detail').style.display='block';e
  h+='<div class="row2"><div class="field"><label>Data segnalazione</label><input id="f_segn" type="date" value="'+esc(CUR.dataSegn)+'"></div><div class="field"><label>Data riparazione</label><input id="f_rip" type="date" value="'+esc(CUR.dataRip)+'"></div></div>';
  h+='<div class="field"><label>Costo</label><input id="f_costo" placeholder="es. 120 €" value="'+esc(CUR.costo)+'"></div>';
  var _logs=CUR.log.map(function(e,i){return {e:e,i:i};});_logs.sort(function(a,b){return (b.e.at||'').localeCompare(a.e.at||'');});
- var _logHtml=_logs.length?_logs.map(function(o){return '<div class="logentry"><div class="lx" onclick="rmLog('+o.i+')">×</div><div class="ld">📅 '+dShow(o.e.at)+'</div><div class="lt">'+esc(o.e.t)+'</div></div>';}).join(''):'<div class="emptylog">Ancora nessun aggiornamento. Aggiungi qui sotto cosa ti dicono, man mano.</div>';
+ var _logHtml=_logs.length?_logs.map(function(o){
+   if(o.i===CUR._editLog){return '<div class="logentry"><div class="ld">📅 '+dShow(o.e.at)+'</div><textarea id="f_editlog" rows="2" style="width:100%;font:inherit;border:1px solid #c9a227;border-radius:8px;padding:6px;box-sizing:border-box;margin:2px 0 6px">'+esc(o.e.t)+'</textarea><div style="display:flex;gap:6px"><button type="button" class="addlogbtn" onclick="saveLog('+o.i+')">✓ Salva</button><button type="button" class="addlogbtn" style="background:#e7ddca;color:#3a2c00" onclick="cancelLog()">Annulla</button></div></div>';}
+   return '<div class="logentry"><div class="lx" onclick="rmLog('+o.i+')">×</div><div class="ledit" onclick="editLog('+o.i+')" title="Modifica">✎</div><div class="ld">📅 '+dShow(o.e.at)+'</div><div class="lt">'+esc(o.e.t)+'</div></div>';}).join(''):'<div class="emptylog">Ancora nessun aggiornamento. Aggiungi qui sotto cosa ti dicono, man mano.</div>';
  h+='<div class="field"><label>Diario aggiornamenti</label><div class="diary">'+_logHtml+'</div>'
    +'<div class="addlog"><textarea id="f_newlog" rows="2" placeholder="Cosa hanno detto / fatto oggi…">'+esc(CUR._draftLog||'')+'</textarea><button type="button" class="addlogbtn" onclick="addLog()">＋ Aggiungi</button></div></div>';
  h+='<div class="field"><label>Allegati (bolla, fattura, foto)</label><div class="atts">'+(atts||'<span style="color:#999;font-size:13px">Nessun allegato</span>')+'</div>'+
@@ -329,6 +332,9 @@ async function doShare(){grab();
 function grab(){if(!el('f_mac'))return;CUR.macchinario=el('f_mac').value.trim();CUR.problema=el('f_prob').value.trim();CUR.dataSegn=el('f_segn').value;CUR.dataRip=el('f_rip').value;CUR.ditta=el('f_ditta').value.trim();CUR.tel=el('f_tel').value.trim();CUR.costo=el('f_costo').value.trim();if(el('f_newlog'))CUR._draftLog=el('f_newlog').value;}
 function addLog(){grab();var t=((el('f_newlog')&&el('f_newlog').value)||'').trim();if(!t){toast('Scrivi l\'aggiornamento');return;}CUR.log=Array.isArray(CUR.log)?CUR.log:[];CUR.log.push({at:today(),t:t});CUR._draftLog='';renderForm(CUR._isnew);toast('Aggiornamento aggiunto');}
 function rmLog(idx){grab();if(!confirm('Eliminare questo aggiornamento?'))return;CUR.log=Array.isArray(CUR.log)?CUR.log:[];CUR.log.splice(idx,1);renderForm(CUR._isnew);}
+function editLog(idx){grab();CUR._editLog=idx;renderForm(CUR._isnew);}
+function cancelLog(){grab();CUR._editLog=null;renderForm(CUR._isnew);}
+function saveLog(idx){grab();var t=((el('f_editlog')&&el('f_editlog').value)||'').trim();if(!t){toast('Il testo non può essere vuoto');return;}CUR.log=Array.isArray(CUR.log)?CUR.log:[];if(CUR.log[idx]){CUR.log[idx].t=t;}CUR._editLog=null;renderForm(CUR._isnew);toast('Aggiornamento modificato');}
 function compress(file){return new Promise(function(res){
  if((file.type||'').indexOf('image')!==0){var fr=new FileReader();fr.onload=function(){res({mime:file.type||'application/octet-stream',data:fr.result,name:file.name});};fr.readAsDataURL(file);return;}
  var fr=new FileReader();fr.onload=function(){var img=new Image();img.onload=function(){var max=1400;var w=img.width,hh=img.height;if(w>max||hh>max){if(w>hh){hh=Math.round(hh*max/w);w=max;}else{w=Math.round(w*max/hh);hh=max;}}var c=document.createElement('canvas');c.width=w;c.height=hh;c.getContext('2d').drawImage(img,0,0,w,hh);res({mime:'image/jpeg',data:c.toDataURL('image/jpeg',0.7),name:(file.name||'foto')});};img.src=fr.result;};fr.readAsDataURL(file);
