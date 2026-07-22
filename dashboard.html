@@ -185,7 +185,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='19/07 18:34';
+const APP_VER='22/07 09:49';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -596,6 +596,31 @@ function apeChiuView(ck,day,resp){
 }
 
 function setTile(id){window.TILEVIEW=id;try{window.scrollTo(0,0);}catch(e){}rerenderDash();}
+function recapRender(){
+  var el=document.getElementById('recapDate'); if(!el)return;
+  var day=el.value; window._recapDay=day;
+  var box=document.getElementById('recapBody'); if(!box)return;
+  var pen=window.PENALI||[]; var map={};
+  pen.forEach(function(r){var p=(r.k||'').split('|'); if(p[1]!==day)return; var ck=p[2]; var v=r.v||{};
+    var miss=(v.missing||[]).map(function(m){return (m&&m.t)?m.t:m;});
+    map[ck]=map[ck]||{miss:[],n:0}; if(v.n>0){map[ck].miss=map[ck].miss.concat(miss);map[ck].n+=v.n;} else {map[ck].seen=true;}});
+  var GG=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+  var gg=''; try{gg=GG[new Date(day+'T00:00:00').getDay()];}catch(e){}
+  var nMiss=0;
+  var rows=TEAM.map(function(x){var c=x[0]; var off=(typeof isOff==='function'&&isOff(c,day)); var m=map[c];
+    if(off) return '<div class="row"><span>'+esc(c)+'</span><span class="muted">🔓 riposo</span></div>';
+    if(m&&m.miss.length){nMiss++; return '<div style="padding:10px 0;border-bottom:1px solid #eee"><div style="font-weight:800;color:#c0392b;font-size:15px">✗ '+esc(c)+'</div><ul style="margin:4px 0 0;padding-left:20px;font-size:13.5px;line-height:1.5">'+m.miss.map(function(t){return '<li>'+esc(t)+'</li>';}).join('')+'</ul></div>';}
+    if(m) return '<div class="row"><span><b>'+esc(c)+'</b></span><span class="pill ok">✓ tutto ok</span></div>';
+    return '<div class="row"><span>'+esc(c)+'</span><span class="muted">— nessun dato</span></div>';
+  }).join('');
+  var head='<div style="font-weight:700;margin:2px 0 10px">'+gg+' '+(day?day.split('-').reverse().slice(0,2).join('/'):'')+' — '+(nMiss?('<span style="color:#c0392b">'+nMiss+' con mancanze</span>'):'<span style="color:#1e7a46">nessuna mancanza 👍</span>')+'</div>';
+  box.innerHTML=head+rows+'<div class="readbox" style="margin-top:10px;font-size:12px">"Nessun dato" = quel giorno non ha usato l\'app. Cambia giorno qui sopra per vedere gli altri giorni.</div>';
+}
+function resocontoCard(){
+  var d=window._recapDay; if(!d){var yd=new Date();yd.setDate(yd.getDate()-1);d=yd.getFullYear()+'-'+String(yd.getMonth()+1).padStart(2,'0')+'-'+String(yd.getDate()).padStart(2,'0');}
+  setTimeout(recapRender,0);
+  return '<div class="card"><div class="card-h"><div class="t">📅 Cosa è mancato (per giorno)<div class="sub">scegli il giorno — di default ieri — e mostralo ai ragazzi</div></div></div><div class="card-b"><input type="date" id="recapDate" value="'+d+'" onchange="recapRender()" style="padding:9px;border:1px solid #ddd;border-radius:8px;font:inherit;margin-bottom:6px;width:100%;max-width:220px"><div id="recapBody"></div></div></div>';
+}
 function render(day,ck,ckw,ent,meta,presa){
   window.LAST={day:day,ck:ck,ckw:ckw,ent:ent,meta:meta,presa:presa};
   const resp='Gianluca e Ubaldo';
@@ -616,6 +641,7 @@ function render(day,ck,ckw,ent,meta,presa){
   var VIEWS={
     sblocco: sbloccoCard(),
     penali: penaliCard(),
+    resoconto: resocontoCard(),
     turni: timbraCardDash(),
     pause: pausaCardDash(),
     apeChiu: apeChiuView(ck,day,resp),
@@ -635,6 +661,7 @@ function render(day,ck,ckw,ent,meta,presa){
   var TILES=[
     {id:'sblocco',l:'Sblocca uscite',e:'🔓',b:'#F7C1C1',fg:'#501313',a:'#791F1F',n:(nSbl||'')},
     {id:'penali',l:'Penali (totale)',e:'⚖️',b:'#F09595',fg:'#501313',a:'#791F1F',n:(nPen||'')},
+    {id:'resoconto',l:'Cosa è mancato',e:'📅',b:'#F7D8A8',fg:'#4a2f02',a:'#7a4e06',n:''},
     {id:'turni',l:'Turni mattina / sera',e:'⏱️',b:'#B5D4F4',fg:'#042C53',a:'#0C447C',n:(nArr?('⚠ '+nArr):'')},
     {id:'pause',l:'Pause',e:'⏸️',b:'#FAC775',fg:'#412402',a:'#633806',n:(nPau||'')},
     {id:'apeChiu',l:'Apertura / Chiusura',e:'🌅',b:'#9FE1CB',fg:'#04342C',a:'#085041',s:'resp. settimana',n:''},
@@ -776,6 +803,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/07 18:34</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 22/07 09:49</div>
 </body>
 </html>
