@@ -185,7 +185,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='22/07 19:00';
+const APP_VER='23/07 08:47';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -314,13 +314,15 @@ async function saveNote(){
   }catch(e){if(info)info.textContent='⚠️ Errore: non salvate, riprova';alert('Errore nel salvataggio note');console.error(e);}
 }
 function _sblDetail(c){var L=window.LAST||{};var ck=L.ck||[],ckw=L.ckw||[],ent=L.ent||[];
-  var items=(typeof puliziaFor==='function'?puliziaFor(c):[])||[];var dm={};ck.forEach(function(r){if(r.grp==='pulizia#'+c)dm[r.idx]=1;});
+  var _day=(L.day)||todayStr();var _tgt=c,_coverLine='';
+  if(typeof PEOPLE!=='undefined'&&PEOPLE[c]&&PEOPLE[c].tournant){var _cov=badrCovers(_day);if(_cov){_tgt=_cov;_coverLine='<div style="font-size:12px;font-weight:800;color:var(--wine);margin-bottom:4px">🔁 Oggi copre: '+esc(_cov)+' — fa le pulizie della sua partita</div>';}}
+  var items=(typeof puliziaFor==='function'?puliziaFor(_tgt):[])||[];var dm={};ck.forEach(function(r){if(r.grp==='pulizia#'+_tgt)dm[r.idx]=1;});
   var rws=items.map(function(it,i){var on=dm[i];return '<div style="font-size:12.5px;margin:3px 0;display:flex;gap:7px;align-items:flex-start"><span style="color:'+(on?'#1e7a46':'#c0392b')+';font-weight:900;flex:none">'+(on?'✓':'✗')+'</span><span>'+esc(it)+'</span></div>';}).join('');
-  var wkItems=(typeof puliziaSettFor==='function'?puliziaSettFor(c):[])||[];var wkDone=0;ckw.forEach(function(r){if(r.grp==='pulizias#'+c)wkDone++;});
+  var wkItems=(typeof puliziaSettFor==='function'?puliziaSettFor(_tgt):[])||[];var wkDone=0;ckw.forEach(function(r){if(r.grp==='pulizias#'+_tgt)wkDone++;});
   var wkLine=wkItems.length?('<div style="font-size:12px;margin-top:6px;font-weight:700;color:'+(wkDone>=wkItems.length?'#1e7a46':'#8a6d00')+'">🧽 Settimanale: '+wkDone+'/'+wkItems.length+'</div>'):'';
   var sch=(ent||[]).filter(function(e){return e.type==='scheda'&&e.cook===c;}).length>0;
   var schLine='<div style="font-size:12px;margin-top:3px;font-weight:700;color:'+(sch?'#1e7a46':'#c0392b')+'">📝 Scheda servizio: '+(sch?'✓ compilata':'✗ mancante')+'</div>';
-  return '<div style="padding:8px 11px;border-left:3px solid var(--gold);background:#fdf9ef;border-radius:8px;margin:2px 0 12px"><div style="font-size:11px;font-weight:800;color:var(--wine);margin-bottom:4px">DOVEVA FARE:</div>'+(rws||'<span class="muted" style="font-size:12px">Nessuna pulizia prevista.</span>')+wkLine+schLine+'</div>';}
+  return '<div style="padding:8px 11px;border-left:3px solid var(--gold);background:#fdf9ef;border-radius:8px;margin:2px 0 12px"><div style="font-size:11px;font-weight:800;color:var(--wine);margin-bottom:4px">DOVEVA FARE:</div>'+_coverLine+(rws||'<span class="muted" style="font-size:12px">Nessuna pulizia prevista.</span>')+wkLine+schLine+'</div>';}
 function sbloccoCard(){var T=window.TIMB||{};var S=window.SBLOCCHI||{};var day=(window.LAST&&window.LAST.day)||todayStr();
 var rows=TEAM.map(function(x){var c=x[0];var t=T[c];var s=S[c];var off=(typeof isOff==='function'&&isOff(c,day));var uscito=(t&&(t.sOut||t.out))||(s&&s.used);var stato;
 if(off){stato='<span class="pill" style="background:#f4e9c8;color:#7a5c00">🔓 libero</span>';}
@@ -826,6 +828,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 22/07 19:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 23/07 08:47</div>
 </body>
 </html>
