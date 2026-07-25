@@ -171,6 +171,7 @@ function puliziaSettFor(cook){return (PEOPLE[cook]&&PEOPLE[cook].puliziaSett)||P
 function ymd(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
 function dayShift(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return ymd(d);}
 function weekStart(ds){var d=new Date(ds+'T00:00:00');var k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return ymd(d);}
+function weekTok(){var d=new Date();var t=new Date(d.getFullYear(),d.getMonth(),d.getDate());var day=(t.getDay()+6)%7;t.setDate(t.getDate()-day+3);var first=new Date(t.getFullYear(),0,4);var wk=1+Math.round(((t-first)/86400000-3+((first.getDay()+6)%7))/7);return t.getFullYear()+'-W'+('0'+wk).slice(-2);}
 
 const DL={apertura:14*60,pulizia:22*60,chiusura:22*60};
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}
@@ -185,7 +186,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='24/07 18:11';
+const APP_VER='25/07 18:40';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -225,6 +226,7 @@ async function loadAll(silent){
     window.RECMODS=(recmods||[]).map(function(r){var k=r.k||'';var app=k.indexOf('anticorr|')===0?'Antipasti':k.indexOf('primicorr|')===0?'Primi':k.indexOf('dcorr|')===0?'Pasticceria':k.indexOf('panecorr|')===0?'Pane':'?';return {key:k,app:app,label:(r.v&&r.v.label)||'',text:(r.v&&r.v.text)||'',at:(r.v&&r.v.at)||null};}).filter(function(x){return x.text && x.text.trim();});
     try{var _pl=await sb('kitchen_meta?k=eq.passlist&select=*');window.PASSL=(_pl&&_pl[0]&&_pl[0].v&&_pl[0].v.items)?_pl[0].v.items:[];}catch(e){window.PASSL=[];}
     try{var _co=await sb('kitchen_meta?k=eq.chefordini'+''+'&select=*');window.CHEFORD=(_co&&_co[0]&&_co[0].v&&_co[0].v.items)?_co[0].v.items:[];}catch(e){window.CHEFORD=[];}
+    try{var _bw=await sb('kitchen_meta?k=eq.'+encodeURIComponent('banuck|w|'+weekTok())+'&select=v');window.BANUCK=(_bw&&_bw[0]&&_bw[0].v)?_bw[0].v:{items:[]};}catch(e){window.BANUCK={items:[]};}
     render(day,ck,ckw,ent,(meta&&meta[0])?meta[0].v:null,presa);
     renderNote();
     document.getElementById('status').textContent='✓ Aggiornato alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
@@ -280,9 +282,9 @@ function weeklyCard(ckw,day){
   var body='';var totMiss=0;var anyReq=false;
   cooks.forEach(function(c){
     if(CHIUSI.indexOf(c)>=0){body+='<div class="card" style="margin:8px 0 0;box-shadow:none;border-radius:10px;background:#faf8f2"><div class="card-h" style="padding:11px 12px;background:#faf8f2"><div class="t" style="font-size:14.5px">'+esc(c)+' — 🔒 bloccato</div><span class="muted">gourmet chiuso</span></div></div>';return;}
-    var items=puliziaSettFor(c)||[];var dm=byCook[c]||{};var done=Object.keys(dm).length;var tot=items.length;var pill=done===tot?'ok':'mid';
+    var done,tot,pill,rows='';if(c==='Banu'){var _bit=(window.BANUCK&&window.BANUCK.items)?window.BANUCK.items:[];tot=_bit.length;done=_bit.filter(function(x){return x.done;}).length;pill=(tot>0&&done===tot)?'ok':'mid';_bit.forEach(function(x){if(x.done)rows+='<div class="row"><span class="donerow">✓ '+esc(x.lbl)+'</span><span class="muted">fatto</span></div>';else{totMiss++;rows+='<div class="row"><span class="pendrow">◦ '+esc(x.lbl)+'</span><span class="muted">da fare</span></div>';}});if(!_bit.length)rows='<div class="muted" style="padding:4px 2px">Banu non ha ancora aperto l\'app.</div>';}else{var items=puliziaSettFor(c)||[];var dm=byCook[c]||{};done=Object.keys(dm).length;tot=items.length;pill=done===tot?'ok':'mid';items.forEach(function(it,i){if(dm[i])rows+='<div class="row"><span class="donerow">✓ '+esc(it)+'</span><span class="muted">'+tloc(dm[i].at)+'</span></div>';else{totMiss++;rows+='<div class="row"><span class="pendrow">◦ '+esc(it)+'</span><span class="muted">da fare</span></div>';}});}
     var req=(window.CTRL||{})['pulizias#'+c+'@'+weekStart(day)];var isReq=req&&req.stato==='richiesto';if(isReq)anyReq=true;
-    var rows='';items.forEach(function(it,i){if(dm[i])rows+='<div class="row"><span class="donerow">✓ '+esc(it)+'</span><span class="muted">'+tloc(dm[i].at)+'</span></div>';else{totMiss++;rows+='<div class="row"><span class="pendrow">◦ '+esc(it)+'</span><span class="muted">da fare</span></div>';}});
+    
     var bellC=isReq?' <span style="color:var(--warn);font-weight:800">🔔</span>':'';
     var cid='set_'+c;var open=(window.FOLD&&window.FOLD[cid])||isReq;
     body+='<div class="card fold'+(open?' open':'')+'" id="fold'+cid+'" style="margin:8px 0 0;box-shadow:none;border-radius:10px">'
@@ -828,6 +830,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 24/07 18:11</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 25/07 18:40</div>
 </body>
 </html>

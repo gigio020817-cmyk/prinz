@@ -46,6 +46,10 @@
   .arrbtn:active{opacity:.9}
   .arrdone{display:flex;justify-content:space-between;align-items:center;background:#eef7f0;border:1px solid #bfe0cc;border-radius:12px;padding:15px 14px;font-size:16px;font-weight:800;color:#1e7a46}
   .arrload{color:#9a9082;font-size:14px;text-align:center;padding:10px}
+  .sec h2{cursor:pointer}
+  .sec h2 .chev{margin-left:auto;font-size:13px;transition:transform .15s;opacity:.9}
+  .sec.closed .grp{display:none}
+  .sec.closed h2 .chev{transform:rotate(-90deg)}
 </style>
 </head>
 <body>
@@ -56,7 +60,7 @@
   </header>
   <main>
     <div class="sec" id="arrsec">
-      <h2>🕐 Orario di arrivo e uscita</h2>
+      <h2 onclick="secTog(this)">🕐 Orario di arrivo e uscita<span class="chev">▾</span></h2>
       <div class="grp">
         <div class="arrnote">⚠️ Segna l'arrivo solo quando sei <b>già cambiato e in cucina</b>. Gli orari li vede <b>solo lo chef</b>.</div>
         <div id="arrbox"><div class="arrload">…</div></div>
@@ -69,9 +73,9 @@
       <div class="go">›</div>
     </a>
 
-    <div class="sec" id="colsec">
+    <div class="sec closed" id="colsec">
       <style>.cstep{width:30px;height:30px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:18px;font-weight:700;color:var(--wine);line-height:1}.cunit{min-width:46px;height:30px;border:1px solid var(--line);background:var(--cream);border-radius:8px;font-size:12px;font-weight:700;color:var(--wine)}.colrow span.cn{flex:1;font-size:14.5px}</style>
-      <h2>🥐 Ordini colazioni</h2>
+      <h2 onclick="secTog(this)">🥐 Ordini colazioni<span class="chev">▾</span></h2>
       <div class="grp">
         <div class="arrnote">Segna le quantità di cosa manca per le colazioni, poi <b>invia allo chef</b>. Niente più bigliettini!</div>
         <div id="colbox"><div class="arrload">…</div></div>
@@ -81,8 +85,8 @@
       </div>
     </div>
 
-    <div class="sec">
-      <h2>🧽 Le tue pulizie <span class="day" id="oggi"></span></h2>
+    <div class="sec closed" id="pulsec">
+      <h2 onclick="secTog(this)">🧽 Le tue pulizie <span class="day" id="oggi"></span><span class="chev">▾</span></h2>
       <div class="grp">
         <div class="grplbl">Ogni mattina</div>
         <div class="task" data-id="m1" data-p="d" onclick="tog(this)"><span class="ck">✓</span><span class="lbl">Pulizia zona colazione</span></div>
@@ -112,11 +116,14 @@
 function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
 function weekTok(){var d=new Date();var t=new Date(d.getFullYear(),d.getMonth(),d.getDate());var day=(t.getDay()+6)%7;t.setDate(t.getDate()-day+3);var first=new Date(t.getFullYear(),0,4);var wk=1+Math.round(((t-first)/86400000-3+((first.getDay()+6)%7))/7);return t.getFullYear()+'-W'+('0'+wk).slice(-2);}
 function keyOf(el){var p=el.getAttribute('data-p');var tok=p==='w'?weekTok():today();return 'banu_'+p+'_'+tok+'_'+el.getAttribute('data-id');}
-function tog(el){var k=keyOf(el);var now=!el.classList.contains('done');el.classList.toggle('done',now);try{if(now)localStorage.setItem(k,'1');else localStorage.removeItem(k);}catch(e){}}
+function tog(el){var k=keyOf(el);var now=!el.classList.contains('done');el.classList.toggle('done',now);try{if(now)localStorage.setItem(k,'1');else localStorage.removeItem(k);}catch(e){}if(typeof pushChecks==='function')pushChecks();}
 function restore(){document.querySelectorAll('.task').forEach(function(el){var v='0';try{v=localStorage.getItem(keyOf(el));}catch(e){}el.classList.toggle('done',v==='1');});}
 function showDay(){var g=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];var d=new Date();document.getElementById('oggi').textContent=g[d.getDay()]+' '+('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);}
 function cleanup(){try{var keep=[];document.querySelectorAll('.task').forEach(function(el){keep.push(keyOf(el));});for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(k&&k.indexOf('banu_')===0&&keep.indexOf(k)<0)localStorage.removeItem(k);}}catch(e){}}
 showDay();restore();cleanup();
+function secTog(h){var sec=h.parentNode;sec.classList.toggle('closed');try{localStorage.setItem('banu_open_'+sec.id,sec.classList.contains('closed')?'0':'1');}catch(e){}}
+function restoreSec(){['arrsec','colsec','pulsec'].forEach(function(id){var sec=document.getElementById(id);if(!sec)return;var v=null;try{v=localStorage.getItem('banu_open_'+id);}catch(e){}if(v==='1')sec.classList.remove('closed');else if(v==='0')sec.classList.add('closed');});}
+restoreSec();
 
 /* ===== Orario di arrivo (timbratura, come dashboard cuochi) ===== */
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -148,6 +155,17 @@ async function timbraSet(field){var t=TIMB||{};if(t[field])return;
 async function loadArr(){try{var r=await sb('kitchen_meta?k=eq.'+encodeURIComponent('timbra|'+today()+'|'+COOK)+'&select=v');TIMB=(r&&r[0]&&r[0].v)||{};}catch(e){TIMB={};}renderArr();}
 
 loadArr();
+/* ===== Pulizie di Banu salvate nel cloud (le vede lo chef) ===== */
+function collectScope(pp){var arr=[];document.querySelectorAll('.task[data-p="'+pp+'"]').forEach(function(el){var l=el.querySelector('.lbl');arr.push({id:el.getAttribute('data-id'),lbl:l?l.textContent:'',done:el.classList.contains('done')});});return arr;}
+async function pushChecks(){try{var now=new Date().toISOString();
+  await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'banuck|d|'+today(),v:{by:'Banu',at:now,items:collectScope('d')}})});
+  await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'banuck|w|'+weekTok(),v:{by:'Banu',at:now,items:collectScope('w')}})});
+}catch(e){}}
+async function loadChecks(){try{var keys=[encodeURIComponent('banuck|d|'+today()),encodeURIComponent('banuck|w|'+weekTok())];
+  for(var ki=0;ki<keys.length;ki++){var r=await sb('kitchen_meta?k=eq.'+keys[ki]+'&select=v');var it=(r&&r[0]&&r[0].v&&r[0].v.items)||[];
+    it.forEach(function(x){if(x.done){var el=document.querySelector('.task[data-id=\''+x.id+'\']');if(el&&!el.classList.contains('done')){el.classList.add('done');try{localStorage.setItem(keyOf(el),'1');}catch(e){}}}});}
+}catch(e){}}
+loadChecks();
 
 /* ===== Ordini colazioni (Banu -> inbox Ordini chef) ===== */
 var COL={
@@ -169,7 +187,7 @@ async function inviaColazioni(){var add=[];Object.keys(COLORD).forEach(function(
 renderCol();
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 22/07 19:04</div>
-<script>var APP_VER='22/07 19:04';(async function selfUpdate(){try{if(sessionStorage.getItem('upd_banu'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_banu','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();</script>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 25/07 18:38</div>
+<script>var APP_VER='25/07 18:38';(async function selfUpdate(){try{if(sessionStorage.getItem('upd_banu'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_banu','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();</script>
 </body>
 </html>
