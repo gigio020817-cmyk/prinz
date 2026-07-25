@@ -186,7 +186,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='25/07 18:40';
+const APP_VER='25/07 18:48';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -320,11 +320,12 @@ function _sblDetail(c){var L=window.LAST||{};var ck=L.ck||[],ckw=L.ckw||[],ent=L
   if(typeof PEOPLE!=='undefined'&&PEOPLE[c]&&PEOPLE[c].tournant){var _cov=badrCovers(_day);if(_cov){_tgt=_cov;_coverLine='<div style="font-size:12px;font-weight:800;color:var(--wine);margin-bottom:4px">🔁 Oggi copre: '+esc(_cov)+' — fa le pulizie della sua partita</div>';}}
   var items=(typeof puliziaFor==='function'?puliziaFor(_tgt):[])||[];var dm={};ck.forEach(function(r){if(r.grp==='pulizia#'+_tgt)dm[r.idx]=1;});
   var rws=items.map(function(it,i){var on=dm[i];return '<div style="font-size:12.5px;margin:3px 0;display:flex;gap:7px;align-items:flex-start"><span style="color:'+(on?'#1e7a46':'#c0392b')+';font-weight:900;flex:none">'+(on?'✓':'✗')+'</span><span>'+esc(it)+'</span></div>';}).join('');
-  var wkItems=(typeof puliziaSettFor==='function'?puliziaSettFor(_tgt):[])||[];var wkDone=0;ckw.forEach(function(r){if(r.grp==='pulizias#'+_tgt)wkDone++;});
-  var wkLine=wkItems.length?('<div style="font-size:12px;margin-top:6px;font-weight:700;color:'+(wkDone>=wkItems.length?'#1e7a46':'#8a6d00')+'">🧽 Settimanale: '+wkDone+'/'+wkItems.length+'</div>'):'';
+  var _totW,_doneW=0,_missW=[];if(c==='Banu'){var _bit=(window.BANUCK&&window.BANUCK.items)||[];_totW=_bit.length;_doneW=_bit.filter(function(x){return x.done;}).length;_missW=_bit.filter(function(x){return !x.done;}).map(function(x){return x.lbl;});}else{var wkItems=(typeof puliziaSettFor==='function'?puliziaSettFor(_tgt):[])||[];var _ds={};ckw.forEach(function(r){if(r.grp==='pulizias#'+_tgt)_ds[r.idx]=1;});_totW=wkItems.length;wkItems.forEach(function(it,i){if(_ds[i])_doneW++;else _missW.push(it);});}
+  var wkLine=_totW?('<div style="font-size:12px;margin-top:6px;font-weight:800;color:'+(_missW.length?'#8a6d00':'#1e7a46')+'">🧽 Settimanale: '+_doneW+'/'+_totW+'</div>'+(_missW.length?('<div style="margin:2px 0 0">'+_missW.map(function(m){return '<div style="font-size:12px;margin:2px 0;display:flex;gap:6px"><span style="color:#c0392b;font-weight:900;flex:none">◦</span><span>da fare: '+esc(m)+'</span></div>';}).join('')+'</div>'):'')):'';
   var sch=(ent||[]).filter(function(e){return e.type==='scheda'&&e.cook===c;}).length>0;
   var schLine='<div style="font-size:12px;margin-top:3px;font-weight:700;color:'+(sch?'#1e7a46':'#c0392b')+'">📝 Scheda servizio: '+(sch?'✓ compilata':'✗ mancante')+'</div>';
   return '<div style="padding:8px 11px;border-left:3px solid var(--gold);background:#fdf9ef;border-radius:8px;margin:2px 0 12px"><div style="font-size:11px;font-weight:800;color:var(--wine);margin-bottom:4px">DOVEVA FARE:</div>'+_coverLine+(rws||'<span class="muted" style="font-size:12px">Nessuna pulizia prevista.</span>')+wkLine+schLine+'</div>';}
+function _wkMissCount(c){var ckw=(window.LAST&&window.LAST.ckw)||[];if(c==='Banu'){var bit=(window.BANUCK&&window.BANUCK.items)||[];return bit.filter(function(x){return !x.done;}).length;}var it=(typeof puliziaSettFor==='function'?puliziaSettFor(c):[])||[];var ds={};ckw.forEach(function(r){if(r.grp==='pulizias#'+c)ds[r.idx]=1;});var m=0;it.forEach(function(x,i){if(!ds[i])m++;});return m;}
 function sbloccoCard(){var T=window.TIMB||{};var S=window.SBLOCCHI||{};var day=(window.LAST&&window.LAST.day)||todayStr();
 var rows=TEAM.map(function(x){var c=x[0];var t=T[c];var s=S[c];var off=(typeof isOff==='function'&&isOff(c,day));var uscito=(t&&(t.sOut||t.out))||(s&&s.used);var stato;
 if(off){stato='<span class="pill" style="background:#f4e9c8;color:#7a5c00">🔓 libero</span>';}
@@ -333,7 +334,7 @@ else if(s&&!s.used){stato='<span class="pill ok">🔓 sbloccato</span> <button c
 else{stato='<button class="btn" style="width:auto;padding:8px 12px;margin:0" onclick="sbloccaUscita(\''+c+'\')">✅ Ho controllato — sblocca</button>';}
 var arr=off?'':((T[c]&&(T[c].pIn||T[c].in))?('· arrivo '+tloc(T[c].pIn||T[c].in)):'· non ancora timbrato');
 var _fk='sbl_'+c;var _op=(typeof foldOpen==='function'&&foldOpen(_fk));var _tog=off?'':(' <span class="muted" style="cursor:pointer;font-size:12px;font-weight:700" onclick="foldTP(\''+_fk+'\')">'+(_op?'▾ nascondi lista':'▸ lista')+'</span>');var _det=(!off&&_op)?_sblDetail(c):'';
-return '<div class="row"><span><b>'+esc(c)+'</b> <span class="muted">'+arr+'</span>'+_tog+'</span><span>'+stato+'</span></div>'+_det;}).join('');
+var _wm=(off?0:_wkMissCount(c));var _wb=(_wm>0?' <span class="pill" style="background:#fff4e0;color:#8a5a00;font-weight:800">🧽 '+_wm+' sett.</span>':'');return '<div class="row"><span><b>'+esc(c)+'</b> <span class="muted">'+arr+'</span>'+_wb+_tog+'</span><span>'+stato+'</span></div>'+_det;}).join('');
 return '<div class="card" style="border-color:var(--gold)"><div class="card-h"><div class="t">🔓 Sblocca uscite<div class="sub">nessuno chiude finché non sblocchi tu · tocca "lista" per vedere cosa doveva fare ognuno, poi sblocca</div></div></div><div class="card-b">'+rows+'</div></div>';}
 async function sbloccaUscita(cook){var day=(window.LAST&&window.LAST.day)||todayStr();if(!confirm('Confermi di aver controllato pulizie, planetarie e abbattitori di '+cook+'?\n\nSbloccando, '+cook+' potrà segnare l\'uscita.'))return;window.SBLOCCHI=window.SBLOCCHI||{};window.SBLOCCHI[cook]={by:'chef',at:new Date().toISOString(),used:false};try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'sblocco|'+day+'|'+cook,v:window.SBLOCCHI[cook]})});}catch(e){}rerenderDash();}
 async function revocaUscita(cook){var day=(window.LAST&&window.LAST.day)||todayStr();if(!confirm('Togliere lo sblocco a '+cook+'?'))return;window.SBLOCCHI=window.SBLOCCHI||{};window.SBLOCCHI[cook]={by:'chef',at:new Date().toISOString(),used:true,revoked:true};try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'sblocco|'+day+'|'+cook,v:window.SBLOCCHI[cook]})});}catch(e){}rerenderDash();}
@@ -830,6 +831,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 25/07 18:40</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 25/07 18:48</div>
 </body>
 </html>
