@@ -106,7 +106,6 @@ const CHIUSURA=["Everything switched off (equipment)","Evening cleaning of every
 const PULIZIA_SETT=["Deep-clean cold section (inside fridge counter/drawers and gaskets · your walk-in + expiry dates)","Deep-clean cooking line (oven and griddle)","Shelves and small appliances (including the low ones)","Deep-clean roner (water and vinegar at 90°C for 1 hour)","Every 2 weeks: defrost small freezers · hood filters through the dishwasher"];
 const MONFRIG=["Deep-clean the fryer"];
 const MONFRIG_WHO=["Badr","Mattia"];
-const RESP=[["Week 1","Ubaldo"],["Week 2","Mattia"],["Week 3","Badr"],["Week 4","Alex"],["Week 5","Gianluca"]];
 const RESPFISSI=["Gianluca","Ubaldo"]; // responsabili fissi: apertura e chiusura;
 const CHIUSI=[]; // partite chiuse: pulizie sospese, solo produzione
 const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[5],Erjola:[2],Badr:[6],Majeet:[3],Ubaldo:[4]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
@@ -186,7 +185,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='26/07 09:13';
+const APP_VER='26/07 14:05';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochien'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochien','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -271,7 +270,7 @@ function checklistCard(id,title,group,items){
   return '<div class="card" id="'+id+'"><div class="card-h" onclick="toggleCard(\''+id+'\')"><div class="t">'+title+'</div><div class="meta">'+d+'/'+items.length+'</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'+((/^pulizia/.test(group)&&nowMin()<1080)?'<div class="readbox" style="background:#fff6da;border:1px solid var(--gold);color:#5a4600;margin-bottom:6px">⏰ Cleaning can be checked <b>from 18:00</b> (end of service).</div>':'')+rows+ctrlFooter(group)+'</div></div>';
 }
 function respCard(){
-  return '<div class="card open" id="cresp"><div class="card-h" onclick="toggleCard(\'cresp\')"><div class="t">This week leads</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'
+  return '<div class="card open" id="cresp"><div class="card-h" onclick="toggleCard(\'cresp\')"><div class="t">Permanent leads</div><svg class="tog" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div><div class="card-b">'
     +'<div class="readbox">Permanent leads: <b>Gianluca</b> and <b>Ubaldo</b>. They both do <b>opening</b> and <b>closing</b> (goods shift, walk-ins, deep cleaning of stand mixers).</div></div></div>';
 }
 async function saveResp(){const c=getCook();const v={name:document.getElementById('respName').value,dal:document.getElementById('respDal').value,al:document.getElementById('respAl').value,by:c,at:new Date().toISOString()};
@@ -542,8 +541,8 @@ function render(){
     {id:'scheda',l:'Service sheet',e:'📝',b:'#F4C0D1',fg:'#4B1528',a:'#72243E'}
   ];
   if(isResp){
-    TILES.push({id:'apertura',l:'Opening',e:'🌅',b:'#9FE1CB',fg:'#04342C',a:'#085041',s:'week lead'});
-    TILES.push({id:'chiusura',l:'Closing',e:'🌙',b:'#CECBF6',fg:'#26215C',a:'#3C3489',s:'week lead'});
+    TILES.push({id:'apertura',l:'Opening',e:'🌅',b:'#9FE1CB',fg:'#04342C',a:'#085041',s:'fixed'});
+    TILES.push({id:'chiusura',l:'Closing',e:'🌙',b:'#CECBF6',fg:'#26215C',a:'#3C3489',s:'fixed'});
     TILES.push({id:'resp',l:'Lead',e:'⭐',b:'#FAC775',fg:'#412402',a:'#633806'});
   }
   if(['Alex','Gianluca'].indexOf(ME)>=0)TILES.push({id:'note',l:'Notes (issues)',e:'🗒️',b:'#F5C4B3',fg:'#4A1B0C',a:'#712B13'});
