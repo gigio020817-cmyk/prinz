@@ -186,7 +186,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='25/07 20:14';
+const APP_VER='26/07 09:09';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -360,6 +360,7 @@ async function changePMonth(delta){
   try{var pr=await sb('kitchen_meta?k=like.'+encodeURIComponent('presenze|'+window._PMONTH)+'*&select=k,v');window.PRESENZE={};(pr||[]).forEach(function(r){window.PRESENZE[r.k.slice(9)]=r.v||{};});}catch(e){window.PRESENZE={};}
   var el=document.getElementById('view');if(el)el.innerHTML=presenzeCard();
 }
+function verFotoDash(fid){sb('kitchen_meta?k=eq.'+encodeURIComponent('penfoto|'+fid)+'&select=v').then(function(r){var imgs=(r&&r[0]&&r[0].v&&r[0].v.imgs)||[];if(!imgs.length){alert('Nessuna foto disponibile.');return;}var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;overflow:auto';ov.onclick=function(){if(ov.parentNode)ov.parentNode.removeChild(ov);};ov.innerHTML='<div style="color:#fff;font-weight:700;font-size:14px">📷 Prova penale — tocca per chiudere</div>'+imgs.map(function(s){return '<img src="'+s+'" style="max-width:100%;max-height:78vh;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.5)">';}).join('');document.body.appendChild(ov);}).catch(function(){alert('Non riesco a caricare la foto.');});}
 function sbloccoCard(){var T=window.TIMB||{};var S=window.SBLOCCHI||{};var day=(window.LAST&&window.LAST.day)||todayStr();
 var rows=TEAM.map(function(x){var c=x[0];var t=T[c];var s=S[c];var off=(typeof isOff==='function'&&isOff(c,day));var uscito=(t&&(t.sOut||t.out))||(s&&s.used);var stato;
 if(off){stato='<span class="pill" style="background:#f4e9c8;color:#7a5c00">🔓 libero</span>';}
@@ -616,7 +617,7 @@ function weeklyErrorDetail(){
   function y(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
   var dates=[];for(var i=0;i<7;i++){var dd=new Date(mon);dd.setDate(mon.getDate()+i);dates.push(y(dd));}
   var pen=window.PENALI||[];var by={};
-  pen.forEach(function(r){var p=(r.k||'').split('|');var dt=p[1],ck=p[2];var v=r.v||{};if(v.done===true||!(v.n>0))return;var miss=(v.missing||[]).map(function(m){return (m&&m.t)?m.t:m;});by[ck]=by[ck]||[];by[ck].push({date:dt.split('-').reverse().slice(0,2).join('/'),missing:miss,key:r.k,manual:!!v.manual});});
+  pen.forEach(function(r){var p=(r.k||'').split('|');var dt=p[1],ck=p[2];var v=r.v||{};if(v.done===true||!(v.n>0))return;var miss=(v.missing||[]).map(function(m){return (m&&m.t)?m.t:m;});by[ck]=by[ck]||[];by[ck].push({date:dt.split('-').reverse().slice(0,2).join('/'),missing:miss,key:r.k,manual:!!v.manual,foto:(v.foto||0),fid:(v.fid||p[3]||'')});});
   return by;
 }
 function penaliCard(){
@@ -626,7 +627,7 @@ function penaliCard(){
     var body='';
     if(open){var d=det[c]||[];
       if(!d.length){body='<div class="readbox" style="margin:2px 0 8px">Nessuna penale questa settimana. 👍</div>';}
-      else{body='<div style="margin:2px 0 10px;padding-left:8px;border-left:2px solid #eee">'+d.map(function(g){return '<div style="font-size:13px;margin:4px 0"><b>'+g.date+'</b> — '+g.missing.map(esc).join(' · ')+(g.manual?' <span style="color:#8a6d00;font-weight:700">a mano</span>':'')+' <button onclick="delPenale(\''+g.key+'\')" style="border:none;background:none;color:#c0392b;cursor:pointer;font-size:14px;padding:0 2px">✕</button>'+'</div>';}).join('')+'</div>';}
+      else{body='<div style="margin:2px 0 10px;padding-left:8px;border-left:2px solid #eee">'+d.map(function(g){return '<div style="font-size:13px;margin:4px 0"><b>'+g.date+'</b> — '+g.missing.map(esc).join(' · ')+(g.manual?' <span style="color:#8a6d00;font-weight:700">a mano</span>':'')+(g.foto?' <button onclick="verFotoDash(\''+g.fid+'\')" style="border:none;background:none;color:#1e7a46;cursor:pointer;font-size:15px;padding:0 3px" title="foto prova">📷</button>':'')+' <button onclick="delPenale(\''+g.key+'\')" style="border:none;background:none;color:#c0392b;cursor:pointer;font-size:14px;padding:0 2px">✕</button>'+'</div>';}).join('')+'</div>';}
     }
     return head+body;}).join('');
   var addForm='<div style="margin-top:12px;padding-top:10px;border-top:1px solid #eee"><div style="font-weight:700;font-size:13px;margin-bottom:6px">➕ Aggiungi penale a mano</div><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><select id="penCook" style="padding:7px;border:1px solid #ddd;border-radius:8px;font:inherit">'+TEAM.map(function(x){return '<option value="'+esc(x[0])+'">'+esc(x[0])+'</option>';}).join('')+'</select><input id="penMotivo" placeholder="Motivo (pausa saltata, scheda fatta male, dimenticanza...)" style="flex:1;min-width:150px;padding:7px;border:1px solid #ddd;border-radius:8px;font:inherit"><input id="penPunti" type="number" min="1" value="1" title="punti" style="width:52px;padding:7px;border:1px solid #ddd;border-radius:8px;font:inherit"><input id="penData" type="date" value="'+todayStr()+'" style="padding:7px;border:1px solid #ddd;border-radius:8px;font:inherit"><label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#6b1f2a;font-weight:700;cursor:pointer;border:1px solid #ddd;border-radius:8px;padding:6px 8px">📷 foto<input id="penFoto" type="file" accept="image/*" multiple style="display:none"></label><button onclick="addManualPenale()" style="background:#c0392b;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer">Aggiungi</button></div><div style="font-size:11.5px;color:#888;margin-top:5px">La penale si somma al TOTALE (non si azzera ogni settimana). Tocca ✕ nel dettaglio per toglierla.</div></div>';
@@ -878,6 +879,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 25/07 20:14</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 26/07 09:09</div>
 </body>
 </html>
