@@ -147,7 +147,10 @@ async function timbraSet(field){var t=TIMB||{};if(t[field])return;
   if(field==='sOut'&&!t.sIn){alert('Segna prima l\'arrivo della sera.');return;}
   if(field==='sOut'){var undone=[];document.querySelectorAll('.task[data-p="d"]').forEach(function(el){if(!el.classList.contains('done')){var l=el.querySelector('.lbl');undone.push(l?l.textContent:'');}});
     if(undone.length){alert('Aspetta! Prima di chiudere il turno devi spuntare:\n\n- '+undone.join('\n- ')+'\n\nFalle, poi segna l\'uscita.');return;}
-    if(!confirm('Segnare la USCITA (fine turno)?'))return;}
+    if(!confirm('Segnare la USCITA (fine turno)?'))return;
+    var _sv=null;try{var _s=await sb('kitchen_meta?k=eq.sblocco|'+today()+'|'+COOK+'&select=v');_sv=(_s&&_s[0]&&_s[0].v)||null;}catch(e){}
+    if(!_sv||_sv.used){var _mar=(new Date(today()+'T00:00:00').getDay()===2);alert('🔒 Uscita da sbloccare.\n\n'+(_mar?'Oggi è martedì: chiedi a GIANLUCA. Quando ha controllato le tue pulizie ti sblocca l\'uscita dalla sua app.':'Chiedi allo CHEF: quando ha controllato le tue pulizie ti sblocca l\'uscita dalla sua dashboard.')+' Poi ripremi Uscita fine turno.');return;}
+    try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'sblocco|'+today()+'|'+COOK,v:{by:((_sv&&_sv.by)||'chef'),at:(_sv&&_sv.at)||null,used:true,usedAt:new Date().toISOString()}})});}catch(_e){}}
   t[field]=new Date().toISOString();TIMB=t;renderArr();
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbra|'+today()+'|'+COOK,v:t})});}
   catch(e){alert('Non salvato, controlla internet');t[field]=null;renderArr();}}
@@ -188,6 +191,6 @@ renderCol();
 
 </script>
 <div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 25/07 18:38</div>
-<script>var APP_VER='25/07 18:38';(async function selfUpdate(){try{if(sessionStorage.getItem('upd_banu'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_banu','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();</script>
+<script>var APP_VER='26/07 14:52';(async function selfUpdate(){try{if(sessionStorage.getItem('upd_banu'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_banu','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();</script>
 </body>
 </html>
