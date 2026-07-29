@@ -91,7 +91,7 @@
   #atabs .atab{flex:1;border:none;background:rgba(255,255,255,.14);color:#fff;border-radius:30px;padding:10px;font-size:14px;font-weight:700;cursor:pointer}
   #atabs .atab.on{background:linear-gradient(135deg,var(--yellow),var(--gold));color:#1a1400}
   #prodwrap iframe{display:block}
-</style>
+.cam{display:inline-flex;align-items:center;font-size:11px;margin-left:6px;padding:1px 6px;border-radius:10px;vertical-align:middle;line-height:1.6}.cam-ok{background:#e3f5ea;box-shadow:0 0 0 1px #9fd3b4 inset}.cam-no{background:#fdecea;box-shadow:0 0 0 1px #e6a79f inset;color:#c0392b;font-weight:800}</style>
 </head>
 <body>
 <div id="lock">
@@ -147,12 +147,13 @@ async function tryUnlock(password,fromStore){
 }
 document.getElementById('enter').onclick=()=>tryUnlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(pw.value,false)});
-const APP_VER='25/07 19:27';
+const APP_VER='29/07 12:40';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_anti'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_anti','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){if(!window.crypto||!crypto.subtle){err.textContent="Apri l'app dal sito (https), non come file locale.";return;}
   try{if(localStorage.getItem('pr_av_anti')!=='28/06 14:00'){localStorage.removeItem('pr_pw');localStorage.setItem('pr_av_anti','28/06 14:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_pw')}catch(e){}
   if(s){document.getElementById('remember').checked=true;tryUnlock(s,true);}else{setTimeout(()=>pw.focus(),300);}})();
 function freqBadge(fr){if(!fr||fr==="—")return '';return `<span class="badge ${FREQ[fr]||'b-na'}">${fr}</span>`;}
+function _hasFoto(d){return !!(d&&((d.imgs&&d.imgs.length)||d.img));}function camBadge(d){return _hasFoto(d)?'<span class="cam cam-ok" title="foto presente">📷</span>':'<span class="cam cam-no" title="foto mancante">📷✕</span>';}
 function renderList(filter){
   filter=filter||"";const detail=document.getElementById('detail'),list=document.getElementById('list');
   detail.style.display='none';list.style.display='block';document.getElementById('hTitle').textContent='Antipasti 2026';
@@ -161,7 +162,7 @@ function renderList(filter){
   if(!items.length){list.innerHTML='<div class="empty">Nessun risultato per &laquo;'+filter+'&raquo;</div>';return;}
   list.innerHTML=items.map(({d,i})=>`<div class="card" onclick="openDish(${i})">
     <div class="daychip"><b>${d.day}</b></div>
-    <div class="info"><h3>${d.giorno}${d.img?'<span class="cam">📷</span>':''}</h3><p>${d.title}</p></div>
+    <div class="info"><h3>${d.giorno} ${camBadge(d)}</h3><p>${d.title}</p></div>
     <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div>`).join('');
 }
 function openDish(i){window._listScroll=window.scrollY;
