@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pizzeria">
+<meta name="theme-color" content="#1c1c1c">
+<meta name="robots" content="noindex, nofollow">
+<title>Prinz Rudolf · Pizzeria</title>
+<style>
+  :root{--red:#1c1c1c;--red-d:#000;--yellow:#c9a227;--wine:#6b1f2a;--bg:#faf8f2;--paper:#fff;--ink:#1a1a1a;--muted:#8a8378;--line:#ececec}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;padding-bottom:40px}
+  header{position:sticky;top:0;z-index:20;background:var(--red);color:#fff;padding:calc(env(safe-area-inset-top) + 14px) 16px 0;box-shadow:0 3px 16px rgba(0,0,0,.25)}
+  .brand{display:flex;align-items:center;gap:12px;padding-bottom:12px}
+  .brand .mark{width:46px;height:46px;border-radius:14px;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--red);font-size:17px}
+  .brand h1{font-size:20px;margin:0;font-weight:800}
+  .brand small{display:block;font-size:10px;opacity:.9;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding:0 0 12px;-webkit-overflow-scrolling:touch}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:none;border:none;background:rgba(255,255,255,.18);color:#fff;border-radius:30px;padding:9px 16px;font-size:14px;font-weight:800;cursor:pointer;white-space:nowrap}
+  .tab.on{background:var(--yellow);color:var(--red-d)}
+  main{max-width:860px;margin:0 auto;padding:16px}
+  .hint{font-size:12.5px;color:var(--muted);margin:2px 0 14px;font-weight:600}
+  .catlbl{font-size:12px;font-weight:900;letter-spacing:1px;color:var(--wine);text-transform:uppercase;margin:18px 0 8px;border-bottom:2px solid var(--yellow);padding-bottom:4px}
+  .pz{background:var(--paper);border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:12px 14px;margin-bottom:10px}
+  .pz .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .pz .nm{font-size:15.5px;font-weight:800;color:var(--ink)}
+  .pz .pr{font-size:14px;font-weight:800;color:var(--wine);white-space:nowrap}
+  .pz .ing{font-size:13px;color:#555;margin-top:4px}
+  .sec{background:var(--paper);border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:12px 14px;margin-bottom:12px}
+  .sec h3{margin:0 0 4px;font-size:15px;color:var(--wine)}
+  .sub{font-size:11.5px;color:var(--muted);font-weight:700;margin:8px 0 6px}
+  .bin{background:#fbf9f3;border:1px solid var(--line);border-radius:8px;padding:8px 6px;text-align:center;font-size:12px;color:var(--ink)}
+  .grid{display:grid;gap:6px}
+  .big{background:#faece7;border:1px solid #f0997b;color:#712b13;font-weight:700}
+  .amb{background:#faeeda;border:1px solid #ef9f27;color:#633806}
+  .pink{background:#fbeaf0;border:1px solid #ed93b1;color:#72243e}
+  .teal{background:#e1f5ee;border:1px solid #5dcaa5;color:#04342c}
+  .todo{border:1px dashed #ef9f27;background:#faeeda;color:#854f0b}
+  .row{display:flex;flex-wrap:wrap;gap:6px}
+  .placeholder{background:var(--paper);border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:22px 16px;text-align:center;color:var(--muted);font-weight:600}
+  .ver{position:fixed;left:6px;bottom:4px;font-size:9px;color:#bbb;background:#000;padding:2px 5px;border-radius:5px;opacity:.5;z-index:99}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="mark">PR</div>
+    <div><h1>Pizzeria</h1><small>Prinz Rudolf &middot; Merano</small></div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+</header>
+<main id="view"></main>
+<div class="ver" id="ver"></div>
+<script>
+const APP_VER='29/07 19:40';
+document.getElementById('ver').textContent='v '+APP_VER;
+const TABS=[['giro','Il giro'],['frighi','Frighi'],['ricette','Ricette'],['pizze','Le pizze'],['ordini','Ordini']];
+let cur='pizze';
+const PIZZE=[
+ {cat:"Le classiche",items:[
+  ["Margherita","8,50","pomodoro, mozzarella fior di latte, origano"],
+  ["Prosciutto e funghi","11,00","pomodoro, mozzarella fior di latte, prosciutto cotto del contadino, champignon trifolati"],
+  ["Salame piccante","11,00","pomodoro, mozzarella fior di latte, spianata calabra piccante"],
+  ["Capricciosa","12,00","pomodoro, mozzarella fior di latte, prosciutto cotto del contadino, carciofini sott'olio, champignon trifolati"],
+  ["Diavola","11,50","pomodoro, mozzarella fior di latte, spianata calabra piccante, olive leccino, peperoni lombardi"],
+  ["4 Stagioni","13,00","pomodoro, mozzarella fior di latte, prosciutto cotto del contadino, carciofini sott'olio, champignon trifolati, olive leccino, acciughe"],
+  ["Rucolona","14,00","pomodoro, mozzarella fior di latte, prosciutto crudo, rucola, pomodorini, scaglie di grana, olio EVO"]
+ ]},
+ {cat:"Le bianche",items:[
+  ["Gustosa","13,00","mozzarella fior di latte, gorgonzola, salsiccia locale al finocchietto, noci tostate, olio EVO"],
+  ["Carbonara","13,00","mozzarella fior di latte, pecorino, crema alla carbonara, guanciale croccante, polvere di pepe nero"],
+  ["Sfiziosa","15,00","mozzarella fior di latte, pesto di basilico, pomodori confit, gamberi argentini, origano"],
+  ["Sudtirolo","14,00","mozzarella fior di latte, patate al forno, formaggio di malga, speck altoatesino, pomodorini freschi, rucola"],
+  ["Mediterranea bianca","12,00","scamorza affumicata, scarola, capperi, olive taggiasche, pinoli, uvetta, filetto di acciuga, polvere di limone"],
+  ["Light per finta","15,00","mozzarella fior di latte, burrata, pesto di basilico, pomodorini gialli e rossi confit, pomodori secchi, olio EVO, basilico"]
+ ]},
+ {cat:"Le speciali",items:[
+  ["Napoli 2.0","13,50","pomodoro, mozzarella fior di latte, provola affumicata, pomodorini, basilico, olio EVO"],
+  ["Norma","13,00","pomodoro brasato, mozzarella fior di latte, melanzana alla piastra, ricotta affumicata, basilico"],
+  ["Calzone","14,00","mozzarella fior di latte, ricotta, salame Napoli e prosciutto cotto del contadino a julienne, pepe, salsa di pomodoro sopra"],
+  ["Amatriciana","14,00","pomodoro brasato, guanciale, pecorino, cipolla croccante, basilico"],
+  ["Margherita alla napoletana","12,00","pomodoro, mozzarella di bufala, parmigiano, pecorino, basilico, olio EVO"],
+  ["Prinz marinara","14,00","pomodoro, pomodorini gialli e rossi confit, olive leccino, filetto di acciuga, pasta d'aglio BBQ"],
+  ["Bomba","14,00","ragu' napoletano, provola affumicata, parmigiano, pecorino, basilico"]
+ ]},
+ {cat:"Ai 5 cereali",items:[
+  ["Verdure","13,00","impasto ai 5 cereali, mozzarella fior di latte, zucchine fritte, melanzane alla piastra, peperoni al forno, parmigiano, olio EVO"],
+  ["Tonno e cipolla","14,00","impasto ai 5 cereali, mozzarella fior di latte, cipolla di Tropea agrodolce, tonno, maionese al wasabi e peperone crusco"],
+  ["Boscaiola Monte27","16,00","impasto ai 5 cereali, mozzarella fior di latte, formaggio Monte 27, funghi misti trifolati, aglio, salsa al prezzemolo, olio EVO"],
+  ["Salsiccia e friarielli","15,00","impasto ai 5 cereali, mozzarella fior di latte, salsiccia locale al finocchietto, friarielli, pecorino, olio EVO"]
+ ]}
+];
+function esc(s){return (s==null?'':String(s)).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+function renderTabs(){document.getElementById('tabs').innerHTML=TABS.map(function(t){return '<button class="tab'+(t[0]===cur?' on':'')+'" onclick="setTab(\''+t[0]+'\')">'+t[1]+'</button>';}).join('');}
+function setTab(t){cur=t;renderTabs();render();window.scrollTo(0,0);}
+function pizzeView(){var h='<div class="hint">Menu' + String.fromCharCode(39) + ' pizzeria 2026 &middot; 24 pizze.</div>';PIZZE.forEach(function(g){h+='<div class="catlbl">'+esc(g.cat)+'</div>';g.items.forEach(function(p){h+='<div class="pz"><div class="top"><span class="nm">'+esc(p[0])+'</span><span class="pr">'+esc(p[1])+' &euro;</span></div><div class="ing">'+esc(p[2])+'</div></div>';});});return h;}
+function bins(arr,cls){return arr.map(function(x){return '<div class="bin '+(cls||'')+'">'+esc(x)+'</div>';}).join('');}
+function frighiView(){
+  var h='<div class="hint">Come vanno impostati i frighi della pizzeria. Rispetta le posizioni.</div>';
+  h+='<div class="sec"><h3>Vetrina &middot; una riga</h3><div class="sub">6 ciotole quadrate -&gt; 2 grandi (salsa + mozzarella) -&gt; 6 ciotole quadrate</div>'
+    +'<div class="grid" style="grid-template-columns:repeat(8,1fr);grid-auto-rows:56px">'
+    +'<div class="bin" style="grid-column:1;grid-row:1">Olive Legg&igrave;no</div>'
+    +'<div class="bin" style="grid-column:2;grid-row:1">Funghi champignon</div>'
+    +'<div class="bin" style="grid-column:3;grid-row:1">Prosc. cotto contadino</div>'
+    +'<div class="bin big" style="grid-column:4;grid-row:1 / span 2">Salsa pomodoro</div>'
+    +'<div class="bin amb" style="grid-column:5;grid-row:1 / span 2">Mozzarella</div>'
+    +'<div class="bin" style="grid-column:6;grid-row:1">Confit rossi</div>'
+    +'<div class="bin" style="grid-column:7;grid-row:1">Pomodori secchi</div>'
+    +'<div class="bin" style="grid-column:8;grid-row:1">Parmigiano</div>'
+    +'<div class="bin" style="grid-column:1;grid-row:2">Acciughe</div>'
+    +'<div class="bin" style="grid-column:2;grid-row:2">Carciofi</div>'
+    +'<div class="bin" style="grid-column:3;grid-row:2">Salame piccante</div>'
+    +'<div class="bin" style="grid-column:6;grid-row:2">Confit gialli</div>'
+    +'<div class="bin" style="grid-column:7;grid-row:2">Pomodorini</div>'
+    +'<div class="bin" style="grid-column:8;grid-row:2">Pecorino</div>'
+    +'</div></div>';
+  h+='<div class="sec"><h3>Sportella 1 &middot; Cassetto 1</h3><div class="sub">6 gastro quadrate (formaggi) + 2 rettangoli concass&egrave;</div>'
+    +'<div class="grid" style="grid-template-columns:1fr 1fr 1fr 0.7fr;grid-auto-rows:52px">'
+    +'<div class="bin" style="grid-column:1;grid-row:1">Bufala</div>'
+    +'<div class="bin" style="grid-column:2;grid-row:1">Scaglie di grana</div>'
+    +'<div class="bin" style="grid-column:3;grid-row:1">Ricotta affumicata</div>'
+    +'<div class="bin big" style="grid-column:4;grid-row:1">Concass&egrave;</div>'
+    +'<div class="bin" style="grid-column:1;grid-row:2">Gorgonzola</div>'
+    +'<div class="bin" style="grid-column:2;grid-row:2">Formaggio di malga</div>'
+    +'<div class="bin" style="grid-column:3;grid-row:2">Monte 27</div>'
+    +'<div class="bin big" style="grid-column:4;grid-row:2">Concass&egrave;</div>'
+    +'</div></div>';
+  h+='<div class="sec"><h3>Sportella 1 &middot; Cassetto 2</h3><div class="sub">6 vaschette a coppie</div>'
+    +'<div class="grid" style="grid-template-columns:1fr 1fr 1fr;grid-auto-rows:52px">'
+    +'<div class="bin" style="grid-column:1;grid-row:1">Melanzane</div>'
+    +'<div class="bin" style="grid-column:2;grid-row:1">Friarielli</div>'
+    +'<div class="bin" style="grid-column:3;grid-row:1">Cipolla caramellata</div>'
+    +'<div class="bin" style="grid-column:1;grid-row:2">Salsiccia</div>'
+    +'<div class="bin" style="grid-column:2;grid-row:2">Patate al forno</div>'
+    +'<div class="bin" style="grid-column:3;grid-row:2">Tonno</div>'
+    +'</div></div>';
+  h+='<div class="sec"><h3>Sportello frigo &middot; vicino ai cassetti</h3>'
+    +'<div class="sub">Sopra la griglia &mdash; salumi da affettare</div><div class="grid" style="grid-template-columns:repeat(3,1fr)">'+bins(["Crudo","Speck","Guanciale"],"pink")+'</div>'
+    +'<div class="sub">Julienne</div><div class="grid" style="grid-template-columns:repeat(2,1fr)">'+bins(["Julienne prosciutto cotto","Julienne salame Napoli"])+'</div>'
+    +'<div class="sub">Biberon salse</div><div class="grid" style="grid-template-columns:repeat(4,1fr)">'+bins(["Carbonara","Majo wasabi","Salsa all'aglio","Prezzemolo"],"amb")+'</div>'
+    +'<div class="sub" style="border-top:1px dashed #ccc;padding-top:8px">Sotto la griglia</div><div class="grid" style="grid-template-columns:repeat(2,1fr)">'+bins(["Sac à poche ricotta mantecata","Sac à poche pesto di basilico","Scamorza a cubetti","Peperoni e zucchine sott'olio"],"teal")+'</div>'
+    +'</div>';
+  h+='<div class="sec"><h3>Frigo a colonna &middot; 4 ripiani</h3>'
+    +'<div class="sub">Ripiano 1 &middot; in alto</div><div class="row"><div class="bin">Pomodoro brasato</div><div class="bin">Monte 27 grattugiato</div><div class="bin">Formaggio di malga</div><div class="bin">Carciofi scorta sottovuoto</div><div class="bin">Funghi champignon sottovuoto</div><div class="bin todo">Contenitori scongelati &middot; da valutare</div></div>'
+    +'<div class="sub">Ripiano 2</div><div class="row"><div class="bin">Bufale interi</div><div class="bin">Burrate</div><div class="bin">Rimpiazzi pomodorini</div><div class="bin">Melanzane</div><div class="bin">Friggitelli</div><div class="bin">Prosciutto</div></div>'
+    +'<div class="sub">Ripiano 3</div><div class="row"><div class="bin">Rimpiazzo salsa pomodoro</div><div class="bin">Scaglie di parmigiano</div><div class="bin">Salame piccante</div></div>'
+    +'<div class="sub">Ripiano 4 &middot; in basso</div><div class="row"><div class="bin">Patate al forno</div><div class="bin">Ricotta</div><div class="bin big">Pizze in teglie bianche</div></div>'
+    +'</div>';
+  h+='<div class="sec"><h3>Fermalievita</h3><div class="sub">Le pizze che lievitano</div><div class="row"><div class="bin big" style="flex:1">Pizze in lievitazione &#10142; quando pronte vanno nel Ripiano 4 (teglie bianche)</div></div></div>';
+  return h;
+}
+function placeholder(txt){return '<div class="placeholder">'+esc(txt)+'</div>';}
+function render(){var v=document.getElementById('view');
+  if(cur==='pizze')v.innerHTML=pizzeView();
+  else if(cur==='frighi')v.innerHTML=frighiView();
+  else if(cur==='ricette')v.innerHTML='<div class="hint">Le ricette che Ubaldo deve eseguire (salsa pomodoro, basi, ecc.).</div>'+placeholder('Da riempire insieme: mandami le ricette e le aggiungo qui.');
+  else if(cur==='giro')v.innerHTML='<div class="hint">L' + String.fromCharCode(39) + 'ordine mentale del lavoro: arrivo &rarr; impasti &rarr; mise en place &rarr; chiusura.</div>'+placeholder('Da costruire insieme: te lo propongo e lo correggi.');
+  else if(cur==='ordini')v.innerHTML='<div class="hint">Ordini ingredienti pizzeria &rarr; arrivano allo chef e ai fornitori.</div>'+placeholder('In arrivo: lista ordini pizzeria (farine, mozzarella, pomodoro...).');
+}
+renderTabs();render();
+</script>
+</body>
+</html>
