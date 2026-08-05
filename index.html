@@ -48,6 +48,7 @@ footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:cen
 <div class="grid" id="salaapps" style="display:none">
 <div class="chefhdr" id="salahdr">&#127863; Sala &middot; tocca per uscire</div>
 <a class="app" href="sala.html"><span class="emoji">&#127863;</span><span>Sala &middot; Cantina Vini<small>accesso sala e direzione</small></span><span class="arrow">&rsaquo;</span></a>
+<a class="app" href="sala-timbra.html"><span class="emoji">&#9201;&#65039;</span><span>Timbratura Sala<small>turni e pause</small></span><span class="arrow">&rsaquo;</span></a>
 </div>
 <div class="grid" id="chefapps" style="display:none;margin-top:16px">
 <div class="chefhdr" id="chefhdr">&#128274; Riservato chef &middot; tocca per nascondere</div>
@@ -57,9 +58,9 @@ footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:cen
 <a class="app" href="manutenzione.html"><span class="emoji">&#128736;&#65039;</span><span>Manutenzione Cucina<small>guasti, interventi, bolle e fatture</small></span><span class="arrow">&rsaquo;</span></a>
 </div>
 <footer>Prinz Rudolf &middot; Merano</footer>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 05/08 13:20</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 05/08 14:10</div>
 <script>
-var APP_VER='05/08 13:20';
+var APP_VER='05/08 14:10';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_index'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_index','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 var CHEF_CODE="Capo2026";
 var SALA_CODES=["sala2026","direzione2026"];
