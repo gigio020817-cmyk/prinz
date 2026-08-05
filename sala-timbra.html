@@ -98,9 +98,9 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 05/08 14:10</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 05/08 14:40</div>
 <script>
-var APP_VER='05/08 14:10';
+var APP_VER='05/08 14:40';
 var PW_SALA='sala2026';
 var PW_DIR='direzione2026';
 var SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -136,7 +136,7 @@ function unlock(role){
   document.getElementById('lock').style.display='none';
   document.getElementById('app').style.display='block';
   var b=document.getElementById('roleBadge');
-  if(role==='dir'){b.textContent='Direzione';b.className='rolebadge dir';}
+  if(role==='dir'){b.textContent='Direzione';b.className='rolebadge dir';var w=document.querySelector('.who');if(w)w.style.display='none';}
   else{b.textContent='Sala';b.className='rolebadge';}
   try{ME=localStorage.getItem('salaT_me')||'';}catch(e){ME='';}
   DDAY=today();
@@ -167,7 +167,6 @@ async function saveMe(){
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbraS|'+today()+'|'+ME,v:DATA[ME]})});}
   catch(e){alert('Non salvato, controlla internet e riprova.');throw e;}
 }
-function openPair(arr){return (arr.length&&!arr[arr.length-1].e&&!arr[arr.length-1].out)?arr[arr.length-1]:null;}
 
 async function punch(){
   if(!ME)return;var v=myRec();var last=v.t.length?v.t[v.t.length-1]:null;
@@ -188,6 +187,7 @@ function pastoTotal(v){var m=0;(v.pasto||[]).forEach(function(p){if(p.s&&p.e)m+=
 
 function renderCard(){
   var el=document.getElementById('pcard');
+  if(ROLE==='dir'){el.innerHTML='';return;}
   if(!ME){el.innerHTML='<div class="card"><div class="empty">Scegli il tuo nome qui sopra per timbrare.</div></div>';return;}
   var v=myRec();
   var last=v.t.length?v.t[v.t.length-1]:null;
@@ -228,12 +228,13 @@ function renderDir(){
   names.forEach(function(n){
     var v=DATA[n];v.t=v.t||[];v.sig=v.sig||[];v.pasto=v.pasto||[];
     var wk=workedMins(v),stot=sigTotal(v),pt=pastoTotal(v);
-    h+='<div class="prow"><div class="pn">'+esc(n)+' <span class="tot">&middot; '+fmtDur(wk)+' lavorate</span></div>';
+    var net=Math.max(0,wk-pt);
+    h+='<div class="prow"><div class="pn">'+esc(n)+' <span class="tot">&middot; '+fmtDur(net)+' lavorate</span></div>';
     var turni=v.t.map(function(p){return hm(p.in)+'-'+(p.out?hm(p.out):'?');}).join(', ');
-    h+='<div class="pl"><b>Turni:</b> '+(turni||'&mdash;')+'</div>';
-    h+='<div class="pl"><b>Sigarette:</b> '+stot.n+' ('+fmtDur(stot.m)+')</div>';
+    h+='<div class="pl"><b>Turni:</b> '+(turni||'&mdash;')+(wk?' &middot; '+fmtDur(wk)+' in servizio':'')+'</div>';
     var past=v.pasto.map(function(p){return p.tipo+' '+hm(p.s)+'-'+(p.e?hm(p.e):'?');}).join(', ');
-    h+='<div class="pl"><b>Pausa pasto:</b> '+(past?past+' &middot; '+fmtDur(pt):'&mdash;')+'</div>';
+    h+='<div class="pl"><b>Pausa pasto:</b> '+(past?past+' &middot; -'+fmtDur(pt):'&mdash;')+'</div>';
+    h+='<div class="pl"><b>Sigarette:</b> '+stot.n+' ('+fmtDur(stot.m)+')</div>';
     h+='</div>';
   });
   h+='</div>';
