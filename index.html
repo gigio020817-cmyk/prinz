@@ -20,7 +20,7 @@ html,body{margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(160deg,var(--bordeaux),var(--bordeaux-d));color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 18px calc(32px + env(safe-area-inset-bottom))}
 .mark{width:72px;height:72px;border-radius:18px;border:2px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:26px;letter-spacing:1px;margin-bottom:14px;cursor:pointer;user-select:none}
 h1{font-size:22px;margin:0 0 2px;font-weight:600}
-.sub{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:26px}
+.sub{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:26px;cursor:pointer;user-select:none}
 .grid{width:100%;max-width:460px;display:flex;flex-direction:column;gap:12px}
 a.app{display:flex;align-items:center;gap:14px;background:var(--paper);color:var(--ink);text-decoration:none;border-radius:14px;padding:16px 18px;font-size:17px;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.25);border:1px solid rgba(201,162,39,.25)}
 a.app:active{transform:scale(.99)}
@@ -28,14 +28,13 @@ a.app .emoji{font-size:24px;width:30px;text-align:center;flex:none}
 a.app .arrow{margin-left:auto;color:var(--gold);font-weight:800}
 a.app small{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:2px}
 .chefhdr{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);text-align:center;margin:4px 0 2px;cursor:pointer}
-.salahdr{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);text-align:center;margin:14px 0 2px}
 footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:center}
 </style>
 </head>
 <body>
 <div class="mark" id="prmark">PR</div>
 <h1>Prinz Rudolf</h1>
-<div class="sub">App Cucina</div>
+<div class="sub" id="prsub">App Cucina</div>
 <div class="grid">
 <a class="app" href="cuochi.html"><span class="emoji">&#128104;&#8205;&#127859;</span><span>Dashboard Cuochi Prinz<small>check-list, pulizie, consegne</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="antipasti.html"><span class="emoji">&#129367;</span><span>Antipasti<small>ricette + produzioni</small></span><span class="arrow">&rsaquo;</span></a>
@@ -46,8 +45,8 @@ footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:cen
 <a class="app" href="pizzeria.html"><span class="emoji">&#127829;</span><span>Pizzeria<small>men&ugrave;, frighi, pizze, ordini</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="bistro3d.html"><span class="emoji">&#127860;</span><span>Bistro 3D<small>plastico del nuovo bistro</small></span><span class="arrow">&rsaquo;</span></a>
 </div>
-<div class="grid">
-<div class="salahdr">&#127863; Sala</div>
+<div class="grid" id="salaapps" style="display:none;margin-top:16px">
+<div class="chefhdr" id="salahdr">&#127863; Sala &middot; tocca per nascondere</div>
 <a class="app" href="sala.html"><span class="emoji">&#127863;</span><span>Sala &middot; Cantina Vini<small>accesso sala e direzione</small></span><span class="arrow">&rsaquo;</span></a>
 </div>
 <div class="grid" id="chefapps" style="display:none;margin-top:16px">
@@ -58,21 +57,32 @@ footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:cen
 <a class="app" href="manutenzione.html"><span class="emoji">&#128736;&#65039;</span><span>Manutenzione Cucina<small>guasti, interventi, bolle e fatture</small></span><span class="arrow">&rsaquo;</span></a>
 </div>
 <footer>Prinz Rudolf &middot; Merano</footer>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 05/08 12:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 05/08 13:00</div>
 <script>
-var APP_VER='05/08 12:30';
+var APP_VER='05/08 13:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_index'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_index','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 var CHEF_CODE="Capo2026";
+var SALA_CODES=["sala2026","direzione2026"];
 var box=document.getElementById('chefapps');
+var sbox=document.getElementById('salaapps');
 function showChef(){box.style.display='flex';}
 function hideChef(){box.style.display='none';try{localStorage.removeItem('pr_chef')}catch(e){}}
+function showSala(){sbox.style.display='flex';}
+function hideSala(){sbox.style.display='none';try{localStorage.removeItem('pr_sala')}catch(e){}}
 try{if(localStorage.getItem('pr_chef')==='1')showChef();}catch(e){}
+try{if(localStorage.getItem('pr_sala')==='1')showSala();}catch(e){}
 document.getElementById('prmark').addEventListener('click',function(){
 if(box.style.display==='flex')return;
 var c=prompt('Codice chef:');if(c===null)return;
 if(c.trim().toLowerCase()===CHEF_CODE.toLowerCase()){try{localStorage.setItem('pr_chef','1')}catch(e){}showChef();}
 });
+document.getElementById('prsub').addEventListener('click',function(){
+if(sbox.style.display==='flex')return;
+var c=prompt('Codice sala:');if(c===null)return;
+if(SALA_CODES.indexOf(c.trim().toLowerCase())>-1){try{localStorage.setItem('pr_sala','1')}catch(e){}showSala();}
+});
 document.getElementById('chefhdr').addEventListener('click',hideChef);
+document.getElementById('salahdr').addEventListener('click',hideSala);
 </script>
 </body>
 </html>
