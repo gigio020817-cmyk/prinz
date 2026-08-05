@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Timbratura Sala">
+<meta name="theme-color" content="#4a121b">
+<meta name="robots" content="noindex, nofollow">
+<title>Prinz Rudolf &middot; Timbratura Sala</title>
+<style>
+  :root{--wine:#4a121b;--wine2:#6b1f2a;--gold:#c9a227;--cream:#faf6ee;--ink:#2a2119;--line:#e7ddca;--muted:#8a8378;--ok:#1e7a46;--red:#b23a3a;--paper:#fff}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--cream);color:var(--ink);line-height:1.45;padding-bottom:env(safe-area-inset-bottom)}
+  #lock{position:fixed;inset:0;z-index:50;background:linear-gradient(160deg,var(--wine),#2b0a10);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;color:#fff;text-align:center}
+  #lock .mark{width:66px;height:66px;border-radius:16px;border:2px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:30px;margin-bottom:16px}
+  #lock h1{font-size:21px;margin:0 0 2px;font-weight:700}
+  #lock p{opacity:.85;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 24px;color:var(--gold)}
+  #lock .box{width:100%;max-width:300px}
+  #lock input{width:100%;border:none;border-radius:12px;padding:14px 16px;font-size:17px;text-align:center;color:var(--ink);margin-bottom:12px}
+  #lock input:focus{outline:2px solid var(--gold)}
+  #lock button{width:100%;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:800;background:linear-gradient(135deg,var(--gold),#a8841f);color:#231800;cursor:pointer}
+  #lock .err{color:#ffd2d2;font-size:13px;height:18px;margin-top:10px}
+  #lock label{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;opacity:.9;margin-top:14px;cursor:pointer}
+  #lock label input{width:auto;margin:0}
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(160deg,var(--wine),#2b0a10);color:#fff;padding:calc(env(safe-area-inset-top) + 14px) 16px 14px;box-shadow:0 2px 14px rgba(0,0,0,.2)}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .mark{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gold);font-size:15px;flex:none}
+  .brand h1{font-size:17px;margin:0;font-weight:700}
+  .brand small{display:block;font-size:10px;opacity:.85;letter-spacing:1.5px;text-transform:uppercase}
+  .rolebadge{margin-left:auto;font-size:11px;font-weight:800;padding:5px 11px;border-radius:20px;background:rgba(255,255,255,.15);color:#fff}
+  .rolebadge.dir{background:var(--gold);color:#231800}
+  main{max-width:640px;margin:0 auto;padding:14px}
+  .who{margin-bottom:14px}
+  .who .lbl{font-size:12px;font-weight:800;color:var(--wine);text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px}
+  .names{display:flex;flex-wrap:wrap;gap:8px}
+  .nb{border:1px solid var(--line);background:#fff;border-radius:22px;padding:9px 15px;font-size:15px;font-weight:700;color:var(--wine);cursor:pointer}
+  .nb.on{background:var(--wine);color:#fff;border-color:var(--wine)}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px 16px;margin-bottom:13px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .card h2{font-size:16px;margin:0 0 4px;color:var(--wine);display:flex;align-items:center;gap:8px}
+  .card .hint{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+  .status{font-size:15px;font-weight:700;margin-bottom:12px;padding:10px 12px;border-radius:10px;background:#f6f1e6}
+  .status.in{background:#e7f5ec;color:var(--ok)}
+  .status.out{background:#f6f1e6;color:var(--ink)}
+  .bigbtn{width:100%;border:none;border-radius:13px;padding:16px;font-size:17px;font-weight:800;cursor:pointer;margin-bottom:9px;color:#fff}
+  .b-in{background:var(--ok)}.b-out{background:var(--wine)}
+  .b-sig{background:#c98a27}.b-sigend{background:#7a5416}
+  .b-pranzo{background:#4a7a8a}.b-cena{background:#5a4a8a}.b-pastoend{background:#33566b}
+  .row2{display:flex;gap:9px}.row2>*{flex:1}
+  .log{margin-top:8px;font-size:13px;color:#6b6257}
+  .log .li{display:flex;justify-content:space-between;padding:5px 0;border-top:1px dashed #ece3cd}
+  .log .li:first-child{border-top:none}
+  .cnt{font-size:13.5px;font-weight:700;color:var(--wine);background:#faf6ee;border:1px dashed #d9cba6;border-radius:8px;padding:8px 11px;margin-bottom:10px}
+  .rep .prow{border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:9px}
+  .rep .pn{font-weight:800;color:var(--wine);font-size:15px;margin-bottom:3px}
+  .rep .pl{font-size:13px;color:#5b5346;margin-top:2px}
+  .rep .tot{font-weight:800;color:var(--ink)}
+  .datebar{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .datebar input{border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:15px;background:#fff;font-family:inherit}
+  .empty{text-align:center;color:var(--muted);padding:30px 16px;font-size:14.5px}
+  footer{text-align:center;font-size:11px;color:var(--muted);padding:20px}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--wine);color:#fff;padding:11px 18px;border-radius:22px;font-size:14px;font-weight:700;z-index:400;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="lock">
+  <div class="mark">PR</div>
+  <h1>Timbratura Sala</h1>
+  <p>Accesso riservato</p>
+  <div class="box">
+    <input id="pw" type="password" placeholder="Password" autocomplete="current-password" enterkeyhint="go">
+    <button id="enter">Entra</button>
+    <div class="err" id="err"></div>
+    <label><input type="checkbox" id="remember"> Ricorda su questo dispositivo</label>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+<header>
+  <div class="brand">
+    <div class="mark">PR</div>
+    <div><small>Prinz Rudolf &middot; Sala</small><h1>Timbratura</h1></div>
+    <span class="rolebadge" id="roleBadge">Sala</span>
+  </div>
+</header>
+<main>
+  <div class="who">
+    <div class="lbl">Chi sei?</div>
+    <div class="names" id="names"></div>
+  </div>
+  <div id="pcard"></div>
+  <div id="dir"></div>
+</main>
+<footer>Prinz Rudolf &middot; Merano &mdash; Timbratura Sala</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 05/08 14:10</div>
+<script>
+var APP_VER='05/08 14:10';
+var PW_SALA='sala2026';
+var PW_DIR='direzione2026';
+var SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
+var SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
+var PEOPLE=['David','Marianne','Amit','Marco','Sonu'];
+var ROLE='';
+var ME='';
+var DATA={};
+var DDAY='';
+
+function ymd(d){var m=(d.getMonth()+1),g=d.getDate();return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(g<10?'0':'')+g;}
+function today(){return ymd(new Date());}
+function esc(s){return (s==null?'':(''+s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function hm(iso){try{return new Date(iso).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}catch(e){return '';}}
+function mins(a,b){return Math.max(0,Math.round((new Date(b)-new Date(a))/60000));}
+function fmtDur(m){if(m<1)return '0 min';var h=Math.floor(m/60),r=m%60;return (h>0?h+'h ':'')+(r>0||h===0?r+' min':'').trim();}
+
+async function sb(path,opts){opts=opts||{};var h={apikey:SB_KEY,'Content-Type':'application/json'};if(opts.headers)Object.assign(h,opts.headers);var r=await fetch(SB_URL+'/rest/v1/'+path,{method:opts.method||'GET',headers:h,body:opts.body});if(!r.ok)throw new Error('HTTP '+r.status);var t=await r.text();return t?JSON.parse(t):null;}
+
+function toast(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('show');setTimeout(function(){e.classList.remove('show');},1600);}
+
+function doEnter(){
+  var v=document.getElementById('pw').value.trim();
+  var rem=document.getElementById('remember').checked;
+  var role='';
+  if(v===PW_DIR)role='dir'; else if(v===PW_SALA)role='sala';
+  if(!role){document.getElementById('err').textContent='Password errata';return;}
+  if(rem){try{localStorage.setItem('salaT_role',role);}catch(e){}}
+  unlock(role);
+}
+function unlock(role){
+  ROLE=role;
+  document.getElementById('lock').style.display='none';
+  document.getElementById('app').style.display='block';
+  var b=document.getElementById('roleBadge');
+  if(role==='dir'){b.textContent='Direzione';b.className='rolebadge dir';}
+  else{b.textContent='Sala';b.className='rolebadge';}
+  try{ME=localStorage.getItem('salaT_me')||'';}catch(e){ME='';}
+  DDAY=today();
+  renderNames();
+  loadDay(today());
+}
+document.getElementById('enter').addEventListener('click',doEnter);
+document.getElementById('pw').addEventListener('keydown',function(e){if(e.key==='Enter')doEnter();});
+try{var sr=localStorage.getItem('salaT_role');if(sr==='dir'||sr==='sala')unlock(sr);}catch(e){}
+
+function renderNames(){
+  var h='';
+  for(var i=0;i<PEOPLE.length;i++){var n=PEOPLE[i];h+='<button class="nb'+(n===ME?' on':'')+'" onclick="pickMe(\''+n+'\')">'+esc(n)+'</button>';}
+  document.getElementById('names').innerHTML=h;
+}
+function pickMe(n){ME=n;try{localStorage.setItem('salaT_me',n);}catch(e){}renderNames();renderCard();}
+
+async function loadDay(day){
+  try{
+    var r=await sb("kitchen_meta?k=like.timbraS|"+day+"*&select=k,v");
+    DATA={};(r||[]).forEach(function(row){var p=row.k.split('|');DATA[p[2]]=row.v||{};});
+  }catch(e){document.getElementById('pcard').innerHTML='<div class="empty">Errore di collegamento. Controlla internet.</div>';return;}
+  renderCard();
+  renderDir();
+}
+function myRec(){var v=DATA[ME];if(!v){v={t:[],sig:[],pasto:[]};DATA[ME]=v;}if(!v.t)v.t=[];if(!v.sig)v.sig=[];if(!v.pasto)v.pasto=[];return v;}
+async function saveMe(){
+  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'timbraS|'+today()+'|'+ME,v:DATA[ME]})});}
+  catch(e){alert('Non salvato, controlla internet e riprova.');throw e;}
+}
+function openPair(arr){return (arr.length&&!arr[arr.length-1].e&&!arr[arr.length-1].out)?arr[arr.length-1]:null;}
+
+async function punch(){
+  if(!ME)return;var v=myRec();var last=v.t.length?v.t[v.t.length-1]:null;
+  if(last&&!last.out){last.out=new Date().toISOString();await saveMe();toast('Uscita registrata ✓');}
+  else{v.t.push({in:new Date().toISOString(),out:null});await saveMe();toast('Entrata registrata ✓');}
+  renderCard();renderDir();
+}
+async function sigStart(){if(!ME)return;var v=myRec();if(openSig(v)){renderCard();return;}v.sig.push({s:new Date().toISOString(),e:null});await saveMe();toast('Sigaretta: inizio ✓');renderCard();renderDir();}
+async function sigEnd(){if(!ME)return;var v=myRec();var o=openSig(v);if(!o)return;o.e=new Date().toISOString();await saveMe();toast('Sigaretta: fine ✓');renderCard();renderDir();}
+function openSig(v){for(var i=v.sig.length-1;i>=0;i--){if(!v.sig[i].e)return v.sig[i];}return null;}
+async function pastoStart(tipo){if(!ME)return;var v=myRec();if(openPasto(v)){renderCard();return;}v.pasto.push({tipo:tipo,s:new Date().toISOString(),e:null});await saveMe();toast('Pausa '+tipo.toLowerCase()+': inizio ✓');renderCard();renderDir();}
+async function pastoEnd(){if(!ME)return;var v=myRec();var o=openPasto(v);if(!o)return;o.e=new Date().toISOString();await saveMe();toast('Pausa: fine ✓');renderCard();renderDir();}
+function openPasto(v){for(var i=v.pasto.length-1;i>=0;i--){if(!v.pasto[i].e)return v.pasto[i];}return null;}
+
+function workedMins(v){var m=0;(v.t||[]).forEach(function(p){if(p.in&&p.out)m+=mins(p.in,p.out);});return m;}
+function sigTotal(v){var n=0,m=0;(v.sig||[]).forEach(function(p){n++;if(p.s&&p.e)m+=mins(p.s,p.e);});return {n:n,m:m};}
+function pastoTotal(v){var m=0;(v.pasto||[]).forEach(function(p){if(p.s&&p.e)m+=mins(p.s,p.e);});return m;}
+
+function renderCard(){
+  var el=document.getElementById('pcard');
+  if(!ME){el.innerHTML='<div class="card"><div class="empty">Scegli il tuo nome qui sopra per timbrare.</div></div>';return;}
+  var v=myRec();
+  var last=v.t.length?v.t[v.t.length-1]:null;
+  var inService=last&&!last.out;
+  var st='<div class="status '+(inService?'in':'out')+'">'+(inService?('&#9989; In servizio da '+hm(last.in)):'&#9898; Fuori servizio')+'</div>';
+
+  var turno='<div class="card"><h2>&#9201;&#65039; Turno</h2><div class="hint">Timbra quando entri e quando esci. Se fai turno spezzato (pranzo e poi cena) timbri di nuovo.</div>'+st;
+  turno+='<button class="bigbtn '+(inService?'b-out':'b-in')+'" onclick="punch()">'+(inService?'Timbra USCITA':'Timbra ENTRATA')+'</button>';
+  if(v.t.length){var lg='';v.t.forEach(function(p){lg+='<div class="li"><span>'+hm(p.in)+' &rarr; '+(p.out?hm(p.out):'&hellip;')+'</span><span>'+(p.in&&p.out?fmtDur(mins(p.in,p.out)):'in corso')+'</span></div>';});turno+='<div class="log">'+lg+'</div>';}
+  turno+='</div>';
+
+  var op=openPasto(v);
+  var pausa='<div class="card"><h2>&#127860; Pausa pranzo / cena</h2><div class="hint">In base al turno. Segna inizio e fine.</div>';
+  if(op){pausa+='<div class="status in">In pausa '+esc(op.tipo.toLowerCase())+' da '+hm(op.s)+'</div><button class="bigbtn b-pastoend" onclick="pastoEnd()">Fine pausa</button>';}
+  else{pausa+='<div class="row2"><button class="bigbtn b-pranzo" onclick="pastoStart(\'Pranzo\')">Inizio PRANZO</button><button class="bigbtn b-cena" onclick="pastoStart(\'Cena\')">Inizio CENA</button></div>';}
+  if(v.pasto.length){var lp='';v.pasto.forEach(function(p){lp+='<div class="li"><span>'+esc(p.tipo)+' &middot; '+hm(p.s)+' &rarr; '+(p.e?hm(p.e):'&hellip;')+'</span><span>'+(p.s&&p.e?fmtDur(mins(p.s,p.e)):'in corso')+'</span></div>';});pausa+='<div class="log">'+lp+'</div>';}
+  pausa+='</div>';
+
+  var os=openSig(v);var stot=sigTotal(v);
+  var sig='<div class="card"><h2>&#128684; Pausa sigaretta</h2><div class="hint">Monitorata: numero e minuti totali.</div>';
+  sig+='<div class="cnt">Oggi: '+stot.n+' '+(stot.n===1?'sigaretta':'sigarette')+' &middot; '+fmtDur(stot.m)+' totali</div>';
+  if(os){sig+='<div class="status in">In pausa sigaretta da '+hm(os.s)+'</div><button class="bigbtn b-sigend" onclick="sigEnd()">Fine sigaretta</button>';}
+  else{sig+='<button class="bigbtn b-sig" onclick="sigStart()">Inizio sigaretta</button>';}
+  if(v.sig.length){var ls='';v.sig.forEach(function(p){ls+='<div class="li"><span>'+hm(p.s)+' &rarr; '+(p.e?hm(p.e):'&hellip;')+'</span><span>'+(p.s&&p.e?fmtDur(mins(p.s,p.e)):'in corso')+'</span></div>';});sig+='<div class="log">'+ls+'</div>';}
+  sig+='</div>';
+
+  el.innerHTML=turno+pausa+sig;
+}
+
+function renderDir(){
+  var el=document.getElementById('dir');
+  if(ROLE!=='dir'){el.innerHTML='';return;}
+  var h='<div class="card rep"><h2>&#128203; Riepilogo Direzione</h2><div class="hint">Solo la Direzione vede questo riepilogo.</div>';
+  h+='<div class="datebar"><span style="font-size:13px;color:#5b5346">Giorno:</span><input type="date" id="dday" value="'+DDAY+'" onchange="chDay(this.value)"></div>';
+  var names=Object.keys(DATA).filter(function(n){var v=DATA[n];return v&&((v.t&&v.t.length)||(v.sig&&v.sig.length)||(v.pasto&&v.pasto.length));});
+  names.sort();
+  if(!names.length){h+='<div class="empty">Nessuna timbratura per questo giorno.</div></div>';el.innerHTML=h;return;}
+  names.forEach(function(n){
+    var v=DATA[n];v.t=v.t||[];v.sig=v.sig||[];v.pasto=v.pasto||[];
+    var wk=workedMins(v),stot=sigTotal(v),pt=pastoTotal(v);
+    h+='<div class="prow"><div class="pn">'+esc(n)+' <span class="tot">&middot; '+fmtDur(wk)+' lavorate</span></div>';
+    var turni=v.t.map(function(p){return hm(p.in)+'-'+(p.out?hm(p.out):'?');}).join(', ');
+    h+='<div class="pl"><b>Turni:</b> '+(turni||'&mdash;')+'</div>';
+    h+='<div class="pl"><b>Sigarette:</b> '+stot.n+' ('+fmtDur(stot.m)+')</div>';
+    var past=v.pasto.map(function(p){return p.tipo+' '+hm(p.s)+'-'+(p.e?hm(p.e):'?');}).join(', ');
+    h+='<div class="pl"><b>Pausa pasto:</b> '+(past?past+' &middot; '+fmtDur(pt):'&mdash;')+'</div>';
+    h+='</div>';
+  });
+  h+='</div>';
+  el.innerHTML=h;
+}
+async function chDay(day){DDAY=day;try{var r=await sb("kitchen_meta?k=like.timbraS|"+day+"*&select=k,v");DATA={};(r||[]).forEach(function(row){var p=row.k.split('|');DATA[p[2]]=row.v||{};});}catch(e){}renderDir();if(day===today())renderCard();}
+
+(async function selfUpdate(){try{if(sessionStorage.getItem('upd_salaT'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_salaT','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
+</script>
+</body>
+</html>
