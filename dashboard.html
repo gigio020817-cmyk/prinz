@@ -186,7 +186,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='13/08 16:40';
+const APP_VER='13/08 17:05';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -336,7 +336,7 @@ function presenzeCard(){
   var form='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">'
     +'<label style="font-size:12px;font-weight:700">Giorno<br><input id="prsDay" type="date" value="'+today+'" style="padding:8px;border:1px solid #ddd;border-radius:8px;font:inherit"></label>'
     +inp('prsMp','🍽️ Mezza pensione',cur.mp)+inp('prsCol','🥐 Colazioni',cur.col)+inp('prsBis','🍷 Bistro (opz.)',cur.bistro)
-    +prsChipRow('prsPiz','🍕 Pizzeria/Bistro',['metà e metà','tanta pizza','tanto bistro'],cur.piz)+prsChipRow('prsTak','🥡 Take-away',['tanto','poco'],cur.tak)+prsChipRow('prsBisq','🍷 Bistro',['bistro'],cur.bisq)
+    +prsChipRow('prsPiz','🍕 Pizzeria/Bistro',['metà e metà','tanta pizza','tanto bistro'],cur.piz)+prsChipRow('prsTak','🥡 Take-away',['tanto','poco'],cur.tak)
     +'<label style="font-size:12px;font-weight:700;flex:1 1 100%">📝 Nota del giorno (pizzeria, take-away…)<br><textarea id="prsNota" rows="2" placeholder="es. tanta pizzeria · oppure metà e metà · parecchio take-away…" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:8px;font:inherit;resize:vertical">'+(cur.nota?esc(cur.nota):'')+'</textarea></label>'
     +'<button onclick="savePresenze()" style="background:#1e7a46;color:#fff;border:0;border-radius:8px;padding:10px 16px;font-weight:800;cursor:pointer">Salva</button></div>';
   var y=+m.slice(0,4),mo=+m.slice(5,7);var GGm=['','Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
@@ -353,7 +353,7 @@ async function savePresenze(){
   var _ex={};try{var _r=await sb('kitchen_meta?k=eq.'+encodeURIComponent('presenze|'+d)+'&select=v');_ex=(_r&&_r[0]&&_r[0].v)||{};}catch(e){_ex=(window.PRESENZE&&window.PRESENZE[d])||{};}
   function val(id,key){var e=document.getElementById(id);var x=e?(''+e.value).trim():'';if(x==='')return (_ex[key]!=null?_ex[key]:null);return parseInt(x,10)||0;}
   function txt(id,key){var e=document.getElementById(id);var x=e?(''+e.value).trim():'';if(x==='')return (_ex[key]!=null?_ex[key]:null);return x;}
-  var v={mp:val('prsMp','mp'),col:val('prsCol','col'),bistro:val('prsBis','bistro'),piz:txt('prsPiz','piz'),tak:txt('prsTak','tak'),bisq:txt('prsBisq','bisq'),nota:txt('prsNota','nota'),at:new Date().toISOString()};
+  var v={mp:val('prsMp','mp'),col:val('prsCol','col'),bistro:val('prsBis','bistro'),piz:txt('prsPiz','piz'),tak:txt('prsTak','tak'),nota:txt('prsNota','nota'),at:new Date().toISOString()};
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'presenze|'+d,v:v})});
     window.PRESENZE=window.PRESENZE||{};if(d.slice(0,7)===(window._PMONTH||d.slice(0,7)))window.PRESENZE[d]=v;
     var el=document.getElementById('view');if(el)el.innerHTML=presenzeCard();
@@ -886,6 +886,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 13/08 16:40</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 13/08 17:05</div>
 </body>
 </html>
