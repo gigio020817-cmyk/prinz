@@ -127,16 +127,16 @@
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
-const TEAM=[["Gianluca","Secondo cuoco · Tournant"],["Alex","Secondi"],["Banu","Colazioni + antipasti (sera)"],["Mattia","Primi"],["Ubaldo","Pizzeria + Panificazione · turno serale"],["Erjola","Pasticceria"],["Badr","Secondi"],["Majeet","Commis"]];
+const TEAM=[["Gianluca","Secondo cuoco · Tournant"],["Alex","Secondi"],["Banu","Colazioni + antipasti (sera)"],["Mattia","Primi"],["Ubaldo","Pizzeria + Panificazione · turno serale"],["Erjola","Pasticceria"],["Majeet","Commis"]];
 const APERTURA=["Accendere le attrezzature del mattino","Controllare le PRESENZE settimanali","Ricevere e sistemare la merce (FIFO)","Controllo mise en place e scorte","Pasto del personale fuori per le 11:30","Controllare gli avanzi e stoccarli"];
 const PULIZIA=["Piani e zona di lavoro (piano sanificato · coperchi in ordine · niente sporco vicino ai piatti)","Cotture (fornelli/piastra/griglia · forno sopra e fronte · salamandra)","Attrezzatura della partita (bilance, bimby/pacojet, sottovuoto, friggitrice, microonde · cambio acqua roner)","Freddo (banco frigo: riordino, date, FIFO · abbattitore davanti)","Pass (dietro, sopra, decorazioni)"];
 const CHIUSURA=["Tutto spento (attrezzature)","Pulizia serale di tutto (microonde, pelapatate, friggitrici se serve)","Taglieri e contenitori a posto (plastica/organico)"];
 const PULIZIA_SETT=["Freddo a fondo (interno banco frigo/cassetti e guarnizioni · cella di competenza + scadenze)","Cotture a fondo (forno e piastra)","Scaffali e piccoli elettrodomestici (anche quelli bassi)","Roner a fondo (acqua e aceto a 90°C per 1 ora)","Ogni 2 settimane: scongelare congelatori piccoli · filtri cappe ai lavapiatti"];
 const ITEMS={apertura:APERTURA,chiusura:CHIUSURA};
 const LABEL={apertura:'Apertura (entro 14:00)',chiusura:'Chiusura (entro 22:00)'};
-const CAPI=["Alex","Banu","Mattia","Ubaldo","Erjola","Badr","Majeet","Gianluca"];
+const CAPI=["Alex","Banu","Mattia","Ubaldo","Erjola","Majeet","Gianluca"];
 const CHIUSI=[]; // partite chiuse: pulizie sospese, solo produzione
-const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[5],Erjola:[2],Badr:[6],Majeet:[3],Banu:[1],Ubaldo:[4]};
+const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[5],Erjola:[2],Majeet:[3],Banu:[1],Ubaldo:[4]};
 const RESPFISSI=["Gianluca","Ubaldo"]; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
 function isOff(cook,dayStr){var wd=new Date((dayStr||todayStr())+"T00:00:00").getDay();return !!(RIPOSO[cook]&&RIPOSO[cook].indexOf(wd)>=0);}
 function badrCovers(dayStr){var L=["Alex","Mattia","Erjola","Ubaldo"];for(var k=0;k<L.length;k++){if(isOff(L[k],dayStr))return L[k];}return "";}
@@ -160,7 +160,7 @@ const PEOPLE={
    pulizia:["Attrezzature: bilance, pacojet, forno pasticceria, frighi pasticceria, bimby e microonde","Banco frigo: riordino, controllo date, FIFO","Coperchi puliti e in ordine","Abbattitore davanti: pulito","Controllo sporcizia vicino ai piatti"],
    puliziaSett:["Frighi pasticceria (interno · dentro e fuori)","Scaffali pasticceria (anche riordino mise en place)","Piccoli elettrodomestici della pasticceria","Planetarie piccole e suo abbattitore","Planetarie grandi: se le usi, pulisci subito dopo l\'uso"]},
  "Ubaldo":{pulizia:["Piani e zona di lavoro (piano sanificato · coperchi in ordine · sporco cassetti pizzeria)","Attrezzatura pizzeria (affettatrice, cassetti, coltelli, lavandino, vetrina · planetaria braccia tuffanti dopo l'impasto)","Forno pizzeria (passata)","Freddo (banco frigo: riordino, date, FIFO · frigo e fermalievita puliti)","Panificazione (impasti e cotture del pane del giorno · rifornire il pane nel frigo se finito)"],puliziaSett:["Freddo a fondo (interno banco frigo/cassetti e guarnizioni · cella + scadenze · frighi pizzeria e cassetti impasto)","Forno pizzeria (pulizia interna)","Pizzeria a fondo (zona bassa · vetrina · zona cartoni)","Piccoli elettrodomestici · planetarie grandi (pulizia profonda)","Abbattitore davanti (dentro e fuori)","Panificazione a fondo (forno pane e planetarie del pane)"]},
- "Badr":{},
+ 
  "Gianluca":{tournant:true,pulizia:["Aiutare le partite di chi è in riposo (copertura)","Aiutare le partite in difficoltà","Aiutare nella pulizia delle partite finché tutti non hanno finito"]},
  "Majeet":{noResp:true,noApe:true,noChiu:true,pulizia:["Aiutare le partite dove serve","Aiutare nella pulizia delle partite finché tutti non hanno finito","Preparare mise en place e basi per le partite","Tenere puliti piani e attrezzature in comune","Aiutare al pass durante il servizio"],puliziaSett:["Pulizia a fondo della zona comune assegnata","Aiuto pulizia profonda settimanale delle partite"]},
  "Nuovo":{pulizia:["Piani e zona di lavoro (piano sanificato · coperchi in ordine · niente sporco vicino ai piatti)","Attrezzatura della partita (bilance, bimby/pacojet, sottovuoto, friggitrice, microonde · cambio acqua roner)","Freddo (banco frigo: riordino, date, FIFO · abbattitore davanti)","Pass (dietro, sopra, decorazioni)"],puliziaSett:["Freddo a fondo (interno banco frigo/cassetti e guarnizioni · cella + scadenze)","Scaffali e piccoli elettrodomestici (anche quelli bassi)","Roner a fondo (acqua e aceto a 90°C per 1 ora)","Abbattitore Vision (dentro, fuori e sopra)","Ogni 2 settimane: scongelare congelatori piccoli"]}
@@ -186,7 +186,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='13/08 17:05';
+const APP_VER='19/08 22:35';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -434,13 +434,13 @@ const MENU_PRANZO=[
  ['Dom','Pasta al pesto di pomodoro secco (~1,2 kg) · 1,5 kg riso in bianco','Pollo in umido (~1,8 kg)','—','Insalata verde','Verdure ~2 kg + polenta ~1,8 kg']
 ];
 const MENU_PRANZO_NOTE='Sempre presenti: insalata del giorno (~1 kg) · freddo extra: tonno (~0,8 kg) o 12 uova sode · formaggio grattugiato. Placche sotto il pass: 6 calde (sopra: primo · secondo · alternativa/veg — sotto: riso bianco · verdure · patate/purè) + banco freddo a parte (insalata · freddo extra).';
-const MENU_PRANZO_PREP='👥 Chi prepara (la mattina): PRIMI → <b>Mattia</b> · SECONDI (piatti principali) → <b>Badr</b> · INSALATE e VERDURE/contorni → <b>Manjeet e Alex</b> (al bistro).';
+const MENU_PRANZO_PREP='👥 Chi prepara (la mattina): PRIMI → <b>Mattia</b> · SECONDI (piatti principali) → <b></b> · INSALATE e VERDURE/contorni → <b>Manjeet e Alex</b> (al bistro).';
 const MENU_PRANZO_AVANZO='♻️ Ogni mattina: tirare fuori l\'avanzo della mezza pensione, sistemarlo e aggiungerlo al pasto del personale — così non si spreca niente.';
 const MENU_CENA=[
- ['Lun','Insalata di pasta ~1,5 kg (tonno, mais, mozzarella)','Insalata verde + pane','Senza tonno, con formaggio','Mattia o Badr'],
+ ['Lun','Insalata di pasta ~1,5 kg (tonno, mais, mozzarella)','Insalata verde + pane','Senza tonno, con formaggio','Mattia'],
  ['Mar','Pasta al forno (~1,5 kg)','Insalata + pane','Pasta al forno vegetariana','Mattia'],
  ['Mer','Pizza in teglia (~2,5 kg impasto)','Insalata','Pizza di verdure','Ubaldo'],
- ['Gio','Wrap / kebab di pollo (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Wrap di verdure e formaggio','Badr'],
+ ['Gio','Wrap / kebab di pollo (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Wrap di verdure e formaggio',''],
  ['Ven','Insalata di riso ~1,5 kg (tonno, uova, mais)','Insalata + pane','Versione veg con ceci/formaggio','Alex e Manjeet'],
  ['Sab','Hamburger nel pane (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Burger di verdure','Alex e Manjeet'],
  ['Dom','Pita / focaccia farcita (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Versione vegetariana','Alex e Manjeet']
@@ -886,6 +886,6 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 13/08 17:05</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/08 22:35</div>
 </body>
 </html>
