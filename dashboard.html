@@ -16,8 +16,8 @@
 <title>Prinz Rudolf · Dashboard Chef</title>
 <style>
   :root{--bordeaux:#1c1c1c;--bordeaux-d:#000;--cream:#faf8f2;--paper:#fff;--ink:#1a1a1a;--muted:#8a8378;--line:#ececec;--gold:#c9a227;--yellow:#f5c518;--ok:#2e7d5b;--warn:#c0392b}
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-  html,body{margin:0;padding:0}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:pan-y}
+  html,body{margin:0;padding:0;overflow-x:hidden;overscroll-behavior:none;width:100%;max-width:100%}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--cream);color:var(--ink);line-height:1.45;padding-bottom:env(safe-area-inset-bottom)}
   #lock{position:fixed;inset:0;z-index:50;background:linear-gradient(160deg,var(--bordeaux),var(--bordeaux-d));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;color:#fff;text-align:center}
   #lock .mark{width:64px;height:64px;border-radius:16px;border:2px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;letter-spacing:1px;margin-bottom:18px}
@@ -888,5 +888,9 @@ function copyWeek(){
 
 </script>
 <div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/08 22:35</div>
+
+<script>
+(function(){function mount(){var main=document.querySelector('#app main')||document.querySelector('main');if(!main){return setTimeout(mount,400);}if(document.getElementById('devcard'))return;var card=document.createElement('div');card.className='card';card.id='devcard';card.innerHTML='<div class="card-h"><div class="t">\uD83D\uDD10 Dispositivi</div><div class="sub">approva / revoca</div></div><div class="card-b"><div class="muted" style="white-space:normal;margin-bottom:10px">Approva o revoca i telefoni e tablet che possono aprire le app.</div><button id="devbtn" style="width:100%;padding:11px;border:none;border-radius:10px;background:var(--ink);color:#fff;font-weight:700;font-size:14px">Apri pannello dispositivi</button><div id="devwrap" style="display:none;margin-top:10px"></div></div>';main.insertBefore(card,main.firstChild);var open=false;document.getElementById('devbtn').addEventListener('click',function(){var w=document.getElementById('devwrap');open=!open;if(open){if(!w.dataset.loaded){w.innerHTML='<iframe src="dispositivi.html" style="width:100%;height:520px;border:1px solid var(--line);border-radius:10px" loading="lazy"></iframe>';w.dataset.loaded='1';}w.style.display='block';this.textContent='Chiudi pannello';}else{w.style.display='none';this.textContent='Apri pannello dispositivi';}});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();})();
+</script>
 </body>
 </html>
