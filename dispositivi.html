@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prinz Rudolf · Dispositivi</title>
+<style>
+:root{--wine:#4A121B;--gold:#C9A227;--ink:#1f1a14;--muted:#6b6257;--bg:#f6f2ea;--card:#fffdf9;}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--ink);padding:18px 12px 60px}
+.wrap{max-width:820px;margin:0 auto}
+h1{color:var(--wine);font-size:22px;margin:4px 0 2px}
+.sub{color:var(--muted);font-size:12.5px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid #e7ddca;border-radius:14px;padding:16px;margin-bottom:12px}
+label{display:block;font-size:12.5px;font-weight:700;color:var(--wine);margin:8px 0 5px}
+input{width:100%;font-size:15px;padding:11px;border:1.5px solid #ddd2bd;border-radius:10px}
+button{cursor:pointer;border:0;border-radius:9px;font-weight:700;font-size:13px;padding:8px 12px}
+.b-main{background:var(--wine);color:#fff;font-size:15px;padding:12px;width:100%;border-radius:11px}
+.b-ok{background:#2e7d32;color:#fff}
+.b-rev{background:#b25a00;color:#fff}
+.b-del{background:#efe7d7;color:#8a2b17}
+.b-ref{background:#efe7d7;color:var(--wine)}
+.dev{border:1px solid #ece3d2;border-radius:11px;padding:11px 12px;margin-bottom:9px}
+.dev .nm{font-weight:700;font-size:15px;color:var(--ink)}
+.dev .meta{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.5;word-break:break-word}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;margin-left:6px}
+.p-pending{background:#fff3d6;color:#8a6d00}
+.p-approved{background:#e6f3e6;color:#2e7d32}
+.p-revoked{background:#fbe3dc;color:#8a2b17}
+.acts{margin-top:9px;display:flex;gap:8px;flex-wrap:wrap}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.sec-title{font-size:13px;font-weight:700;color:var(--wine);margin:16px 0 6px}
+.empty{font-size:13px;color:var(--muted);padding:8px 2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📱 Dispositivi</h1>
+  <div class="sub">Prinz Rudolf · approva o revoca chi puo entrare nelle app</div>
+  <div id="app"></div>
+</div>
+<script>
+var SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
+var SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
+var MGR_PW="Capo2026";
+var PFX="device|";
+function sb(path,opts){opts=opts||{};var h=Object.assign({apikey:SB_KEY,Authorization:"Bearer "+SB_KEY},opts.headers||{});return fetch(SB_URL+"/rest/v1"+path,Object.assign({},opts,{headers:h})).then(function(r){return r.text().then(function(t){var j=null;try{j=t?JSON.parse(t):null;}catch(e){}return {status:r.status,data:j};});});}
+var app=document.getElementById("app");
+function esc(s){return String(s==null?"":s).split("<").join("&lt;").split(">").join("&gt;");}
+function fmt(iso){if(!iso)return "-";var d=new Date(iso);if(isNaN(d))return "-";var p=function(n){return (n<10?"0":"")+n;};return p(d.getDate())+"/"+p(d.getMonth()+1)+" "+p(d.getHours())+":"+p(d.getMinutes());}
+
+function gate(){
+  app.innerHTML='<div class="card"><label>Password direzione</label><input id="pw" type="password" autocomplete="off" placeholder="password"><button class="b-main" id="go" style="margin-top:12px">Entra</button></div>';
+  var go=function(){ if(document.getElementById("pw").value===MGR_PW) load(); else {document.getElementById("pw").value="";document.getElementById("pw").placeholder="Password errata";} };
+  document.getElementById("go").onclick=go;
+  document.getElementById("pw").addEventListener("keydown",function(e){if(e.key==="Enter")go();});
+}
+
+function setStatus(k,status){
+  return sb("/kitchen_meta?k=eq."+encodeURIComponent(k)+"&select=v",{}).then(function(r){
+    var v=(r.data&&r.data[0]&&r.data[0].v)||{};
+    v.status=status; if(status==="approved")v.approvedAt=new Date().toISOString();
+    return sb("/kitchen_meta?k=eq."+encodeURIComponent(k),{method:"PATCH",headers:{"Content-Type":"application/json","Prefer":"return=minimal"},body:JSON.stringify({v:v})});
+  });
+}
+function del(k){return sb("/kitchen_meta?k=eq."+encodeURIComponent(k),{method:"DELETE",headers:{"Prefer":"return=minimal"}});}
+
+function load(){
+  app.innerHTML='<div class="empty">Carico…</div>';
+  sb("/kitchen_meta?k=like."+encodeURIComponent(PFX+"*")+"&select=k,v,at",{}).then(function(r){
+    var rows=(r.data||[]).map(function(x){return {k:x.k,v:x.v||{},at:x.at};});
+    rows.sort(function(a,b){ var pa=a.v.status==="pending"?0:(a.v.status==="approved"?1:2); var pb=b.v.status==="pending"?0:(b.v.status==="approved"?1:2); if(pa!==pb)return pa-pb; return (b.v.lastSeen||b.v.created||"").localeCompare(a.v.lastSeen||a.v.created||""); });
+    var pend=rows.filter(function(x){return x.v.status==="pending";});
+    var appr=rows.filter(function(x){return x.v.status==="approved";});
+    var revo=rows.filter(function(x){return x.v.status==="revoked";});
+    var h='<div class="card"><button class="b-ref" id="ref">↻ Aggiorna</button> <span class="hint">'+rows.length+' dispositivi · '+pend.length+' in attesa</span></div>';
+    h+=section("In attesa di approvazione",pend);
+    h+=section("Approvati",appr);
+    h+=section("Revocati",revo);
+    app.innerHTML=h;
+    document.getElementById("ref").onclick=load;
+    bind(rows);
+  });
+}
+function section(title,list){
+  var h='<div class="sec-title">'+title+' ('+list.length+')</div>';
+  if(!list.length) return h+'<div class="empty">Nessuno.</div>';
+  h+='<div class="card">';
+  list.forEach(function(x){
+    var st=x.v.status||"pending";
+    h+='<div class="dev"><div class="nm">'+esc(x.v.name||"(senza nome)")+'<span class="pill p-'+st+'">'+st+'</span></div>'+
+       '<div class="meta">Pagina: '+esc(x.v.page||"-")+' · Ultimo accesso: '+fmt(x.v.lastSeen||x.v.created)+'<br>'+esc((x.v.ua||"").slice(0,80))+'</div>'+
+       '<div class="acts">'+
+         (st!=="approved"?'<button class="b-ok" data-ap="'+esc(x.k)+'">✓ Approva</button>':'')+
+         (st!=="revoked"?'<button class="b-rev" data-rv="'+esc(x.k)+'">⛔ Revoca</button>':'')+
+         '<button class="b-del" data-dl="'+esc(x.k)+'">🗑 Elimina</button>'+
+       '</div></div>';
+  });
+  return h+'</div>';
+}
+function bind(){
+  Array.prototype.forEach.call(document.querySelectorAll("[data-ap]"),function(b){b.onclick=function(){b.textContent="…";setStatus(b.getAttribute("data-ap"),"approved").then(load);};});
+  Array.prototype.forEach.call(document.querySelectorAll("[data-rv]"),function(b){b.onclick=function(){b.textContent="…";setStatus(b.getAttribute("data-rv"),"revoked").then(load);};});
+  Array.prototype.forEach.call(document.querySelectorAll("[data-dl]"),function(b){b.onclick=function(){if(!confirm("Eliminare questo dispositivo? Se riapre l'app dovra' richiedere di nuovo l'accesso."))return;b.textContent="…";del(b.getAttribute("data-dl")).then(load);};});
+}
+gate();
+</script>
+</body>
+</html>
