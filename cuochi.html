@@ -99,16 +99,16 @@
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="lavoroprinz";
-const TEAM=[["Gigio","Chef di cucina"],["Gianluca","Secondo cuoco · Tournant"],["Alex","Secondi"],["Mattia","Primi"],["Ubaldo","Pizzeria + Panificazione · turno serale"],["Erjola","Pasticceria"],["Badr","Secondi"],["Majeet","Commis"],["Banu","Colazioni + antipasti (sera)"]];
+const TEAM=[["Gigio","Chef di cucina"],["Gianluca","Secondo cuoco · Tournant"],["Alex","Secondi"],["Mattia","Primi"],["Ubaldo","Pizzeria + Panificazione · turno serale"],["Erjola","Pasticceria"],["Secondi"],["Majeet","Commis"],["Banu","Colazioni + antipasti (sera)"]];
 const PULIZIA=["Piani e zona di lavoro (piano sanificato · coperchi in ordine · niente sporco vicino ai piatti)","Cotture (fornelli/piastra/griglia · forno sopra e fronte · salamandra)","Attrezzatura della partita (bilance, bimby/pacojet, sottovuoto, friggitrice, microonde · cambio acqua roner)","Freddo (banco frigo: riordino, date, FIFO · abbattitore davanti)","Pass (dietro, sopra, decorazioni)"];
 const APERTURA=["Accendere le attrezzature del mattino","Controllare le PRESENZE settimanali","Ricevere e sistemare la merce (FIFO)","Controllo mise en place e scorte","Pasto del personale fuori per le 11:30","Controllare gli avanzi e stoccarli"];
 const CHIUSURA=["Tutto spento (attrezzature)","Pulizia serale di tutto (microonde, pelapatate, friggitrici se serve)","Taglieri e contenitori a posto (plastica/organico)"];
 const PULIZIA_SETT=["Freddo a fondo (interno banco frigo/cassetti e guarnizioni · cella di competenza + scadenze)","Cotture a fondo (forno e piastra)","Scaffali e piccoli elettrodomestici (anche quelli bassi)","Roner a fondo (acqua e aceto a 90°C per 1 ora)","Ogni 2 settimane: scongelare congelatori piccoli · filtri cappe ai lavapiatti"];
 const MONFRIG=["Pulire la friggitrice a fondo"];
-const MONFRIG_WHO=["Badr","Mattia"];
+const MONFRIG_WHO=["Mattia"];
 const RESPFISSI=["Gianluca","Ubaldo"]; // responsabili fissi: apertura e chiusura;
 const CHIUSI=[]; // partite chiuse: pulizie sospese, solo produzione
-const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[5],Erjola:[2],Badr:[6],Majeet:[3],Ubaldo:[4]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
+const RIPOSO={Gigio:[2],Gianluca:[0,1],Alex:[3],Mattia:[5],Erjola:[2],Majeet:[3],Ubaldo:[4]}; // 0=Dom..6=Sab; Ubaldo nessun riposo (per ora)
 function isOff(cook){var wd=new Date(today+"T00:00:00").getDay();return !!(RIPOSO[cook]&&RIPOSO[cook].indexOf(wd)>=0);}
 function badrCovers(){var L=["Alex","Mattia","Erjola","Ubaldo"];for(var k=0;k<L.length;k++){if(isOff(L[k]))return L[k];}return "";}
 const GTOT={apertura:APERTURA.length,chiusura:CHIUSURA.length,pulizia:PULIZIA.length};
@@ -118,7 +118,7 @@ const PEOPLE={
    pulizia:["Attrezzature: bilance, pacojet, forno pasticceria, frighi pasticceria, bimby e microonde","Banco frigo: riordino, controllo date, FIFO","Coperchi puliti e in ordine","Abbattitore davanti: pulito","Controllo sporcizia vicino ai piatti"],
    puliziaSett:["Frighi pasticceria (interno · dentro e fuori)","Scaffali pasticceria (anche riordino mise en place)","Piccoli elettrodomestici della pasticceria","Planetarie piccole e suo abbattitore"]},
  "Ubaldo":{pulizia:["Piani e zona di lavoro (piano sanificato · coperchi in ordine · sporco cassetti pizzeria)","Attrezzatura pizzeria (affettatrice, cassetti, coltelli, lavandino, vetrina · planetaria braccia tuffanti dopo l'impasto)","Forno pizzeria (passata)","Freddo (banco frigo: riordino, date, FIFO · frigo e fermalievita puliti)","Panificazione (impasti e cotture del pane del giorno · rifornire il pane nel frigo se finito)"],puliziaSett:["Freddo a fondo (interno banco frigo/cassetti e guarnizioni · cella + scadenze · frighi pizzeria e cassetti impasto)","Forno pizzeria (pulizia interna)","Pizzeria a fondo (zona bassa · vetrina · zona cartoni)","Piccoli elettrodomestici · planetarie grandi (pulizia profonda)","Fermalievitazione (pulizia interna) — ogni settimana","Panificazione a fondo (forno pane e planetarie del pane)"]},
- "Badr":{puliziaSett:["Freddo a fondo (interno banco frigo/cassetti e guarnizioni · cella di competenza + scadenze)","Cotture a fondo (forno e piastra)","Scaffali e piccoli elettrodomestici (anche quelli bassi)","Roner a fondo (acqua e aceto a 90°C per 1 ora)","Cella della carne a fondo, compreso il pavimento (ogni settimana)","Carrello di servizio: pulizia a fondo (ogni 2 settimane)","Ogni 2 settimane: scongelare congelatori piccoli · filtri cappe ai lavapiatti"]},
+ 
  "Gianluca":{tournant:true,pulizia:["Aiutare le partite di chi è in riposo (copertura)","Aiutare le partite in difficoltà","Aiutare nella pulizia delle partite finché tutti non hanno finito"]},
  "Majeet":{noResp:true,noApe:true,noChiu:true,pulizia:["Aiutare le partite dove serve","Aiutare nella pulizia delle partite finché tutti non hanno finito","Preparare mise en place e basi per le partite","Tenere puliti piani e attrezzature in comune","Aiutare al pass durante il servizio"]},
  "Nuovo":{pulizia:["Piani e zona di lavoro (piano sanificato · coperchi in ordine · niente sporco vicino ai piatti)","Attrezzatura della partita (bilance, bimby/pacojet, sottovuoto, friggitrice, microonde · cambio acqua roner)","Freddo (banco frigo: riordino, date, FIFO · abbattitore davanti)","Pass (dietro, sopra, decorazioni)"],puliziaSett:["Freddo a fondo (interno banco frigo/cassetti e guarnizioni · cella + scadenze)","Scaffali e piccoli elettrodomestici (anche quelli bassi)","Roner a fondo (acqua e aceto a 90°C per 1 ora)","Abbattitore Vision (dentro, fuori e sopra)","Ogni 2 settimane: scongelare congelatori piccoli"]}
@@ -135,13 +135,13 @@ const MENU_PRANZO=[
  ['Dom','Pasta al pesto di pomodoro secco (~1,2 kg) · 1,5 kg riso in bianco','Pollo in umido (~1,8 kg)','—','Insalata verde','Verdure ~2 kg + polenta ~1,8 kg']
 ];
 const MENU_PRANZO_NOTE='Sempre presenti: insalata del giorno (~1 kg) · freddo extra: tonno (~0,8 kg) o 12 uova sode · formaggio grattugiato. Placche sotto il pass: 6 calde (sopra: primo · secondo · alternativa/veg — sotto: riso bianco · verdure · patate/purè) + banco freddo a parte (insalata · freddo extra).';
-const MENU_PRANZO_PREP='👥 Chi prepara (la mattina): PRIMI → <b>Mattia</b> · SECONDI (piatti principali) → <b>Badr</b> · INSALATE e VERDURE/contorni → <b>Manjeet e Alex</b> (al bistro).';
+const MENU_PRANZO_PREP='👥 Chi prepara (la mattina): PRIMI → <b>Mattia</b> · SECONDI (piatti principali) → <b></b> · INSALATE e VERDURE/contorni → <b>Manjeet e Alex</b> (al bistro).';
 const MENU_PRANZO_AVANZO='♻️ Ogni mattina: tirare fuori l\'avanzo della mezza pensione, sistemarlo e aggiungerlo al pasto del personale — così non si spreca niente.';
 const MENU_CENA=[
- ['Lun','Insalata di pasta ~1,5 kg (tonno, mais, mozzarella)','Insalata verde + pane','Senza tonno, con formaggio','Mattia o Badr'],
+ ['Lun','Insalata di pasta ~1,5 kg (tonno, mais, mozzarella)','Insalata verde + pane','Senza tonno, con formaggio','Mattia'],
  ['Mar','Pasta al forno (~1,5 kg)','Insalata + pane','Pasta al forno vegetariana','Mattia'],
  ['Mer','Pizza in teglia (~2,5 kg impasto)','Insalata','Pizza di verdure','Ubaldo'],
- ['Gio','Wrap / kebab di pollo (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Wrap di verdure e formaggio','Badr'],
+ ['Gio','Wrap / kebab di pollo (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Wrap di verdure e formaggio'],
  ['Ven','Insalata di riso ~1,5 kg (tonno, uova, mais)','Insalata + pane','Versione veg con ceci/formaggio','Alex e Manjeet'],
  ['Sab','Hamburger nel pane (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Burger di verdure','Alex e Manjeet'],
  ['Dom','Pita / focaccia farcita (~38 pz · 2 a testa per metà)','Patatine/crocchette ~2,5 kg + insalata','Versione vegetariana','Alex e Manjeet']
@@ -185,7 +185,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='03/08 19:21';
+const APP_VER='17/08 00:15';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -379,7 +379,7 @@ function menuCard(){
     +'<div class="readbox" style="margin:6px 0;background:#eafaf0;border:1px solid #2e7d5b;font-weight:600">'+MENU_PRANZO_AVANZO+'</div>'
     +'<div style="font-weight:700;margin:4px 0 2px">PRANZO (~30 pax)</div>'
     +sec('🍝 PRIMI — Mattia')+primi
-    +sec('🥩 SECONDI E CARNE — Badr')+carne
+    +sec('🥩 SECONDI E CARNE —')+carne
     +sec('🥗 INSALATE, VERDURE E CONTORNI — Manjeet e Alex')+verd
     +'<div class="readbox" style="margin-top:8px">'+MENU_PRANZO_NOTE+'</div>'
     +'<div style="font-weight:700;margin:12px 0 2px">CENA (~25 pax)</div>'+c
@@ -589,7 +589,7 @@ function render(){
   document.getElementById('view').innerHTML=out;
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 03/08 19:21</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 17/08 00:15</div>
 
 <script>
 var BANU_COL={
