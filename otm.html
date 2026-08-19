@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Prinz Rudolf · Messaggio monouso</title>
+<style>
+:root{--wine:#4A121B;--gold:#C9A227;--ink:#1f1a14;--muted:#6b6257;--bg:#f6f2ea;--card:#fffdf9;}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--ink);
+ min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 14px 40px}
+.head{width:100%;max-width:560px;text-align:center;margin:8px 0 18px}
+.head h1{color:var(--wine);font-size:22px;margin:0}
+.head .sub{color:var(--muted);font-size:12.5px;margin-top:4px}
+.badge{display:inline-block;margin-top:6px;font-size:10px;color:#9a8f7d}
+.card{width:100%;max-width:560px;background:var(--card);border:1px solid #e7ddca;border-radius:16px;
+ box-shadow:0 6px 20px rgba(74,18,27,.06);padding:20px 18px}
+label{display:block;font-size:12.5px;font-weight:700;color:var(--wine);margin:14px 0 5px}
+textarea,input,select{width:100%;font-size:15px;font-family:inherit;color:var(--ink);
+ border:1.5px solid #ddd2bd;border-radius:10px;padding:11px 12px;background:#fff}
+textarea{min-height:120px;resize:vertical}
+button{cursor:pointer;border:0;border-radius:11px;font-size:15px;font-weight:700;padding:13px 16px;width:100%;margin-top:16px}
+.btn-main{background:var(--wine);color:#fff}
+.btn-gold{background:var(--gold);color:#3a2a00}
+.btn-ghost{background:#efe7d7;color:var(--wine)}
+.msg{white-space:pre-wrap;word-break:break-word;background:#fbf7ee;border:1.5px dashed var(--gold);
+ border-radius:10px;padding:14px;font-size:15.5px;line-height:1.5}
+.link{white-space:pre-wrap;word-break:break-all;background:#fbf7ee;border:1px solid #e7ddca;border-radius:10px;
+ padding:12px;font-size:13px;color:var(--wine)}
+.warn{background:#fff3f0;border:1px solid #f3c9bf;color:#8a2b17;border-radius:10px;padding:11px 13px;font-size:13px;margin-bottom:12px}
+.ok{background:#eef7ee;border:1px solid #bfe0bf;color:#2e6b2e;border-radius:10px;padding:11px 13px;font-size:13px}
+.hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+.center{text-align:center}
+.hidden{display:none}
+.big{font-size:44px;text-align:center;margin:6px 0}
+.row{display:flex;gap:10px}.row>*{flex:1}
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>🔒 Messaggio monouso</h1>
+  <div class="sub">Prinz Rudolf — si apre una volta sola, poi si autodistrugge</div>
+  <div class="badge">v 19/08 · one-time</div>
+</div>
+<div id="app" class="card"></div>
+
+<script>
+const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
+const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
+const MGR_PW="Capo2026"; // password direzione per creare i link
+const KEYPFX="otm|";
+
+async function sb(path,opts){opts=opts||{};const h=Object.assign({apikey:SB_KEY,Authorization:"Bearer "+SB_KEY},opts.headers||{});const r=await fetch(SB_URL+"/rest/v1"+path,Object.assign({},opts,{headers:h}));const txt=await r.text();let j=null;try{j=txt?JSON.parse(txt):null;}catch(e){}return {status:r.status,data:j,raw:txt};}
+function b2u(b){const s=atob(b);const a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a;}
+function u2b(a){let s='';const u=new Uint8Array(a);for(let i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);return btoa(s);}
+function b64url(b64){b64=b64.split('+').join('-').split('/').join('_');while(b64.endsWith('='))b64=b64.slice(0,-1);return b64;}
+function unb64url(s){s=s.split('-').join('+').split('_').join('/');while(s.length%4)s+='=';return s;}
+function rid(n){const a=new Uint8Array(n);crypto.getRandomValues(a);return Array.from(a).map(x=>x.toString(16).padStart(2,'0')).join('');}
+const app=document.getElementById('app');
+
+async function encryptText(text){
+  const key=await crypto.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt','decrypt']);
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ctBuf=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(text));
+  const raw=await crypto.subtle.exportKey('raw',key);
+  return {ct:u2b(ctBuf),iv:u2b(iv),keyUrl:b64url(u2b(raw))};
+}
+async function decryptText(ctB64,ivB64,keyUrl){
+  const raw=b2u(unb64url(keyUrl));
+  const key=await crypto.subtle.importKey('raw',raw,{name:'AES-GCM'},false,['decrypt']);
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b2u(ivB64)},key,b2u(ctB64));
+  return new TextDecoder().decode(pt);
+}
+
+/* ---------- VIEW MODE ---------- */
+async function viewMode(frag){
+  const i=frag.indexOf('~'); const id=frag.slice(0,i), keyUrl=frag.slice(i+1);
+  app.innerHTML='<div class="center" style="color:#6b6257">Apro il messaggio…</div>';
+  const res=await sb("/kitchen_meta?k=eq."+encodeURIComponent(KEYPFX+id)+"&select=k,v",{});
+  const row=res.data&&res.data[0];
+  const v=row&&row.v;
+  const expired = v&&v.exp&&(Date.now()>Date.parse(v.exp));
+  if(!v||v.viewed||!v.ct||expired){
+    app.innerHTML='<div class="big">🚫</div><div class="warn" style="text-align:center">Questo messaggio non è più disponibile.<br>È già stato aperto una volta o è scaduto.</div>';
+    return;
+  }
+  let text;
+  try{ text=await decryptText(v.ct,v.iv,keyUrl); }
+  catch(e){ app.innerHTML='<div class="big">⚠️</div><div class="warn" style="text-align:center">Link non valido o danneggiato.</div>'; return; }
+  // consume immediately (one-time)
+  await sb("/kitchen_meta?k=eq."+encodeURIComponent(KEYPFX+id),{method:"PATCH",headers:{"Content-Type":"application/json","Prefer":"return=minimal"},body:JSON.stringify({v:Object.assign({},v,{viewed:true,ct:null,iv:null,viewedAt:new Date().toISOString()})})});
+  app.innerHTML=
+    '<div class="warn">⚠️ Questo messaggio si apre <b>una sola volta</b>. Copialo o salvalo adesso: ricaricando la pagina sparirà.</div>'+
+    '<div class="msg" id="secret"></div>'+
+    '<button class="btn-gold" id="copy">📋 Copia</button>';
+  document.getElementById('secret').textContent=text;
+  document.getElementById('copy').onclick=()=>{navigator.clipboard.writeText(text).then(()=>{document.getElementById('copy').textContent='✓ Copiato';});};
+}
+
+/* ---------- CREATE MODE ---------- */
+function createGate(){
+  app.innerHTML=
+    '<label>Password direzione</label>'+
+    '<input id="pw" type="password" placeholder="password" autocomplete="off">'+
+    '<button class="btn-main" id="go">Entra</button>'+
+    '<div class="hint">Solo la direzione può creare link monouso.</div>';
+  const enter=()=>{ if(document.getElementById('pw').value===MGR_PW) createForm(); else {document.getElementById('pw').value='';document.getElementById('pw').placeholder='Password errata';} };
+  document.getElementById('go').onclick=enter;
+  document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')enter();});
+}
+function createForm(){
+  app.innerHTML=
+    '<label>Messaggio da inviare (link app, password, note…)</label>'+
+    '<textarea id="txt" placeholder="Es: App cucina https://gigio020817-cmyk.github.io/prinz/ — Password ricette ......"></textarea>'+
+    '<label>Scadenza (se non viene aperto)</label>'+
+    '<select id="exp"><option value="2">2 giorni</option><option value="7" selected>7 giorni</option><option value="30">30 giorni</option><option value="0">Nessuna</option></select>'+
+    '<button class="btn-main" id="create">🔗 Crea link monouso</button>'+
+    '<div class="hint">Il messaggio viene cifrato: nel database resta illeggibile, la chiave è solo dentro il link.</div>';
+  document.getElementById('create').onclick=doCreate;
+}
+async function doCreate(){
+  const text=document.getElementById('txt').value.trim();
+  if(!text){document.getElementById('txt').focus();return;}
+  const days=parseInt(document.getElementById('exp').value,10);
+  const btn=document.getElementById('create'); btn.textContent='Creo…'; btn.disabled=true;
+  const id=rid(9);
+  const enc=await encryptText(text);
+  const exp = days>0 ? new Date(Date.now()+days*86400000).toISOString() : null;
+  const v={ct:enc.ct,iv:enc.iv,created:new Date().toISOString(),exp,viewed:false};
+  const res=await sb("/kitchen_meta",{method:"POST",headers:{"Content-Type":"application/json","Prefer":"return=minimal"},body:JSON.stringify({k:KEYPFX+id,v})});
+  if(res.status>=300){app.innerHTML='<div class="warn">Errore nel salvataggio. Riprova.</div>';return;}
+  const url=location.origin+location.pathname+'#'+id+'~'+enc.keyUrl;
+  const wa='https://wa.me/?text='+encodeURIComponent("Ecco l'accesso (si apre una volta sola): "+url);
+  app.innerHTML=
+    '<div class="ok">✓ Link monouso creato. Mandalo alla persona: si aprirà <b>una sola volta</b>'+(exp?', oppure scade tra '+days+' giorni.':'.')+'</div>'+
+    '<label>Link da inviare</label>'+
+    '<div class="link" id="url"></div>'+
+    '<div class="row">'+
+      '<button class="btn-gold" id="copy">📋 Copia link</button>'+
+      '<button class="btn-ghost" id="wa">💬 WhatsApp</button>'+
+    '</div>'+
+    '<button class="btn-main" id="another">+ Crea un altro</button>'+
+    '<div class="hint">Non aprire tu stesso il link per provarlo: la prima apertura lo consuma.</div>';
+  document.getElementById('url').textContent=url;
+  document.getElementById('copy').onclick=()=>{navigator.clipboard.writeText(url).then(()=>{document.getElementById('copy').textContent='✓ Copiato';});};
+  document.getElementById('wa').onclick=()=>{window.open(wa,'_blank');};
+  document.getElementById('another').onclick=createForm;
+}
+
+/* ---------- ROUTER ---------- */
+const frag=decodeURIComponent(location.hash.slice(1));
+if(frag && frag.includes('~')) viewMode(frag); else createGate();
+</script>
+</body>
+</html>
