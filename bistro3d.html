@@ -76,18 +76,18 @@
  </div><!--/view3d-->
  <div id="menuview" style="display:none"></div>
 </div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 18/07 18:57</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 16/08 23:40</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
-const APP_PW="lavoroprinz";
+const APP_PW="finalmente";
 async function sb(path,opt){opt=opt||{};const h=Object.assign({apikey:SB_KEY,'Content-Type':'application/json'},opt.headers||{});const r=await fetch(SB_URL+'/rest/v1/'+path,Object.assign({},opt,{headers:h}));if(!r.ok)throw new Error('HTTP '+r.status);const t=await r.text();return t?JSON.parse(t):[];}
 function el(id){return document.getElementById(id);}
 function unlock(p,fs){var e=el('err');if(p!==APP_PW){e.textContent='Password errata';el('pw').value='';return;}if(el('remember').checked||fs){try{localStorage.setItem('pr_b3d','1')}catch(_){}}el('lock').style.display='none';el('app').style.display='block';initApp();}
 el('enter').onclick=function(){unlock(el('pw').value,false);};
 el('pw').addEventListener('keydown',function(e){if(e.key==='Enter')unlock(e.target.value,false);});
-const APP_VER='18/07 18:57';
+const APP_VER='16/08 23:40';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_b3d'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_b3d','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_b3d')!=='26/06 16:54'){localStorage.removeItem('pr_b3d');localStorage.setItem('pr_av_b3d','26/06 16:54');}}catch(_e){}var s=null;try{s=localStorage.getItem('pr_b3d')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(function(){el('pw').focus();},300);})();
 
