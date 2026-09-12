@@ -579,7 +579,7 @@ function render(){
   TILES.push({id:'menu',l:'Menu del personale',e:'🍽️',b:'#FAC775',fg:'#412402',a:'#633806'});
   TILES.push({id:'info',l:'Info / regole',e:'ℹ️',b:'#9FE1CB',fg:'#04342C',a:'#085041'});
   var LBL={};TILES.forEach(function(t){LBL[t.id]=t.l;});
-  var top=penaliTotalCard(ME)+penaleBanner(ME)+mezzaRulesCard(ME)+sbloccoGianlucaCard(ME)+dessertMartediCard(ME)+chefOrdCard()+penaliPromemoria(ME);
+  var top=penaliTotalCard(ME)+penaleBanner(ME)+sbloccoGianlucaCard(ME)+dessertMartediCard(ME)+chefOrdCard()+penaliPromemoria(ME);
   var out;
   if(window.CTILE && VIEWS[window.CTILE]!==undefined){
     out=top+'<button class="btn" style="width:100%;margin-bottom:12px;font-size:15px" onclick="setCTile(null)">‹ Indietro ai quadrati</button><div style="font-size:18px;font-weight:700;margin:2px 0 10px">'+esc(LBL[window.CTILE]||'')+'</div>'+VIEWS[window.CTILE];
