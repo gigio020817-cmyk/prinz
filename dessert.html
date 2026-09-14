@@ -236,29 +236,31 @@ function copyCorr(){var t=document.getElementById('corrModal').querySelector('te
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Modifiche da inviare</h3><p>Copia questo testo e mandalo a Gigio (o incollalo a Claude in chat).</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
 <div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 16/08 23:40</div>
 <script id="mult-feature">(function MULT(){
-  'use strict';
-  try{
-    var RE=/(\d+(?:[.,]\d+)?)\s*(kg|g|mg|l|ml|dl|cl|fogli|foglio|uova|uovo|pezzi|pz)\b/gi;
-    var PIECE=/^(fogli|foglio|uova|uovo|pezzi|pz)$/i;
-    function fmt(x,piece){if(piece)return String(Math.round(x));var r=Math.round(x*10)/10;return Number.isInteger(r)?String(r):String(r).replace('.',',');}
-    function scaleText(t,f){return t.replace(RE,function(m,num,unit){var v=parseFloat(num.replace(',','.'))*f;return fmt(v,PIECE.test(unit))+' '+unit;});}
-    function enhance(rec){
-      if(rec.__mult)return;
-      var orig=rec.textContent;
-      if(scaleText(orig,2)===orig){rec.__mult=true;return;} // niente da scalare
-      rec.__mult=true; rec.__orig=orig;
-      var bar=document.createElement('div'); bar.className='multbar';
-      bar.innerHTML='<span class="multlbl">Dose ×</span><button type="button" data-a="dec">−</button><input type="number" inputmode="decimal" step="0.5" min="0" value="1"><button type="button" data-a="inc">+</button><button type="button" class="multreset" data-a="reset">base</button>';
-      var inp=bar.querySelector('input');
-      function apply(){var f=parseFloat(String(inp.value).replace(',','.'));if(!f||f<=0){rec.textContent=rec.__orig;bar.classList.remove('on');return;}rec.textContent=scaleText(rec.__orig,f);bar.classList.toggle('on',f!==1);}
-      bar.addEventListener('click',function(e){var a=e.target&&e.target.getAttribute&&e.target.getAttribute('data-a');if(!a)return;var f=parseFloat(String(inp.value).replace(',','.'))||1;if(a==='inc')f=Math.round((f+0.5)*10)/10;else if(a==='dec')f=Math.max(0.5,Math.round((f-0.5)*10)/10);else if(a==='reset')f=1;inp.value=(f%1===0)?String(f):String(f).replace('.',',');apply();});
-      inp.addEventListener('input',apply); inp.addEventListener('change',apply);
-      rec.parentNode.insertBefore(bar,rec);
-    }
-    function scan(){try{var l=document.querySelectorAll('.recipe');for(var i=0;i<l.length;i++)enhance(l[i]);}catch(e){}}
-    function start(){var v=document.getElementById('view')||document.body;try{new MutationObserver(scan).observe(v,{childList:true,subtree:true});}catch(e){}scan();setTimeout(scan,800);setTimeout(scan,2000);}
-    if(document.readyState!=='loading')start();else document.addEventListener('DOMContentLoaded',start);
-  }catch(e){}
+ 'use strict';
+ try{
+  var RE=/(\d+(?:[.,]\d+)?)\s*(kg|g|mg|l|ml|dl|cl|fogli|foglio|bustine|bustina|uova|uovo|tuorli|tuorlo|pezzi|pz)\b/gi;
+  var PIECE=/^(fogli|foglio|bustine|bustina|uova|uovo|tuorli|tuorlo|pezzi|pz)$/i;
+  function fmt(x,p){if(p)return String(Math.round(x));var r=Math.round(x*10)/10;return Number.isInteger(r)?String(r):String(r).replace('.',',');}
+  function scaleText(t,f){return t.replace(RE,function(m,n,u){return fmt(parseFloat(n.replace(',','.'))*f,PIECE.test(u))+' '+u;});}
+  function normalize(text){try{var t=(''+text).trim();if(t.indexOf(' + ')>=0){var parts=t.split(' + ');var last=parts.pop();var method='';var mi=last.search(/\.\s+\S/);if(mi>=0){method=last.slice(mi+1).trim();last=last.slice(0,mi+1).trim();}var lines=parts.map(function(p){return '• '+p.trim();});lines.push('• '+last.trim());var out=lines.join('\n');if(method)out+='\n\n'+method;return out;}if(t.indexOf('•')>=0)return t.replace(/\s*•\s*/g,'\n• ').replace(/^\s*\n/,'').trim();return t;}catch(e){return text;}}
+  function enhance(rec){
+   if(rec.__mult)return;
+   var norm=normalize(rec.textContent);
+   rec.textContent=norm;
+   rec.__mult=true; rec.__orig=norm;
+   if(scaleText(norm,2)===norm)return;
+   var bar=document.createElement('div'); bar.className='multbar';
+   bar.innerHTML='<span class="multlbl">Dose ×</span><button type="button" data-a="dec">−</button><input type="number" inputmode="decimal" step="0.5" min="0" value="1"><button type="button" data-a="inc">+</button><button type="button" class="multreset" data-a="reset">base</button>';
+   var inp=bar.querySelector('input');
+   function apply(){var f=parseFloat(String(inp.value).replace(',','.'));if(!f||f<=0){rec.textContent=rec.__orig;bar.classList.remove('on');return;}rec.textContent=scaleText(rec.__orig,f);bar.classList.toggle('on',f!==1);}
+   bar.addEventListener('click',function(e){var a=e.target&&e.target.getAttribute&&e.target.getAttribute('data-a');if(!a)return;var f=parseFloat(String(inp.value).replace(',','.'))||1;if(a==='inc')f=Math.round((f+0.5)*10)/10;else if(a==='dec')f=Math.max(0.5,Math.round((f-0.5)*10)/10);else if(a==='reset')f=1;inp.value=(f%1===0)?String(f):String(f).replace('.',',');apply();});
+   inp.addEventListener('input',apply); inp.addEventListener('change',apply);
+   rec.parentNode.insertBefore(bar,rec);
+  }
+  function scan(){try{var l=document.querySelectorAll('.recipe');for(var i=0;i<l.length;i++)enhance(l[i]);}catch(e){}}
+  function start(){var v=document.getElementById('view')||document.body;try{new MutationObserver(scan).observe(v,{childList:true,subtree:true});}catch(e){}scan();setTimeout(scan,800);setTimeout(scan,2000);}
+  if(document.readyState!=='loading')start();else document.addEventListener('DOMContentLoaded',start);
+ }catch(e){}
 })();</script>
 </body>
 </html>
