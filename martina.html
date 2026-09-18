@@ -92,7 +92,12 @@
   .rq{background:#fff;border:1px solid var(--line);border-left:5px solid var(--gold);border-radius:12px;padding:11px 13px;margin-bottom:10px}
   .rq .t{font-size:14.5px}
   .rq .d{font-size:11.5px;color:var(--muted);margin-top:4px}
-  .rq.done{opacity:.6;border-left-color:var(--ok)}
+  .rq.done{border-left-color:var(--ok)}
+  .rq .risp{margin-top:8px;background:#eef7f1;border:1px solid #bfe3cd;border-radius:9px;padding:9px 11px;font-size:14px;white-space:pre-wrap}
+  .rq .risp b{color:var(--ok)}
+  .badge{display:inline-block;min-width:18px;height:18px;line-height:18px;padding:0 5px;border-radius:10px;background:#d33;color:#fff;font-size:11px;font-weight:800;text-align:center;vertical-align:middle}
+  .notif{background:#fff7e8;border:1px solid var(--gold);border-radius:12px;padding:11px 13px;margin-bottom:12px;font-size:14px;font-weight:700;color:var(--blu);display:flex;align-items:center;gap:8px}
+  .notif .x{margin-left:auto;cursor:pointer;color:var(--muted);font-weight:800}
   .hint{font-size:12.5px;color:var(--muted);margin:2px 2px 12px;line-height:1.45}
 </style>
 <script src="devicegate.js"></script>
@@ -120,10 +125,11 @@
   <div class="tabs">
     <button id="tab_acq" class="on" onclick="setTab('acq')">Bolle/Fatture</button>
     <button id="tab_rie" onclick="setTab('rie')">Riepilogo</button>
-    <button id="tab_res" onclick="setTab('res')">Resoconto</button>
+    <button id="tab_res" onclick="setTab('res')">Resoconto <span id="resBadge" class="badge" style="display:none"></span></button>
   </div>
 </header>
 <main>
+  <div id="notif" class="notif" style="display:none"></div>
   <div id="view_acq">
     <div class="tools">
       <div class="search">
@@ -174,9 +180,9 @@
 
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbimg" alt=""></div>
 
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 18/09 00:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 18/09 12:00</div>
 <script>
-var APP_VER='18/09 00:00';
+var APP_VER='18/09 12:00';
 var PW_MARTINA='martina2026';
 var PW_CAPO='Capo2026';
 var SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -199,8 +205,8 @@ function ymLabel(k){var p=k.split('-');return (MESI[parseInt(p[1],10)-1]||'')+' 
 function doEnter(){
   var v=document.getElementById('pw').value.trim();
   var rem=document.getElementById('remember').checked;
-  var role='';
-  if(v===PW_CAPO)role='capo'; else if(v===PW_MARTINA)role='martina';
+  var role='';var vl=v.toLowerCase();
+  if(vl===PW_CAPO.toLowerCase())role='capo'; else if(vl===PW_MARTINA.toLowerCase())role='martina';
   if(!role){document.getElementById('err').textContent='Password errata';return;}
   if(rem){try{localStorage.setItem('acq_role',role);}catch(e){}}
   unlock(role);
@@ -237,6 +243,7 @@ function setTab(t){
     document.getElementById('tab_'+x).className=(x===t?'on':'');
   });
   if(t==='rie')renderRie();
+  if(t==='res'){renderRes();if(ROLE==='martina')markResSeen();}
 }
 
 /* ---- ACQUISTI LIST ---- */
@@ -397,23 +404,42 @@ async function setCoperti(k,val){
 function renderRes(){
   var el=document.getElementById('resList');
   var arr=(META.resoconti||[]).slice().reverse();
-  if(!arr.length){el.innerHTML='<div class="empty">Nessuna richiesta ancora.</div>';return;}
-  var h='';arr.forEach(function(r,i){
-    h+='<div class="rq'+(r.done?' done':'')+'"><div class="t">'+esc(r.text)+'</div><div class="d">'+new Date(r.ts).toLocaleString('it-IT')+(r.done?' \u00b7 evaso':' \u00b7 in attesa')+'</div>';
-    if(ROLE==='capo')h+='<div class="acts"><button class="mod" onclick="toggleRes('+r.ts+')">'+(r.done?'Riapri':'Segna evaso')+'</button></div>';
+  if(!arr.length){el.innerHTML='<div class="empty">Nessuna richiesta ancora.</div>';updateNotif();return;}
+  var h='';arr.forEach(function(r){
+    var stato=r.risposta?' \u00b7 risposta pronta':(r.done?' \u00b7 evaso':' \u00b7 in attesa');
+    h+='<div class="rq'+((r.risposta||r.done)?' done':'')+'"><div class="t">'+esc(r.text)+'</div><div class="d">'+new Date(r.ts).toLocaleString('it-IT')+stato+'</div>';
+    if(r.risposta)h+='<div class="risp"><b>Risposta:</b>\n'+esc(r.risposta)+'</div>';
+    if(ROLE==='capo'&&!r.risposta)h+='<div class="acts"><button class="mod" onclick="toggleRes('+r.ts+')">'+(r.done?'Riapri':'Segna evaso')+'</button></div>';
     h+='</div>';
   });
-  el.innerHTML=h;
+  el.innerHTML=h;updateNotif();
 }
 async function addResoconto(){
   var t=document.getElementById('resText').value.trim();if(!t){return;}
-  META.resoconti.push({ts:Date.now(),text:t,done:false});
+  META.resoconti.push({ts:Date.now(),text:t,done:false,risposta:'',seenM:true});
   try{await saveMeta();}catch(e){alert('Non salvato, controlla internet');return;}
   document.getElementById('resText').value='';renderRes();
 }
 async function toggleRes(ts){
   var r=(META.resoconti||[]).filter(function(x){return x.ts===ts;})[0];if(!r)return;r.done=!r.done;
   try{await saveMeta();}catch(e){alert('Non salvato');return;}renderRes();
+}
+function updateNotif(){
+  var list=META.resoconti||[];
+  var pending=list.filter(function(r){return !r.risposta&&!r.done;});
+  var newAns=list.filter(function(r){return r.risposta&&!r.seenM;});
+  var nb=document.getElementById('notif');var badge=document.getElementById('resBadge');
+  var msg='',n=0;
+  if(ROLE==='capo'&&pending.length){msg='\ud83d\udd14 Martina ha '+pending.length+' richiest'+(pending.length>1?'e':'a')+' di resoconto in attesa.';n=pending.length;}
+  else if(ROLE==='martina'&&newAns.length){msg='\ud83d\udd14 Hai '+newAns.length+' rispost'+(newAns.length>1?'e':'a')+' nuov'+(newAns.length>1?'e':'a')+' al tuo resoconto.';n=newAns.length;}
+  if(msg){nb.innerHTML=esc(msg)+'<span class="x" onclick="document.getElementById(\'notif\').style.display=\'none\'">\u2715</span>';nb.style.display='flex';}
+  else{nb.style.display='none';}
+  if(n>0){badge.textContent=n;badge.style.display='inline-block';}else{badge.style.display='none';}
+}
+async function markResSeen(){
+  var ch=false;(META.resoconti||[]).forEach(function(r){if(r.risposta&&!r.seenM){r.seenM=true;ch=true;}});
+  if(ch){try{await saveMeta();}catch(e){}}
+  updateNotif();
 }
 
 /* ---- self update ---- */
