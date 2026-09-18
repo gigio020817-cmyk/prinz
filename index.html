@@ -63,7 +63,7 @@ footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:cen
 var APP_VER='18/09 10:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_index'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_index','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 var CHEF_CODE="Capo2026";
-var SALA_CODES=["martina2026"];
+var SALA_CODES=["martina2026","capo2026"];
 var box=document.getElementById('chefapps');
 var sbox=document.getElementById('salaapps');
 var kbox=document.getElementById('kitchen');
