@@ -69,6 +69,14 @@
   .copin{display:flex;align-items:center;gap:8px;margin-top:8px}
   .copin input{width:110px;border:1px solid var(--line);border-radius:9px;padding:9px;font-size:15px;text-align:center;font-family:inherit}
   .copin label{font-size:12.5px;font-weight:700;color:var(--muted)}
+  .copbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-top:9px}
+  .copbox .coplab{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:8px}
+  .coprow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+  .copf{display:flex;flex-direction:column;gap:3px}
+  .copf span{font-size:12px;font-weight:700;color:var(--blu)}
+  .copf input{width:120px;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:16px;text-align:center;font-family:inherit}
+  .copsave{border:none;border-radius:9px;padding:0 16px;height:42px;font-size:15px;font-weight:800;background:var(--blu);color:#fff;cursor:pointer}
+  .cophint{font-size:12px;color:var(--muted);margin-top:8px}
   .fbar{background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:9px;display:flex;align-items:center;gap:10px}
   .fbar .fn{flex:1;font-weight:700;color:var(--blu)}
   .fbar .fv{font-weight:800}
@@ -180,9 +188,9 @@
 
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbimg" alt=""></div>
 
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 18/09 12:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 18/09 14:00</div>
 <script>
-var APP_VER='18/09 12:00';
+var APP_VER='18/09 14:00';
 var PW_MARTINA='martina2026';
 var PW_CAPO='Capo2026';
 var SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -379,25 +387,35 @@ function renderRie(){
   if(!keys.length){el.innerHTML='<div class="empty">Ancora nessun dato. Carica qualche documento con la data e l\u2019importo.</div>';return;}
   var h='';
   keys.forEach(function(k){
-    var m=byM[k];var cop=parseFloat(META.coperti[k]||'');
-    var perc=(!isNaN(cop)&&cop>0&&m.tot>0)?(m.tot/cop):null;
+    var m=byM[k];var cv=copVals(k);var tc=copTot(cv);
+    var perc=(tc>0&&m.tot>0)?(m.tot/tc):null;
+    var kid=k.replace('-','_');
     h+='<div class="mese">'+ymLabel(k)+'</div>';
     h+='<div class="kpi">';
     h+='<div class="box"><div class="lab">Spesa del mese</div><div class="val">'+(m.tot>0?eur(m.tot):'\u2013')+'</div></div>';
     h+='<div class="box"><div class="lab">Documenti</div><div class="val small">'+m.n+(m.noimp?' <span style="color:#b23a3a;font-size:12px">('+m.noimp+' senza importo)</span>':'')+'</div></div>';
-    h+='<div class="box"><div class="lab">\u20ac a coperto</div><div class="val">'+(perc!=null?eur(perc):'\u2013')+'</div>';
-    h+='<div class="copin"><label>Persone:</label><input inputmode="numeric" value="'+(META.coperti[k]!=null?esc(META.coperti[k]):'')+'" onchange="setCoperti('+JSON.stringify(k)+',this.value)"></div></div>';
+    h+='<div class="box"><div class="lab">\u20ac a coperto</div><div class="val">'+(perc!=null?eur(perc):'\u2013')+'</div><div style="font-size:11px;color:var(--muted);margin-top:2px">'+(tc>0?('su '+tc+' coperti'):'metti i coperti')+'</div></div>';
     h+='</div>';
+    var F=[['mp','Mezza pensione'],['bistro','Bistro'],['pizzeria','Pizzeria'],['takeaway','Take away']];
+    h+='<div class="copbox"><div class="coplab">Coperti del mese (per servizio)</div><div class="coprow">';
+    F.forEach(function(f){h+='<div class="copf"><span>'+f[1]+'</span><input id="c_'+f[0]+'_'+kid+'" inputmode="numeric" placeholder="0" value="'+esc(cv[f[0]]||'')+'"></div>';});
+    h+='<button class="copsave" onclick="saveCoperti('+JSON.stringify(k)+')">Salva</button>';
+    h+='</div><div class="cophint">Totale coperti: <b>'+(tc||0)+'</b> \u2014 il \u20ac a coperto \u00e8 spesa \u00f7 totale coperti (media su tutti i servizi).</div></div>';
     var fk=Object.keys(m.forn).filter(function(x){return m.forn[x]>0;}).sort(function(a,b){return m.forn[b]-m.forn[a];});
     if(fk.length){h+='<div style="margin-top:8px">';fk.forEach(function(f){h+='<div class="fbar"><span class="fn">'+esc(f)+'</span><span class="fv">'+eur(m.forn[f])+'</span></div>';});h+='</div>';}
   });
   el.innerHTML=h;
 }
-async function setCoperti(k,val){
-  val=(''+val).replace(',','.').trim();
-  if(val==='')delete META.coperti[k]; else META.coperti[k]=val;
+var COPF=['mp','bistro','pizzeria','takeaway'];
+function copVals(k){var c=(META.coperti||{})[k];var o={mp:'',bistro:'',pizzeria:'',takeaway:''};if(c==null)return o;if(typeof c==='object'){COPF.forEach(function(f){if(c[f]!=null)o[f]=''+c[f];});return o;}o.mp=''+c;return o;}
+function copTot(cv){var t=0,any=false;COPF.forEach(function(f){var v=parseFloat((''+(cv[f]||'')).replace(',','.'));if(!isNaN(v)){t+=v;any=true;}});return any?t:0;}
+async function saveCoperti(k){
+  var kid=k.replace('-','_');var obj={},has=false;
+  COPF.forEach(function(f){var v=(document.getElementById('c_'+f+'_'+kid).value||'').replace(',','.').trim();if(v){obj[f]=v;has=true;}});
+  if(!has){delete META.coperti[k];}else{META.coperti[k]=obj;}
+  var btn=(typeof event!=='undefined'&&event)?event.target:null;if(btn){btn.textContent='Salvato ✓';}
   try{await saveMeta();}catch(e){alert('Non salvato, controlla internet');return;}
-  renderRie();
+  setTimeout(renderRie,700);
 }
 
 /* ---- RESOCONTO ---- */
