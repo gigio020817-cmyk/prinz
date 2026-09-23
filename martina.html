@@ -192,9 +192,9 @@
 
 <div id="lightbox" onclick="this.style.display='none'"><button id="lbclose" onclick="event.stopPropagation();document.getElementById('lightbox').style.display='none'">&times;</button><img id="lbimg" alt=""></div>
 
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 23/09 12:40</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 23/09 13:20</div>
 <script>
-var APP_VER='23/09 12:40';
+var APP_VER='23/09 13:20';
 var PW_MARTINA='martina2026';
 var PW_CAPO='Capo2026';
 var SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -473,6 +473,9 @@ async function markResSeen(){
   if(ch){try{await saveMeta();}catch(e){}}
   updateNotif();
 }
+
+/* ---- auto-aggiornamento: registra il service worker (sempre ultima versione) ---- */
+if('serviceWorker' in navigator){try{navigator.serviceWorker.register('sw.js');}catch(e){}}
 
 /* ---- self update ---- */
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_martina'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_martina','1');location.replace(location.pathname+location.hash+'?v='+Date.now());}}catch(e){}})();
