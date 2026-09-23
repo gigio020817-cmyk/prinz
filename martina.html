@@ -88,6 +88,7 @@
   .fld label{display:block;font-size:12px;font-weight:800;color:var(--blu);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em}
   .fld input,.fld select,.fld textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;font-size:15px;font-family:inherit;background:#fff}
   .fld textarea{min-height:56px;resize:vertical}
+  .fld .sub{font-size:11.5px;font-weight:600;color:var(--muted);margin-top:4px;text-transform:none;letter-spacing:0}
   .row2{display:flex;gap:10px}.row2>*{flex:1}
   .uploadbox{border:2px dashed var(--line);border-radius:12px;padding:16px;text-align:center;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer}
   .uploadbox.has{border-style:solid;color:var(--blu)}
@@ -119,7 +120,7 @@
     <input id="pw" type="password" placeholder="Password" autocomplete="current-password" enterkeyhint="go">
     <button id="enter">Entra</button>
     <div class="err" id="err"></div>
-    <label><input type="checkbox" id="remember"> Ricorda su questo dispositivo</label>
+    <label><input type="checkbox" id="remember" checked> Ricorda su questo dispositivo</label>
   </div>
 </div>
 
@@ -175,7 +176,7 @@
   </div>
   <div class="fld"><label>Fornitore</label><input id="f_forn" placeholder="Es. Gastrofresh" list="fornlist"><datalist id="fornlist"></datalist></div>
   <div class="row2">
-    <div class="fld"><label>Importo (&euro;)</label><input id="f_imp" inputmode="decimal" placeholder="Opzionale"></div>
+    <div class="fld"><label>Importo &mdash; imponibile (&euro;)</label><input id="f_imp" inputmode="decimal" placeholder="Solo netto (imponibile)"><div class="sub">Scrivi sempre l&rsquo;imponibile (netto), non il totale con IVA. Se lasci vuoto lo leggo io dalla foto/PDF.</div></div>
     <div class="fld"><label>Data</label><input id="f_data" type="date"></div>
   </div>
   <div class="row2">
@@ -188,9 +189,9 @@
 
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbimg" alt=""></div>
 
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 18/09 14:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 23/09 12:00</div>
 <script>
-var APP_VER='18/09 14:00';
+var APP_VER='23/09 12:00';
 var PW_MARTINA='martina2026';
 var PW_CAPO='Capo2026';
 var SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -204,6 +205,7 @@ var EDIT_KEY=null;
 
 async function sb(path,opts){opts=opts||{};var h={apikey:SB_KEY,'Content-Type':'application/json'};if(opts.headers)Object.assign(h,opts.headers);var r=await fetch(SB_URL+'/rest/v1/'+path,{method:opts.method||'GET',headers:h,body:opts.body});if(!r.ok)throw new Error('HTTP '+r.status);var t=await r.text();return t?JSON.parse(t):null;}
 function esc(s){return (s==null?'':(''+s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function jq(x){return JSON.stringify(x).replace(/"/g,'&quot;');}
 function eur(n){n=parseFloat(n);if(isNaN(n))return '';return n.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})+' \u20ac';}
 function ym(d){d=d||'';if(/^\d{4}-\d{2}/.test(d))return d.slice(0,7);return '';}
 var MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
@@ -230,7 +232,15 @@ function unlock(role){
 }
 document.getElementById('enter').addEventListener('click',doEnter);
 document.getElementById('pw').addEventListener('keydown',function(e){if(e.key==='Enter')doEnter();});
-try{var sr=localStorage.getItem('acq_role');if(sr==='capo'||sr==='martina')unlock(sr);}catch(e){}
+/* accesso automatico: link #dir (dalla dashboard chef) entra come Direzione senza password */
+(function autoLogin(){
+  try{
+    var hh=(location.hash||'').toLowerCase();
+    if(hh==='#dir'||hh==='#capo'||hh==='#direzione'){try{localStorage.setItem('acq_role','capo');}catch(e){}unlock('capo');return;}
+    if(hh==='#martina'){unlock('martina');return;}
+    var sr=localStorage.getItem('acq_role');if(sr==='capo'||sr==='martina')unlock(sr);
+  }catch(e){}
+})();
 
 /* ---- LOAD ---- */
 async function loadAll(){
@@ -279,17 +289,17 @@ function renderList(){
   arr.forEach(function(a){
     h+='<div class="card"><div class="arow">';
     if(a.img){
-      if(a.imgtype==='pdf')h+='<div class="thumb pdf" onclick="openDoc('+JSON.stringify(a.key)+')">\ud83d\udcc4</div>';
-      else h+='<img class="thumb" src="'+a.img+'" onclick="lightbox('+JSON.stringify(a.key)+')">';
+      if(a.imgtype==='pdf')h+='<div class="thumb pdf" onclick="openDoc('+jq(a.key)+')">\ud83d\udcc4</div>';
+      else h+='<img class="thumb" src="'+a.img+'" onclick="lightbox('+jq(a.key)+')">';
     }else{h+='<div class="thumb pdf">\ud83e\uddfe</div>';}
     h+='<div class="ainfo">';
     h+='<div class="forn">'+esc(a.forn||'(senza fornitore)')+'</div>';
     var meta=[];if(a.data)meta.push(a.data.split('-').reverse().join('/'));if(a.cat)meta.push(esc(a.cat));
     if(meta.length)h+='<div class="meta">'+meta.join(' \u00b7 ')+'</div>';
-    if(a.importo!==''&&a.importo!=null)h+='<div class="imp">'+eur(a.importo)+'</div>';
+    if(a.importo!==''&&a.importo!=null)h+='<div class="imp">'+eur(a.importo)+' <span style="font-size:11px;color:var(--muted);font-weight:700">imponibile</span></div>';
     if(a.sett)h+='<span class="cat">'+esc(a.sett)+'</span>';
     if(a.note)h+='<div class="note">'+esc(a.note)+'</div>';
-    h+='<div class="acts"><button class="mod" onclick="openForm('+JSON.stringify(a.key)+')">Modifica</button><button class="del" onclick="delAcq('+JSON.stringify(a.key)+')">Elimina</button></div>';
+    h+='<div class="acts"><button class="mod" onclick="openForm('+jq(a.key)+')">Modifica</button><button class="del" onclick="delAcq('+jq(a.key)+')">Elimina</button></div>';
     h+='</div></div></div>';
   });
   el.innerHTML=h;
@@ -413,7 +423,7 @@ async function saveCoperti(k){
   var kid=k.replace('-','_');var obj={},has=false;
   COPF.forEach(function(f){var v=(document.getElementById('c_'+f+'_'+kid).value||'').replace(',','.').trim();if(v){obj[f]=v;has=true;}});
   if(!has){delete META.coperti[k];}else{META.coperti[k]=obj;}
-  var btn=(typeof event!=='undefined'&&event)?event.target:null;if(btn){btn.textContent='Salvato ✓';}
+  var btn=(typeof event!=='undefined'&&event)?event.target:null;if(btn){btn.textContent='Salvato \u2713';}
   try{await saveMeta();}catch(e){alert('Non salvato, controlla internet');return;}
   setTimeout(renderRie,700);
 }
@@ -461,7 +471,7 @@ async function markResSeen(){
 }
 
 /* ---- self update ---- */
-(async function selfUpdate(){try{if(sessionStorage.getItem('upd_martina'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_martina','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
+(async function selfUpdate(){try{if(sessionStorage.getItem('upd_martina'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_martina','1');location.replace(location.pathname+location.hash+'?v='+Date.now());}}catch(e){}})();
 </script>
 </body>
 </html>
