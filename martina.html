@@ -100,6 +100,9 @@
   #lightbox{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.95);display:none;align-items:center;justify-content:center;padding:6px;overflow:auto}
   #lightbox img{width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;border-radius:4px}
   #lbclose{position:fixed;top:calc(env(safe-area-inset-top) + 8px);right:12px;z-index:401;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,.9);color:#111;font-size:22px;font-weight:800;cursor:pointer;line-height:40px}
+  #docbox{display:none;position:fixed;inset:0;z-index:410;background:#111;flex-direction:column}
+  #docbox iframe{flex:1;border:0;width:100%;height:100%;background:#fff}
+  #dbclose{position:fixed;top:calc(env(safe-area-inset-top) + 8px);right:12px;z-index:411;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,.95);color:#111;font-size:22px;font-weight:800;cursor:pointer;line-height:40px}
   .rq{background:#fff;border:1px solid var(--line);border-left:5px solid var(--gold);border-radius:12px;padding:11px 13px;margin-bottom:10px}
   .rq .t{font-size:14.5px}
   .rq .d{font-size:11.5px;color:var(--muted);margin-top:4px}
@@ -192,9 +195,9 @@
 
 <div id="lightbox" onclick="this.style.display='none'"><button id="lbclose" onclick="event.stopPropagation();document.getElementById('lightbox').style.display='none'">&times;</button><img id="lbimg" alt=""></div>
 
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 23/09 13:20</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 23/09 14:00</div>
 <script>
-var APP_VER='23/09 13:20';
+var APP_VER='23/09 14:00';
 var PW_MARTINA='martina2026';
 var PW_CAPO='Capo2026';
 var SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -310,7 +313,18 @@ function renderList(){
 }
 document.getElementById('q').addEventListener('input',renderList);
 function lightbox(key){var a=ACQ.filter(function(x){return x.key===key;})[0];if(!a)return;document.getElementById('lbimg').src=a.img;document.getElementById('lightbox').style.display='flex';}
-function openDoc(key){var a=ACQ.filter(function(x){return x.key===key;})[0];if(!a||!a.img)return;var w=window.open();if(w)w.document.write('<iframe src="'+a.img+'" style="border:0;width:100%;height:100%"></iframe>');}
+function closeDoc(){var o=document.getElementById('docbox');if(o){o.style.display='none';var fr=document.getElementById('dbframe');if(fr)fr.src='about:blank';}}
+function openDoc(key){
+  var a=ACQ.filter(function(x){return x.key===key;})[0];if(!a||!a.img)return;
+  var o=document.getElementById('docbox');
+  if(!o){
+    o=document.createElement('div');o.id='docbox';
+    o.innerHTML='<button id="dbclose" onclick="closeDoc()">&times;</button><iframe id="dbframe" title="Documento"></iframe>';
+    document.body.appendChild(o);
+  }
+  document.getElementById('dbframe').src=a.img;
+  o.style.display='flex';
+}
 
 /* ---- FORM / UPLOAD ---- */
 function openForm(key){
