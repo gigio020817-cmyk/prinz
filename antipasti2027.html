@@ -98,7 +98,7 @@
   </div>
   <div class="scr hidden-r" id="s_2027">
     <header><div class="brand"><div class="mark">PR</div><div><div class="k">MENÙ 2027</div><h1>Ricette · Antipasti</h1></div></div>
-      <div class="row"><label>Sei:</label><select id="who"><option>Banu</option><option>Mirko</option><option>Mattia</option><option>Alex</option></select></div>
+      <div class="row"><label>Sei:</label><select id="who"><option>Gigio</option><option>Gianluca</option><option>Alex</option><option>Mattia</option><option>Mirko</option><option>Banu</option><option>Manjeet</option><option>Hemant</option></select></div>
       <div style="margin-top:8px"><button class="back" onclick="go('s_entry')">← Cambia anno</button></div></header>
     <div class="wlabel">ANTIPASTI · 1 al giorno · 7 giorni</div>
     <div class="dchips" id="dchips"></div>
@@ -157,29 +157,31 @@ function svgFor(id,hd){ const s=hd, T=(t,x)=>`<text x="150" y="${x||138}" text-a
   default: return `<svg viewBox="0 0 300 150"><circle cx="150" cy="72" r="46" fill="#fff" stroke="${s}" stroke-width="3"/>${T('componente')}</svg>`;
  }
 }
-let curDay=0,state={};
+let curDay=0; let STORE={};
 function initDay(){ const dc=document.getElementById('dchips'); dc.innerHTML=''; DATA.S1.forEach((d,i)=>{ const b=document.createElement('div'); b.className='dchip'+(i===curDay?' active':''); b.textContent=d.name; b.onclick=()=>{curDay=i;renderDay();}; dc.appendChild(b); }); renderDay(); }
 function renderDay(){ document.querySelectorAll('#dchips .dchip').forEach((b,i)=>b.classList.toggle('active',i===curDay));
  const day=DATA.S1[curDay]; const who=document.getElementById('who').value;
  document.getElementById('greet').innerHTML='<b>Ciao '+who+' 👋</b>'+day.name+' · '+day.dishes[0].short;
- state={}; renderTasks(); renderGrid();
+ renderTasks(); renderGrid();
 }
 function renderTasks(){ const day=DATA.S1[curDay]; const box=document.getElementById('tasklist'); box.innerHTML='';
- day.prod.forEach((p,i)=>{ const st=state[i]||'t'; let sub='';
-  if(st==='f') sub=`<div class="subinput"><span class="tagf">✅ Fatto — dose:</span> <input placeholder="es. 3 kg"></div>`;
-  if(st==='s') sub=`<div class="subinput"><span class="tags">📦 Ho scorta — giacenza:</span> <input placeholder="es. 8 pz"></div>`;
+ const dn=day.name; if(!STORE[dn])STORE[dn]={}; day.prod.forEach((p,i)=>{ const cur=STORE[dn][i]||{st:'t',val:''}; const st=cur.st; let sub='';
+  if(st==='f') sub=`<div class="subinput"><span class="tagf">✅ Fatto — dose:</span> <input value="${(cur.val||'').replace(/"/g,'&quot;')}" oninput="saveVal(${i},this.value)" placeholder="es. 3 kg"></div>`;
+  if(st==='s') sub=`<div class="subinput"><span class="tags">📦 Ho scorta — giacenza:</span> <input value="${(cur.val||'').replace(/"/g,'&quot;')}" oninput="saveVal(${i},this.value)" placeholder="es. 8 pz"></div>`;
   const row=document.createElement('div'); row.className='trow';
   row.innerHTML=`<div class="top"><div class="nm">${p.n}</div><div class="stbtns"><button class="stbtn ${st==='f'?'on-f':''}" onclick="setState(${i},'f')">✅</button><button class="stbtn ${st==='s'?'on-s':''}" onclick="setState(${i},'s')">📦</button><button class="stbtn ${st==='t'?'on-t':''}" onclick="setState(${i},'t')">⬜</button></div></div>${sub}`;
   box.appendChild(row); }); updateProg();
 }
-function setState(i,v){ state[i]=v; renderTasks(); }
-function updateProg(){ const tot=DATA.S1[curDay].prod.length; const done=Object.values(state).filter(v=>v==='f'||v==='s').length; const pct=tot?Math.round(done/tot*100):0;
+function setState(i,v){ const dn=DATA.S1[curDay].name; if(!STORE[dn])STORE[dn]={}; const cur=STORE[dn][i]||{st:'t',val:''}; cur.st=v; STORE[dn][i]=cur; renderTasks(); }
+function saveVal(i,v){ const dn=DATA.S1[curDay].name; if(!STORE[dn])STORE[dn]={}; const cur=STORE[dn][i]||{st:'t',val:''}; cur.val=v; STORE[dn][i]=cur; }
+function updateProg(){ const dn=DATA.S1[curDay].name; const sd=STORE[dn]||{}; const tot=DATA.S1[curDay].prod.length; const done=Object.values(sd).filter(o=>o&&(o.st==='f'||o.st==='s')).length; const pct=tot?Math.round(done/tot*100):0;
  document.querySelector('.bar > i').style.width=pct+'%'; document.getElementById('pct').innerHTML='Risolti: <b>'+pct+'%</b> ('+done+'/'+tot+') · ✅ fatto o 📦 controllato'; }
-async function sendSheet(){ const rows=[...document.querySelectorAll('#tasklist .trow')]; const prod=DATA.S1[curDay].prod; const out=[]; const who=document.getElementById('who').value; const today=new Date().toISOString().slice(0,10); const giorno=DATA.S1[curDay].name;
- rows.forEach((r,i)=>{ const st=state[i]; if(st!=='f'&&st!=='s')return; const val=(r.querySelector('.subinput input')||{}).value||''; const nm=prod[i].n; out.push(st==='f'?('✅ '+nm+(val?' — '+val:'')):('📦 '+nm+(val?' — scorta '+val:' — scorta'))); });
- const t=document.getElementById('toast'); if(!out.length){t.innerHTML='<b>Niente da inviare</b>Segna almeno una voce come ✅ o 📦.'; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),4600); return;}
- try{ for(const line of out){ const row={day:today,type:'scheda',cook:who,data:{cosa:'Antipasti · '+giorno+' · '+line}}; await sb('kitchen_entries',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(row)}); }
-   t.innerHTML='<b>Inviato alla scheda di servizio ✓ ('+out.length+') — '+giorno+'</b><ul>'+out.map(x=>'<li>'+x+'</li>').join('')+'</ul>'; }
+async function sendSheet(){ const dn=DATA.S1[curDay].name; const sd=STORE[dn]||{}; const prod=DATA.S1[curDay].prod; const who=document.getElementById('who').value; const today=new Date().toISOString().slice(0,10); const out=[];
+ prod.forEach((p,i)=>{ const o=sd[i]; if(!o||(o.st!=='f'&&o.st!=='s'))return; const val=(o.val||'').trim(); out.push(o.st==='f'?('✅ '+p.n+(val?' — '+val:'')):('📦 '+p.n+(val?' — scorta '+val:' — scorta'))); });
+ const t=document.getElementById('toast');
+ if(!out.length){t.innerHTML='<b>Niente da inviare</b>Segna almeno una voce come ✅ o 📦.'; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),4600); return;}
+ try{ const cosa='Antipasti · '+dn+':\n'+out.join('\n'); await sb('kitchen_entries',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({day:today,type:'scheda',cook:who,data:{cosa:cosa}})});
+   t.innerHTML='<b>Inviato alla scheda di servizio ✓ ('+out.length+' voci) — '+dn+'</b><ul>'+out.map(x=>'<li>'+x+'</li>').join('')+'</ul>'; }
  catch(e){ t.style.background='#c0392b'; t.innerHTML='<b>⚠️ Errore invio</b>Riprova. ('+e.message+')'; }
  t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>{t.classList.remove('show');t.style.background='';},4600); }
 function renderGrid(){ const dish=DATA.S1[curDay].dishes[0]; const grid=document.getElementById('grid'); grid.innerHTML='';
