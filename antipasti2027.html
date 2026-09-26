@@ -80,7 +80,7 @@
     <header><div class="brand"><div class="mark">PR</div><div><div class="k">PRINZ RUDOLF · CUCINA</div><h1>Ricette · Antipasti</h1></div></div></header>
     <div class="entry"><h2>Scegli l'anno</h2><div class="big">Con quale menù lavori oggi?</div>
       <button class="yearbtn y26" onclick="location.href='antipasti.html'">2026<small>tutto come adesso · intatto</small></button>
-      <button class="yearbtn y27" onclick="go('s_lock')">2027 🔒<small>nuovo menù · protetto</small></button></div>
+      <button class="yearbtn y27" onclick="enter2027()">2027 🔒<small>nuovo menù · protetto</small></button></div>
   </div>
   <div class="scr hidden-r" id="s_2026">
     <header><div class="brand"><div class="mark">PR</div><div><div class="k">MENÙ 2026</div><h1>Ricette · Antipasti</h1></div></div>
@@ -215,5 +215,6 @@ async function uploadPhoto(inp){ const file=inp.files&&inp.files[0]; if(!file)re
  rd.readAsDataURL(file); }
 let curPhotoAssembly='';
 
+function enter2027(){ if(DATA){ go('s_2027'); initDay(); } else { go('s_lock'); } }
 window.addEventListener('load',async()=>{try{const sv=localStorage.getItem('pr_anti_pw');if(sv){DATA=await decryptData(sv); try{await loadPhotos();await loadOverrides();}catch(e){}}}catch(e){}});
 </script></body></html>
