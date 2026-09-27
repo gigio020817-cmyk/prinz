@@ -74,6 +74,37 @@
   .lbl{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:12px 0 6px}
   .detbody ul{margin:0;padding-left:18px} .detbody li{font-size:15px;line-height:1.55;margin-bottom:4px}
   .detbody ol{margin:0;padding-left:20px} .detbody ol li{font-size:15px;line-height:1.65;margin-bottom:8px}
+
+.sendbtn{width:100%;margin-top:10px;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:800;background:var(--nero);color:#fff;cursor:pointer}
+.paxrow{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid rgba(0,0,0,.07)}
+.paxrow .pd{flex:1;font-weight:800;font-size:14px}
+.paxrow label{font-size:11px;color:var(--muted);font-weight:700;display:flex;flex-direction:column;gap:2px}
+.paxrow input,.protrow input{min-width:80px;font-size:17px;padding:8px 10px;text-align:center;border-radius:8px;border:1px solid var(--line)}
+.lbl{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:14px 0 6px}
+.spnote{font-size:12px;color:var(--muted);line-height:1.5;margin:4px 0 10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.protrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid rgba(0,0,0,.07)}
+.protrow .pn{flex:1;font-weight:700;font-size:13px}
+.protrow .pf{font-size:13px;font-weight:800;color:#b52216;white-space:nowrap}
+.protrow label{font-size:10px;color:var(--muted);font-weight:700;display:flex;flex-direction:column;gap:2px}
+.protrow .po{font-size:12px;font-weight:800;color:#1c6b34;white-space:nowrap}
+.prodrow{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid rgba(0,0,0,.07)}
+.prodrow .pn{flex:1;font-weight:700;font-size:13px}
+.prodrow .pq{font-size:13px;font-weight:800;color:#3a2c00}
+.pkg{color:var(--muted);font-weight:600;font-size:11px}
+.abrow{display:flex;flex-direction:column;gap:4px;padding:8px 0;border-top:1px solid rgba(0,0,0,.07)}
+.abrow .al{font-size:13px;font-weight:700}
+.abrow input{padding:8px 10px;border-radius:8px;border:1px solid var(--line);font-size:14px}
+.abrow .ok{color:#1c6b34;font-weight:700;font-size:11px}
+.abfilter{width:100%;padding:9px 11px;border-radius:10px;border:1px solid var(--line);font-size:14px;margin-bottom:8px}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+.fotogrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.fotoit{position:relative}
+.fotoit img{width:100%;border-radius:12px;display:block}
+.fotodel{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.62);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:17px;line-height:1;cursor:pointer}
+.fotostar{position:absolute;left:5px;bottom:5px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:8px;padding:4px 8px;font-size:11px;font-weight:700;cursor:pointer}
+.fotomain{position:absolute;left:5px;bottom:5px;background:#2f6b1f;color:#fff;border-radius:8px;padding:4px 8px;font-size:11px;font-weight:700}
 </style></head><body>
 <div class="phone">
   <div class="scr" id="s_entry">
@@ -103,6 +134,7 @@
     <div class="wlabel">ANTIPASTI · 1 al giorno · 7 giorni</div>
     <div class="dchips" id="dchips"></div>
     <div class="greet" id="greet"></div>
+    <div style="padding:0 2px"><button class="sendbtn" style="background:#2f6b1f" onclick="openSpesa()">🛒 Lista della spesa (coperti)</button></div>
     <div class="task"><h3>📋 Oggi da produrre</h3>
       <div class="sub">Ogni voce: ✅ Fatto (dose) · 📦 Ho scorta (giacenza) · ⬜ Da fare. Registra sul giorno di consumo. Niente va in scheda finché non premi Invia.</div>
       <div class="bar"><i></i></div><div class="pct" id="pct"></div><div id="tasklist"></div>
@@ -110,6 +142,25 @@
       <div class="sendnote">Finché non premi Invia, niente viene registrato: puoi correggere quanto vuoi.</div></div>
     <div class="sectitle">Componenti — riquadri (colore = cosa vedi nel piatto)</div>
     <div class="grid" id="grid"></div>
+  </div>
+  <div class="scr hidden-r" id="s_spesa">
+    <header><div class="brand"><div class="mark">PR</div><div><div class="k">ANTIPASTI · SPESA</div><h1>🛒 Lista della spesa</h1></div></div>
+      <div style="margin-top:8px"><button class="back" onclick="go('s_2027')">← Torna alle ricette</button></div></header>
+    <div style="padding:12px 14px">
+      <div class="spnote">Metti i <b>coperti previsti</b> per ogni giorno. La lista è indicativa \"a spanne\": ogni antipasto usa i suoi ingredienti. Poi premi Genera.</div>
+      <button class="sendbtn" style="background:#7a4a2b;margin-bottom:10px" onclick="openAbbina()">🔗 Abbina prodotti ai fornitori</button>
+      <div id="paxrows"></div>
+      <button class="sendbtn" onclick="genLista()">🧮 Genera lista della spesa</button>
+      <div id="spesaOut" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="scr hidden-r" id="s_abbina">
+    <header><div class="brand"><div class="mark">PR</div><div><div class="k">ANTIPASTI · ABBINA</div><h1>🔗 Abbina prodotti</h1></div></div>
+      <div style="margin-top:8px"><button class="back" onclick="go('s_spesa')">← Torna alla spesa</button></div></header>
+    <div style="padding:12px 14px">
+      <div class="spnote">Per ogni prodotto scegli l'articolo vero del fornitore (scrivi il prodotto o il fornitore). Si salva e la lista esce col nome giusto.</div>
+      <div id="abbinaBox"></div>
+    </div>
   </div>
   <div class="toast" id="toast"></div>
   <div class="detail" id="detail"><div class="detbar" id="detBar"><button class="bk" onclick="closeDet()">←</button><div class="t" id="detTitle"></div></div>
@@ -207,14 +258,114 @@ function openDet(i){ window.curDetI=i; const c=DATA.S1[curDay].dishes[0].comps[i
 function closeDet(){ document.getElementById('detail').classList.remove('open'); }
 let PHOTOS={};
 function pkey(){ return 'fotoanti|'+curDay; }
-async function loadPhotos(){ try{ const rows=await sb("kitchen_meta?k=like.fotoanti|*&select=*"); PHOTOS={}; (rows||[]).forEach(r=>{PHOTOS[r.k]=(r.v&&r.v.img)||'';}); }catch(e){} }
-function photoBox(){ const cur=PHOTOS[pkey()]||''; return '<div class="lbl">Foto del piatto</div>'+(cur?('<img src="'+cur+'" style="width:100%;border-radius:14px;margin-bottom:8px">'):'')+'<label style="display:block;border:2px dashed #bbb;border-radius:14px;padding:22px;text-align:center;color:#999;font-size:15px;background:#fff;cursor:pointer">📷 '+(cur?'Cambia foto':'Allega la foto del piatto')+'<input type="file" accept="image/*" style="display:none" onchange="uploadPhoto(this)"></label>'; }
+async function loadPhotos(){ try{ const rows=await sb("kitchen_meta?k=like.fotoanti|*&select=*"); PHOTOS={}; (rows||[]).forEach(r=>{ var v=r.v||{}; PHOTOS[r.k]=Array.isArray(v.imgs)?v.imgs:(v.img?[v.img]:[]); }); }catch(e){} }
+async function savePhotos(arr){ try{ await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:pkey(),v:{imgs:arr}})}); PHOTOS[pkey()]=arr; }catch(e){ alert('Errore salvataggio foto'); } }
+function refreshPhotoBody(){ var b=document.getElementById('detBody'); if(b) b.innerHTML=photoBox()+curPhotoAssembly; }
+function photoBox(){ const arr=PHOTOS[pkey()]||[]; let g='<div class="lbl">Foto del piatto ('+arr.length+')</div>';
+ if(arr.length){ g+='<div class="fotogrid">'; arr.forEach(function(src,i){ g+='<div class="fotoit"><img src="'+src+'">'+(i===0?'<span class="fotomain">★ principale</span>':'<button class="fotostar" onclick="starPhoto('+i+')">☆ metti per prima</button>')+'<button class="fotodel" onclick="delPhoto('+i+')">×</button></div>'; }); g+='</div>'; }
+ g+='<label style="display:block;border:2px dashed #bbb;border-radius:14px;padding:20px;text-align:center;color:#999;font-size:15px;background:#fff;cursor:pointer">📷 '+(arr.length?'Aggiungi un\'altra foto (nuovo impiattamento)':'Allega la foto del piatto')+'<input type="file" accept="image/*" style="display:none" onchange="uploadPhoto(this)"></label>';
+ return g; }
+async function delPhoto(i){ var arr=(PHOTOS[pkey()]||[]).slice(); if(i<0||i>=arr.length)return; if(!confirm('Cancellare questa foto?'))return; arr.splice(i,1); await savePhotos(arr); refreshPhotoBody(); }
+async function starPhoto(i){ var arr=(PHOTOS[pkey()]||[]).slice(); if(i<=0||i>=arr.length)return; var x=arr.splice(i,1)[0]; arr.unshift(x); await savePhotos(arr); refreshPhotoBody(); }
 async function uploadPhoto(inp){ const file=inp.files&&inp.files[0]; if(!file)return; const img=new Image(); const rd=new FileReader();
  rd.onload=()=>{ img.onload=async()=>{ const mx=1000; let w=img.width,h=img.height; if(w>mx){h=h*mx/w;w=mx;} const cv=document.createElement('canvas'); cv.width=w;cv.height=h; cv.getContext('2d').drawImage(img,0,0,w,h); const durl=cv.toDataURL('image/jpeg',0.8);
-   try{ await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:pkey(),v:{img:durl}})}); PHOTOS[pkey()]=durl; document.getElementById('detBody').innerHTML=photoBox()+curPhotoAssembly; }catch(e){ alert('Errore salvataggio foto'); } }; img.src=rd.result; };
+   var arr=(PHOTOS[pkey()]||[]).slice(); arr.push(durl); await savePhotos(arr); refreshPhotoBody(); }; img.src=rd.result; };
  rd.readAsDataURL(file); }
 let curPhotoAssembly='';
 
 function enter2027(){ if(DATA){ go('s_2027'); initDay(); } else { go('s_lock'); } }
 window.addEventListener('load',async()=>{try{const sv=localStorage.getItem('pr_anti_pw');if(sv){DATA=await decryptData(sv); try{await loadPhotos();await loadOverrides();}catch(e){}}}catch(e){}});
-</script></body></html>
+</script><script>
+/* ===== ANTIPASTI · LISTA SPESA + ABBINA + INVIO A ORDINI ===== */
+const REALCAT=[{"forn": "CAPONE", "d": "Carciofi con gambo", "u": ""}, {"forn": "CAPONE", "d": "Cavolfiori", "u": ""}, {"forn": "CAPONE", "d": "Cime di rapa", "u": ""}, {"forn": "CAPONE", "d": "Mais", "u": ""}, {"forn": "CAPONE", "d": "Misto funghi", "u": ""}, {"forn": "CAPONE", "d": "Piselli", "u": ""}, {"forn": "CAPONE", "d": "Spinaci foglia bella", "u": ""}, {"forn": "DE NOIA", "d": "Calamari U10 thai", "u": ""}, {"forn": "DE NOIA", "d": "Filetto di branzino", "u": ""}, {"forn": "DE NOIA", "d": "Filetto di orata 140gr", "u": ""}, {"forn": "DE NOIA", "d": "Filetto di salmone fresco", "u": ""}, {"forn": "DE NOIA", "d": "Filetto di sgombro", "u": ""}, {"forn": "DE NOIA", "d": "Gamberi C1", "u": ""}, {"forn": "DE NOIA", "d": "Polipo congelato grosso", "u": ""}, {"forn": "DEMETZ", "d": "Burro di cacao", "u": ""}, {"forn": "DEMETZ", "d": "Carbone vegetale 500gr", "u": ""}, {"forn": "DEMETZ", "d": "Farina di mandorle", "u": ""}, {"forn": "DEMETZ", "d": "Farina di nocciole", "u": ""}, {"forn": "DEMETZ", "d": "Mandorle intere pelate 1kg", "u": ""}, {"forn": "DEMETZ", "d": "Nocciole pelate intere", "u": ""}, {"forn": "DEMETZ", "d": "Purea lampone MAZZONI", "u": ""}, {"forn": "DEMETZ", "d": "Purea mango MAZZONI", "u": ""}, {"forn": "DEMETZ", "d": "Vaniglia in polvere 250gr", "u": ""}, {"forn": "FOPPA", "d": "Agar Agar", "u": ""}, {"forn": "FOPPA", "d": "Amaranto", "u": ""}, {"forn": "FOPPA", "d": "Amarene", "u": ""}, {"forn": "FOPPA", "d": "Amaretto", "u": ""}, {"forn": "FOPPA", "d": "Amido di mais maizena", "u": ""}, {"forn": "FOPPA", "d": "Amido di riso", "u": ""}, {"forn": "FOPPA", "d": "Biscotti digestivi", "u": ""}, {"forn": "FOPPA", "d": "Bulgur", "u": ""}, {"forn": "FOPPA", "d": "Cacao amaro", "u": ""}, {"forn": "FOPPA", "d": "Caffe in polvere", "u": ""}, {"forn": "FOPPA", "d": "Cocco raspato", "u": ""}, {"forn": "FOPPA", "d": "Cous cous", "u": ""}, {"forn": "FOPPA", "d": "Cremor tartaro", "u": ""}, {"forn": "FOPPA", "d": "Curcuma", "u": ""}, {"forn": "FOPPA", "d": "Curry Japur", "u": ""}, {"forn": "FOPPA", "d": "Destrosio 1kg", "u": ""}, {"forn": "FOPPA", "d": "Farina 0 do gusto", "u": ""}, {"forn": "FOPPA", "d": "Farina di carrube bianca", "u": ""}, {"forn": "FOPPA", "d": "Farina di guar", "u": ""}, {"forn": "FOPPA", "d": "Farina frolla do gusto 5kg", "u": ""}, {"forn": "FOPPA", "d": "Fecola di patate", "u": ""}, {"forn": "FOPPA", "d": "Fiori di sale", "u": ""}, {"forn": "FOPPA", "d": "Garum di pesce", "u": ""}, {"forn": "FOPPA", "d": "Gelatina Silver", "u": ""}, {"forn": "FOPPA", "d": "Glucosio 1 kg", "u": ""}, {"forn": "FOPPA", "d": "Grand Marnier", "u": ""}, {"forn": "FOPPA", "d": "Inulina", "u": ""}, {"forn": "FOPPA", "d": "Latte condensato 340gr", "u": ""}, {"forn": "FOPPA", "d": "Latte di cocco", "u": ""}, {"forn": "FOPPA", "d": "Latte in polvere", "u": ""}, {"forn": "FOPPA", "d": "Lecitina di soia", "u": ""}, {"forn": "FOPPA", "d": "Lemongrass purea 450gr BRESC", "u": ""}, {"forn": "FOPPA", "d": "Limoncello", "u": ""}, {"forn": "FOPPA", "d": "Maltodestrina per polveri", "u": ""}, {"forn": "FOPPA", "d": "Maltosec", "u": ""}, {"forn": "FOPPA", "d": "Marsala", "u": ""}, {"forn": "FOPPA", "d": "Miele 1 kg acacia", "u": ""}, {"forn": "FOPPA", "d": "Miso", "u": ""}, {"forn": "FOPPA", "d": "Nero di seppia", "u": ""}, {"forn": "FOPPA", "d": "Neutro 1 kg", "u": ""}, {"forn": "FOPPA", "d": "Noce moscata", "u": ""}, {"forn": "FOPPA", "d": "Olio di vinacciolo", "u": ""}, {"forn": "FOPPA", "d": "Olio tartufato", "u": ""}, {"forn": "FOPPA", "d": "Pane per canederlo", "u": ""}, {"forn": "FOPPA", "d": "Panko", "u": ""}, {"forn": "FOPPA", "d": "Paprika affumciata wieberg", "u": ""}, {"forn": "FOPPA", "d": "Pasta per lasagne", "u": ""}, {"forn": "FOPPA", "d": "Pepe nero macinato 1kg", "u": ""}, {"forn": "FOPPA", "d": "Pernod", "u": ""}, {"forn": "FOPPA", "d": "Polenta Istantanea", "u": ""}, {"forn": "FOPPA", "d": "Pro Espuma", "u": ""}, {"forn": "FOPPA", "d": "Prosecco", "u": ""}, {"forn": "FOPPA", "d": "Rum", "u": ""}, {"forn": "FOPPA", "d": "Salsa di soia verde 1 litro", "u": ""}, {"forn": "FOPPA", "d": "Sciroppo di lampone", "u": ""}, {"forn": "FOPPA", "d": "Sciroppo di zenzero", "u": ""}, {"forn": "FOPPA", "d": "Semi di cumino interi", "u": ""}, {"forn": "FOPPA", "d": "Semi di finocchio 1kg", "u": ""}, {"forn": "FOPPA", "d": "Semi di zucca", "u": ""}, {"forn": "FOPPA", "d": "Senape normale", "u": ""}, {"forn": "FOPPA", "d": "Tapioca perle 500gr", "u": ""}, {"forn": "FOPPA", "d": "Xantano", "u": ""}, {"forn": "FOPPA", "d": "Zucchero invertito", "u": ""}, {"forn": "GALLONI", "d": "Air Bag Patata (Sosa)", "u": ""}, {"forn": "GALLONI", "d": "Colorante alimentare", "u": ""}, {"forn": "GALLONI", "d": "Croccante di patata Sosa", "u": ""}, {"forn": "GALLONI", "d": "Gianduia al latte", "u": ""}, {"forn": "GALLONI", "d": "Pectina NH", "u": ""}, {"forn": "GALLONI", "d": "Pork Bug (Sosa)", "u": ""}, {"forn": "GASTROFRESH", "d": "Aglio treccia", "u": ""}, {"forn": "GASTROFRESH", "d": "Albicocche", "u": ""}, {"forn": "GASTROFRESH", "d": "Albume tetrapack 1l", "u": ""}, {"forn": "GASTROFRESH", "d": "Alloro", "u": ""}, {"forn": "GASTROFRESH", "d": "Ananas", "u": ""}, {"forn": "GASTROFRESH", "d": "Anguria", "u": ""}, {"forn": "GASTROFRESH", "d": "Arancia spremuta", "u": ""}, {"forn": "GASTROFRESH", "d": "Barbabietola fresca", "u": ""}, {"forn": "GASTROFRESH", "d": "Basilico 500gr", "u": ""}, {"forn": "GASTROFRESH", "d": "Bietola", "u": ""}, {"forn": "GASTROFRESH", "d": "Broccoli", "u": ""}, {"forn": "GASTROFRESH", "d": "Brodo vegetale in polvere aromica", "u": ""}, {"forn": "GASTROFRESH", "d": "Burro 1kg", "u": ""}, {"forn": "GASTROFRESH", "d": "Cannella in polvere", "u": ""}, {"forn": "GASTROFRESH", "d": "Cappuccio rosso", "u": ""}, {"forn": "GASTROFRESH", "d": "Cappuccio verde", "u": ""}, {"forn": "GASTROFRESH", "d": "Caprino rotolo", "u": ""}, {"forn": "GASTROFRESH", "d": "Carote", "u": ""}, {"forn": "GASTROFRESH", "d": "Cipolle bianche", "u": ""}, {"forn": "GASTROFRESH", "d": "Cipollotto verde", "u": ""}, {"forn": "GASTROFRESH", "d": "Concentrato di pomodoro", "u": ""}, {"forn": "GASTROFRESH", "d": "Erba cipollina 100gr", "u": ""}, {"forn": "GASTROFRESH", "d": "Erbe miste", "u": ""}, {"forn": "GASTROFRESH", "d": "Formaggio di malga", "u": ""}, {"forn": "GASTROFRESH", "d": "Fragole", "u": ""}, {"forn": "GASTROFRESH", "d": "Indivia belga", "u": ""}, {"forn": "GASTROFRESH", "d": "Lamponi", "u": ""}, {"forn": "GASTROFRESH", "d": "Lime", "u": ""}, {"forn": "GASTROFRESH", "d": "Limoni", "u": ""}, {"forn": "GASTROFRESH", "d": "Maggiorana", "u": ""}, {"forn": "GASTROFRESH", "d": "Mascarpone 2kg Mila", "u": ""}, {"forn": "GASTROFRESH", "d": "Melanzane", "u": ""}, {"forn": "GASTROFRESH", "d": "Mele granny smith", "u": ""}, {"forn": "GASTROFRESH", "d": "Mele rosse SPA", "u": ""}, {"forn": "GASTROFRESH", "d": "Melone", "u": ""}, {"forn": "GASTROFRESH", "d": "Menta punte 50 pz", "u": ""}, {"forn": "GASTROFRESH", "d": "Mini tomino", "u": ""}, {"forn": "GASTROFRESH", "d": "Olive nere denocciolate 2.6kg", "u": ""}, {"forn": "GASTROFRESH", "d": "Pak joy", "u": ""}, {"forn": "GASTROFRESH", "d": "Pane raffermo", "u": ""}, {"forn": "GASTROFRESH", "d": "Panna acida", "u": ""}, {"forn": "GASTROFRESH", "d": "Panna pasticceria DEBIC 1l", "u": ""}, {"forn": "GASTROFRESH", "d": "Parmigiano 1/4", "u": ""}, {"forn": "GASTROFRESH", "d": "Pastinaca", "u": ""}, {"forn": "GASTROFRESH", "d": "Patate dolci americane", "u": ""}, {"forn": "GASTROFRESH", "d": "Patate farinose", "u": ""}, {"forn": "GASTROFRESH", "d": "Patate novelle", "u": ""}, {"forn": "GASTROFRESH", "d": "Patate sode GROSSE", "u": ""}, {"forn": "GASTROFRESH", "d": "Patate sode grosse", "u": ""}, {"forn": "GASTROFRESH", "d": "Peperoncino", "u": ""}, {"forn": "GASTROFRESH", "d": "Peperone verde", "u": ""}, {"forn": "GASTROFRESH", "d": "Peperoni gialli", "u": ""}, {"forn": "GASTROFRESH", "d": "Peperoni rossi", "u": ""}, {"forn": "GASTROFRESH", "d": "Pesche", "u": ""}, {"forn": "GASTROFRESH", "d": "Philadelfia", "u": ""}, {"forn": "GASTROFRESH", "d": "Pomodorini gialli", "u": ""}, {"forn": "GASTROFRESH", "d": "Pomodoro ramato", "u": ""}, {"forn": "GASTROFRESH", "d": "Porro", "u": ""}, {"forn": "GASTROFRESH", "d": "Prezzemolo", "u": ""}, {"forn": "GASTROFRESH", "d": "Purea arancia rossa Ponthier", "u": ""}, {"forn": "GASTROFRESH", "d": "Purea cocco Ponthier", "u": ""}, {"forn": "GASTROFRESH", "d": "Purea di pesca Ponthier", "u": ""}, {"forn": "GASTROFRESH", "d": "Purea mirtilli Ponthier", "u": ""}, {"forn": "GASTROFRESH", "d": "Purea pomplemo Ponthier", "u": ""}, {"forn": "GASTROFRESH", "d": "Radicchio Tardivo", "u": ""}, {"forn": "GASTROFRESH", "d": "Ricotta affumicata", "u": ""}, {"forn": "GASTROFRESH", "d": "Romanesco", "u": ""}, {"forn": "GASTROFRESH", "d": "Rosmarino secco Aromica 170gr", "u": ""}, {"forn": "GASTROFRESH", "d": "Salvia 100gr", "u": ""}, {"forn": "GASTROFRESH", "d": "Scalogno pelato 1kg", "u": ""}, {"forn": "GASTROFRESH", "d": "Sedano rapa", "u": ""}, {"forn": "GASTROFRESH", "d": "Sedano verde", "u": ""}, {"forn": "GASTROFRESH", "d": "Soncino", "u": ""}, {"forn": "GASTROFRESH", "d": "Stracchino", "u": ""}, {"forn": "GASTROFRESH", "d": "Timo secco Aromica 90gr", "u": ""}, {"forn": "GASTROFRESH", "d": "Topinambur", "u": ""}, {"forn": "GASTROFRESH", "d": "Yogurt greco 1kg", "u": ""}, {"forn": "GASTROFRESH", "d": "Yogurt mila frutti di bosco 10 pz", "u": ""}, {"forn": "GASTROFRESH", "d": "Zucca", "u": ""}, {"forn": "GASTROFRESH", "d": "Zucchine", "u": ""}, {"forn": "IMES", "d": "Aceto balsamico 250ml al pz", "u": ""}, {"forn": "IMES", "d": "Aceto di mele 1l", "u": ""}, {"forn": "IMES", "d": "Aceto di vino bianco 1l", "u": ""}, {"forn": "IMES", "d": "Borlotti precotti latta", "u": ""}, {"forn": "IMES", "d": "Brie", "u": ""}, {"forn": "IMES", "d": "Capperi", "u": ""}, {"forn": "IMES", "d": "Ceci precotti latta", "u": ""}, {"forn": "IMES", "d": "Cetrioli sottoaceto vetro", "u": ""}, {"forn": "IMES", "d": "Farina Manitoba 1kg", "u": ""}, {"forn": "IMES", "d": "Farina Semola de cecco 1kg", "u": ""}, {"forn": "IMES", "d": "Farina di segale 1kg", "u": ""}, {"forn": "IMES", "d": "Farina rieper gialla 5kg al kg", "u": ""}, {"forn": "IMES", "d": "Fesa di tacchino", "u": ""}, {"forn": "IMES", "d": "Filetti di acciughe", "u": ""}, {"forn": "IMES", "d": "Gorgonzola", "u": ""}, {"forn": "IMES", "d": "Latte 5 piu 1", "u": ""}, {"forn": "IMES", "d": "Lenticchie precotte latta", "u": ""}, {"forn": "IMES", "d": "Lievito di birra fresco", "u": ""}, {"forn": "IMES", "d": "Lievito instantaneo cameo", "u": ""}, {"forn": "IMES", "d": "Mozzarella bufala affumicata", "u": ""}, {"forn": "IMES", "d": "Olio evo 5 litri al litro", "u": ""}, {"forn": "IMES", "d": "Olio semi 5 litri al litro", "u": ""}, {"forn": "IMES", "d": "Olive taggiasche", "u": ""}, {"forn": "IMES", "d": "Passata di pomodoro Mutti 700ml", "u": ""}, {"forn": "IMES", "d": "Pecorino intero romano", "u": ""}, {"forn": "IMES", "d": "Pelati S.Marzano 2.5kg", "u": ""}, {"forn": "IMES", "d": "Petto di pollo", "u": ""}, {"forn": "IMES", "d": "Pinoli 1kg", "u": ""}, {"forn": "IMES", "d": "Pistacchi interi", "u": ""}, {"forn": "IMES", "d": "Pomodori secchi", "u": ""}, {"forn": "IMES", "d": "Prosciutto crudo", "u": ""}, {"forn": "IMES", "d": "Sale fino 1kg", "u": ""}, {"forn": "IMES", "d": "Scamorza affumicata", "u": ""}, {"forn": "IMES", "d": "Speck", "u": ""}, {"forn": "IMES", "d": "Uvetta 1kg", "u": ""}, {"forn": "IMES", "d": "Vino bianco", "u": ""}, {"forn": "IMES", "d": "Vino rosso", "u": ""}, {"forn": "IMES", "d": "Zucchero a velo 1kg", "u": ""}, {"forn": "IMES", "d": "Zucchero di canna 500gr", "u": ""}, {"forn": "IMES", "d": "Zucchero semolato 10kg", "u": ""}, {"forn": "MAXI", "d": "Crema tartufata", "u": ""}, {"forn": "MAXI", "d": "Pasta di nocciole", "u": ""}, {"forn": "SIEBENFORCHER", "d": "Copertina di manzo per goulash", "u": ""}, {"forn": "SIEBENFORCHER", "d": "Filetto di maiale", "u": ""}, {"forn": "SIEBENFORCHER", "d": "Guancia di manzo Scottona", "u": ""}, {"forn": "SIEBENFORCHER", "d": "Guanciale", "u": ""}, {"forn": "SIEBENFORCHER", "d": "Macinato misto", "u": ""}, {"forn": "SIEBENFORCHER", "d": "Ossobuco di vitello", "u": ""}, {"forn": "SIEBENFORCHER", "d": "Pancetta affumicata", "u": ""}, {"forn": "SIEBENFORCHER", "d": "Petto d'anatra femmina FRANCIA", "u": ""}, {"forn": "SIEBENFORCHER", "d": "Petto di faraona FRANCIA", "u": ""}, {"forn": "SIEBENFORCHER", "d": "Petto di pollo al mais", "u": ""}, {"forn": "SIEBENFORCHER", "d": "Ragù di coniglio", "u": ""}, {"forn": "SIEBENFORCHER", "d": "Scamone d'agnello NZ", "u": ""}, {"forn": "SIEBENFORCHER", "d": "Tuorlo tetrapack 1l", "u": ""}, {"forn": "SIEBENFORCHER", "d": "Uova tetrapack 1l", "u": ""}, {"forn": "TASTE", "d": "Cioccolato al latte", "u": ""}, {"forn": "TASTE", "d": "Cioccolato bianco", "u": ""}, {"forn": "TASTE", "d": "Cioccolato fondente", "u": ""}, {"forn": "TASTE", "d": "Costine di manzo", "u": ""}, {"forn": "TASTE", "d": "Flan di manzo", "u": ""}, {"forn": "TASTE", "d": "Pasta di pistacchio puro", "u": ""}, {"forn": "TASTE", "d": "Quinoa tricolore 2,5kg", "u": ""}, {"forn": "TASTE", "d": "Riso carnaroli 5kg", "u": ""}, {"forn": "TASTE", "d": "Salsiccia saporita", "u": ""}, {"forn": "TASTE", "d": "Spalla di maiale", "u": ""}, {"forn": "WERNER MENU", "d": "Cipolla rossa agrodolce", "u": ""}, {"forn": "WERNER MENU", "d": "Pomodori confit", "u": ""}];
+let CATALOG=[]; let PRODMAP={};
+let PAX={};
+try{ const sv=localStorage.getItem('pax_anti'); if(sv) PAX=JSON.parse(sv); }catch(e){}
+function savePaxLS(){ try{ localStorage.setItem('pax_anti',JSON.stringify(PAX)); }catch(e){} }
+function savePax(day,f,v){ if(!PAX[day])PAX[day]={}; PAX[day][f]=v; savePaxLS(); }
+function openSpesa(){ loadProdMap(); go('s_spesa'); renderSpesa(); }
+function renderSpesa(){ const box=document.getElementById('paxrows'); box.innerHTML=''; document.getElementById('spesaOut').innerHTML='';
+ (DATA.S1||[]).forEach(d=>{ const p=PAX[d.name]||{}; const row=document.createElement('div'); row.className='paxrow';
+  row.innerHTML='<div class="pd">'+d.name+'</div><label>Coperti <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" value="'+(p.pax!=null?p.pax:'')+'" onfocus="this.select()" oninput="savePax(\''+d.name+'\',\'pax\',this.value)"></label>';
+  box.appendChild(row); }); }
+/* ingredienti veri antipasti: [keywords, Nome prodotto, g/porzione, fresco?] */
+const ANT_PRODUCE=[
+ [["tonno"],"Tonno fresco",80,1],
+ [["carne salada"],"Carne salada",50,1],
+ [["caprino"],"Caprino",40,1],
+ [["stracciatella","stracciate"],"Stracciatella",40,1],
+ [["ricotta"],"Ricotta",40,1],
+ [["malga"],"Formaggio di malga",30,1],
+ [["parmigiano"],"Parmigiano",15,1],
+ [["zucca"],"Zucca",70],
+ [["barbabietola","barba"],"Barbabietola",60],
+ [["sedano rapa"],"Sedano rapa",50],
+ [["patate","patata"],"Patate",60],
+ [["porri","porro"],"Porri",40],
+ [["datterini","pomodorini","pomodoro","pomodori"],"Pomodorini datterini",45],
+ [["cetriolo"],"Cetrioli",30],
+ [["mela verde","mela","succo/purea di mela","succo di mela"],"Mele verdi",35],
+ [["spinac"],"Spinaci",35],
+ [["ravanello"],"Ravanelli",15],
+ [["carota","carote"],"Carote",25],
+ [["zucchina","zucchine"],"Zucchine",25],
+ [["germogli di soia"],"Germogli di soia",15],
+ [["olive taggiasche","olive"],"Olive taggiasche",10],
+ [["mandorle"],"Mandorle",12],
+ [["nocciole","pasta di nocciole"],"Nocciole",12],
+ [["pinoli"],"Pinoli",6],
+ [["porcini secchi","porcini"],"Porcini secchi",4],
+ [["panko"],"Panko",8],
+ [["polenta"],"Polenta istantanea",15],
+ [["pane nero","pane venostano","venostano","pane"],"Pane nero venostano",1],
+ [["basilico"],"Basilico",4],
+ [["prezzemolo","erbe verdi"],"Prezzemolo",4],
+ [["crescione"],"Crescione",6]
+];
+const ANT_UNITOVR={"Polenta istantanea":{u:"pz",pack:1},"Pane nero venostano":{u:"pz",pack:1},"Panko":{u:"pz",pack:1},"Porcini secchi":{u:"pz",pack:1},"Olive taggiasche":{u:"pz",pack:1}};
+function detectProduce(txt){ const n=(txt||'').toLowerCase(); const seen={}; const out=[]; ANT_PRODUCE.forEach((p,idx)=>{ if(seen[p[1]])return; if(p[0].some(k=>n.indexOf(k)>=0)){ out.push(idx); seen[p[1]]=1; } }); return out; }
+function genLista(){
+ const days=DATA.S1||[]; const acc={};
+ days.forEach(d=>{ const pp=PAX[d.name]||{}; const pax=parseInt(pp.pax)||0; if(pax<=0)return;
+  const dish=d.dishes[0]||{}; let txt=(dish.short||'')+' '+(dish.title||'')+' '+(dish.comps||[]).map(c=>c.name+' '+((c.ings||[]).join(' '))).join(' ');
+  detectProduce(txt).forEach(idx=>{ acc[idx]=(acc[idx]||0)+pax; }); });
+ const idxs=Object.keys(acc);
+ const rows=idxs.map(idx=>{ const p=ANT_PRODUCE[idx]; const porz=acc[idx]; const kg=porz*p[2]/1000; const ov=ANT_UNITOVR[p[1]]; let q,unit; if(ov){ q=Math.max(1,Math.ceil(kg/ov.pack)); unit=ov.u; } else { q=Math.max(1,Math.ceil(kg*1.15)); unit='kg'; } return {label:p[1],name:mapName(p[1]),q:q,unit:unit,kg:Math.round(kg*10)/10,fresco:!!p[3],i:idx,porz:porz}; });
+ window._lastRows=rows;
+ if(!rows.length){ document.getElementById('spesaOut').innerHTML='<div class="spnote">Metti i coperti dei giorni e premi Genera.</div>'; return; }
+ const freschi=rows.filter(r=>r.fresco), verdure=rows.filter(r=>!r.fresco);
+ let h='';
+ if(freschi.length){ h+='<div class="lbl">🧀 Freschi & proteine — fabbisogno</div>';
+  h+='<div class="spnote">Con +cuscinetto. Metti la <b>giacenza</b>: l\'ordine lo decidi tu. In Ordini poi cambi kg↔pz al volo.</div>';
+  freschi.forEach(r=>{ h+='<div class="protrow"><div class="pn">'+r.name+'</div><div class="pf">~'+r.q+' '+r.unit+'</div><label>in casa <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="gia_'+r.i+'" onfocus="this.select()" oninput="updGia('+r.i+','+r.q+')"></label><div class="po" id="po_'+r.i+'">ordina: ~'+r.q+'</div></div>'; }); }
+ h+='<div class="lbl">🥬 Verdure & prodotti — indicativo</div>';
+ h+='<div class="spnote">Stima \"a spanne\", si somma con le altre partite. Premi Invia: vanno nelle richieste di Ordini, tu accetti e agganci al fornitore.</div>';
+ verdure.forEach(r=>{ h+='<div class="prodrow"><div class="pn">'+r.name+'</div><div class="pq">~'+r.q+' '+r.unit+' <span class="pkg">(≈'+r.kg+' kg)</span></div></div>'; });
+ h+='<button class="sendbtn" style="margin-top:12px;background:#2f6b1f" onclick="sendToOrdini()">📤 Invia a Ordini</button>';
+ document.getElementById('spesaOut').innerHTML=h;
+}
+function updGia(i,q){ const g=parseInt((document.getElementById('gia_'+i)||{}).value)||0; const ord=Math.max(0,q-g); const el=document.getElementById('po_'+i); if(el)el.textContent='ordina: ~'+ord; }
+async function sendToOrdini(){ const items=[]; (window._lastRows||[]).forEach(r=>{ let q=r.q; if(r.fresco){ const g=parseInt((document.getElementById('gia_'+r.i)||{}).value)||0; q=Math.max(0,r.q-g); } if(q>0) items.push({n:r.name,q:''+q,u:r.unit}); });
+ const t=document.getElementById('toast');
+ if(!items.length){ t.innerHTML='<b>Niente da inviare</b>Genera prima la lista.'; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),4000); return; }
+ try{ let cur=await sb('kitchen_meta?k=eq.pastreq&select=v'); let arr=(cur&&cur[0]&&cur[0].v&&cur[0].v.items)?cur[0].v.items:[];
+  arr=arr.concat(items.map(it=>({n:it.n,q:it.q,u:it.u,src:'Antipasti'})));
+  await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pastreq',v:{items:arr}})});
+  t.innerHTML='<b>Inviato a Ordini ✓ ('+items.length+' voci)</b>Aprili in Ordini → richieste, accetta e aggancia al fornitore.'; }
+ catch(e){ t.style.background='#c0392b'; t.innerHTML='<b>⚠️ Errore invio</b>('+e.message+')'; }
+ t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>{t.classList.remove('show');t.style.background='';},5200); }
+/* ---- catalogo fornitori (live da ordcat) + abbina ---- */
+async function loadCatalog(){ var base=REALCAT; try{ const oc=await sb("kitchen_meta?k=eq.ordcat&select=v"); var live=(oc&&oc[0]&&oc[0].v&&oc[0].v.cat); if(live&&live.length){ base=live.map(function(c){return {forn:(c.forn||'').toUpperCase(),d:c.prod,u:c.unit||''};}); } }catch(e){} CATALOG=base.map(function(c){return {forn:c.forn,d:c.d,u:c.u||''};}); var seen={}; CATALOG.forEach(function(c){seen[(c.forn+'|'+c.d).toLowerCase()]=1;}); try{ const rows=await sb("kitchen_meta?k=like.listino%7C*&select=k,v"); (rows||[]).forEach(r=>{ const forn=(r.k||'').replace('listino|','').toUpperCase(); const items=(r.v&&r.v.items)||{}; Object.values(items).forEach(it=>{ if(!it.d)return; var kk=(forn+'|'+it.d).toLowerCase(); if(seen[kk])return; seen[kk]=1; CATALOG.push({forn:forn,d:it.d,u:it.u||''}); }); }); }catch(e){} }
+async function loadProdMap(){ try{ const r=await sb("kitchen_meta?k=eq.ant_prodmap&select=v"); PRODMAP=(r&&r[0]&&r[0].v&&r[0].v.map)||{}; }catch(e){ PRODMAP={}; } }
+function mapName(label){ return (PRODMAP[label]&&PRODMAP[label].prod)||label; }
+function openAbbina(){ go('s_abbina'); renderAbbina(); }
+function catDatalist(){ var h='<datalist id="catlist">'; CATALOG.forEach(function(c){ var v=(c.d+' — '+c.forn+' ['+(c.u||'')+']').replace(/"/g,'&quot;'); h+='<option value="'+v+'"></option>'; }); return h+'</datalist>'; }
+function findCat(val){ if(!val) return null; var v=val.trim(); var m=v.match(/^(.*?)\s+—\s+(.+?)\s+\[[^\]]*\]\s*$/); if(m){ var dn=m[1].toLowerCase(), fn=m[2].toLowerCase(); var e=CATALOG.find(function(c){return c.d.toLowerCase()===dn&&c.forn.toLowerCase()===fn;}); if(e) return e; } var raw=v.toLowerCase(); var ex=CATALOG.find(function(c){return c.d.toLowerCase()===raw;}); if(ex) return ex; return CATALOG.find(function(c){return c.d.toLowerCase().indexOf(raw)>=0;})||null; }
+function saveMapText(label,val){ var t=document.getElementById('toast'); if(!val){ delete PRODMAP[label]; } else { var c=findCat(val); if(!c){ if(t){t.innerHTML='<b>Non trovato</b>Scrivi meglio il nome dell\'articolo del fornitore.'; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(function(){t.classList.remove('show');},2800);} return; } PRODMAP[label]={forn:c.forn,prod:c.d,unit:c.u}; } try{ sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'ant_prodmap',v:{map:PRODMAP}})}); }catch(e){} if(t){ t.innerHTML='<b>Salvato ✓</b>'+(val?(PRODMAP[label].prod+' · '+PRODMAP[label].forn):'abbinamento tolto'); t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(function(){t.classList.remove('show');},2200);} renderAbbina(); }
+function filterAbbina(q){ q=(q||'').toLowerCase().trim(); var rows=document.querySelectorAll('#abbinaBox .abrow'); rows.forEach(function(r){ r.style.display=(!q||(r.dataset.l||'').toLowerCase().indexOf(q)>=0)?'':'none'; }); }
+function abbinaRow(label){ var m=PRODMAP[label]; var val=m?m.prod:''; var hint=m?(' <span class="ok">✓ '+m.forn+' · '+(m.unit||'')+'</span>'):''; return '<div class="abrow" data-l="'+label.replace(/"/g,'&quot;')+'"><div class="al">'+label+hint+'</div><input list="catlist" value="'+val.replace(/"/g,'&quot;')+'" placeholder="🔍 cerca prodotto o fornitore…" onchange="saveMapText(this.dataset.l,this.value)" data-l="'+label.replace(/"/g,'&quot;')+'"></div>'; }
+async function renderAbbina(){ var box=document.getElementById('abbinaBox'); if(!CATALOG.length){ box.innerHTML='<div class="spnote">Carico i listini dei fornitori…</div>'; await loadCatalog(); } if(!Object.keys(PRODMAP).length){ await loadProdMap(); } var h='<input id="abFilter" class="abfilter" placeholder="🔍 filtra i prodotti da abbinare…" oninput="filterAbbina(this.value)">'+catDatalist(); h+='<div class="lbl">🧀 Freschi & proteine</div>'; ANT_PRODUCE.filter(p=>p[3]).forEach(function(p){h+=abbinaRow(p[1]);}); h+='<div class="lbl">🥬 Verdure & prodotti</div>'; ANT_PRODUCE.filter(p=>!p[3]).forEach(function(p){h+=abbinaRow(p[1]);}); box.innerHTML=h; }
+window.addEventListener('load',function(){ setTimeout(function(){ try{ loadCatalog(); loadProdMap(); }catch(e){} },400); });
+
+</script>
+</body></html>
