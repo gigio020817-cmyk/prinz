@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Prinz Rudolf · Serate Gourmet</title>
+<style>
+  :root{--bg:#f7f3ee;--card:#fff;--nero:#141414;--gold:#b8912e;--red-d:#5a1020;--muted:#8a8172;--line:#e5ddcf}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:#1a1a1a}
+  header{background:var(--nero);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5}
+  header .pr{border:2px solid var(--gold);border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--gold)}
+  header .t small{color:var(--gold);font-size:10px;letter-spacing:2px;display:block}
+  header .t b{font-size:17px}
+  .wrap{max-width:820px;margin:0 auto;padding:14px}
+  .btn{border:none;border-radius:12px;padding:12px 14px;font-size:15px;font-weight:800;cursor:pointer}
+  .btn-gold{background:var(--gold);color:#3a2c07;width:100%}
+  .btn-dark{background:var(--nero);color:#fff}
+  .btn-ghost{background:#fff;border:1px solid var(--line);color:#1a1a1a}
+  .btn-red{background:#fff;border:1px solid #c0392b;color:#c0392b;font-weight:700}
+  .evt{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+  .evt:hover{border-color:var(--gold)}
+  .evt .d{font-size:12px;color:var(--gold);font-weight:800;letter-spacing:1px}
+  .evt .n{font-size:17px;font-weight:800;margin-top:2px}
+  .evt .c{font-size:12px;color:var(--muted);margin-top:3px}
+  .back{background:none;border:none;color:var(--gold);font-weight:800;cursor:pointer;font-size:15px;padding:6px 0}
+  .ehead{margin:6px 0 4px}
+  .ehead .d{font-size:12px;color:var(--gold);font-weight:800;letter-spacing:1px}
+  .ehead h2{margin:2px 0 0;font-size:22px}
+  .piatto{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}
+  .piatto h3{margin:0 0 8px;font-size:17px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .piatto h3 span{flex:1}
+  .lbl{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px}
+  textarea{width:100%;min-height:90px;border:1px solid var(--line);border-radius:10px;padding:9px;font-size:14px;font-family:inherit;resize:vertical}
+  .fgrid{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:5px}
+  .ffit{position:relative;width:78px;height:78px;border-radius:9px;overflow:hidden;border:1px solid var(--line)}
+  .ffit img{width:100%;height:100%;object-fit:cover;cursor:pointer;display:block}
+  .fdel{position:absolute;top:2px;right:2px;background:rgba(192,57,43,.92);color:#fff;border:none;border-radius:50%;width:20px;height:20px;line-height:18px;font-size:13px;cursor:pointer;padding:0}
+  .fadd{width:78px;height:78px;border:1px dashed var(--gold);background:#fffdf4;color:var(--gold);border-radius:9px;font-size:12px;font-weight:800;cursor:pointer}
+  .row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .savebtn{background:#1c6b34;color:#fff;border:none;border-radius:9px;padding:7px 14px;font-weight:700;font-size:13px;cursor:pointer}
+  .muted{color:var(--muted);font-size:13px;text-align:center;padding:24px 0}
+  #gate{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--nero);color:#fff;padding:20px}
+  #gate .pr{border:2px solid var(--gold);border-radius:14px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--gold);font-size:22px;margin-bottom:14px}
+  #gate input{width:280px;max-width:80vw;padding:13px;border-radius:12px;border:none;font-size:16px;text-align:center;margin:8px 0}
+  #gate button{width:280px;max-width:80vw;padding:13px;border-radius:12px;border:none;background:var(--gold);color:#3a2c07;font-weight:800;font-size:16px;cursor:pointer}
+  .status{font-size:11px;color:var(--muted);text-align:center;padding:4px}
+  #lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:50;align-items:center;justify-content:center;padding:20px}
+  #lightbox img{max-width:100%;max-height:100%;border-radius:10px}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="pr">PR</div>
+  <div style="font-weight:800;font-size:20px">Prinz Rudolf</div>
+  <div style="color:var(--gold);letter-spacing:2px;font-size:11px;margin-bottom:10px">SERATE GOURMET · SOLO CHEF</div>
+  <input id="pw" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+  <button onclick="doLogin()">Entra</button>
+  <label style="font-size:12px;margin-top:10px"><input type="checkbox" id="rem" checked> Ricorda su questo dispositivo</label>
+  <div id="gerr" style="color:#ff9a9a;font-size:13px;margin-top:8px"></div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="pr">PR</div>
+    <div class="t"><small>PRINZ RUDOLF</small><b>Serate Gourmet</b></div>
+    <div style="margin-left:auto" class="status" id="status">…</div>
+  </header>
+  <div class="wrap" id="view"></div>
+</div>
+
+<div id="lightbox" onclick="this.style.display='none'"><img src="" alt=""></div>
+
+<script>
+const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
+const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
+const APP_PW="prinzchef";
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+async function sb(path,opts){opts=opts||{};var h={apikey:SB_KEY,'Content-Type':'application/json'};if(opts.headers)Object.assign(h,opts.headers);var r=await fetch(SB_URL+'/rest/v1/'+path,{method:opts.method||'GET',headers:h,body:opts.body});if(!r.ok)throw new Error('HTTP '+r.status);var t=await r.text();return t?JSON.parse(t):null;}
+
+var GDATA={events:[]};
+var FOTO={};
+var CUR={view:'home',eid:null};
+
+function doLogin(){ var v=document.getElementById('pw').value; if(v===APP_PW){ try{ if(document.getElementById('rem').checked) localStorage.setItem('gourmet_pw',v); }catch(e){} enter(); } else { document.getElementById('gerr').textContent='Password sbagliata'; } }
+function enter(){ document.getElementById('gate').style.display='none'; document.getElementById('app').style.display='block'; loadAll(); }
+async function loadAll(){
+  try{
+    var rows=await sb("kitchen_meta?k=eq.gourmet_data&select=v");
+    GDATA=(rows&&rows[0]&&rows[0].v&&Array.isArray(rows[0].v.events))?rows[0].v:{events:[]};
+    var f=await sb("kitchen_meta?k=like.gfoto|*&select=k,v"); FOTO={};
+    (f||[]).forEach(function(r){ FOTO[r.k.slice(6)]=(r.v&&r.v.imgs)?r.v.imgs:[]; });
+    document.getElementById('status').textContent='✓ Collegato';
+  }catch(e){ document.getElementById('status').textContent='⚠️ offline'; }
+  render();
+}
+async function saveData(){ try{ await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'gourmet_data',v:GDATA})}); }catch(e){ alert('Errore salvataggio'); } }
+async function saveFoto(key){ try{ await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'gfoto|'+key,v:{imgs:FOTO[key]||[]}})}); }catch(e){ alert('Errore salvataggio foto'); } }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(d){ if(!d) return ''; var p=d.split('-'); return p.length===3?(p[2]+'/'+p[1]+'/'+p[0]):d; }
+
+function render(){ CUR.view==='event' ? renderEvent() : renderHome(); }
+
+function renderHome(){
+  var v=document.getElementById('view');
+  var evs=GDATA.events.slice().sort(function(a,b){return (b.data||'').localeCompare(a.data||'');});
+  var h='<button class="btn btn-gold" onclick="nuovaSerata()">＋ Nuova serata gourmet</button>';
+  if(!evs.length){ h+='<div class="muted">Nessuna serata ancora. Crea la prima con il tasto qui sopra.</div>'; }
+  evs.forEach(function(e){
+    h+='<div class="evt" onclick="openEvent(\''+e.id+'\')"><div><div class="d">'+esc(fmtDate(e.data))+'</div><div class="n">'+esc(e.titolo||'(senza titolo)')+'</div><div class="c">'+(e.piatti?e.piatti.length:0)+' piatti nel menu</div></div><span style="color:var(--gold);font-size:22px">›</span></div>';
+  });
+  v.innerHTML=h;
+}
+
+function openEvent(id){ CUR.view='event'; CUR.eid=id; window.scrollTo(0,0); render(); }
+function backHome(){ CUR.view='home'; CUR.eid=null; window.scrollTo(0,0); render(); }
+function curEvent(){ return GDATA.events.find(function(e){return e.id===CUR.eid;}); }
+
+function renderEvent(){
+  var e=curEvent(); if(!e){ backHome(); return; }
+  var v=document.getElementById('view');
+  var h='<button class="back" onclick="backHome()">‹ Tutte le serate</button>';
+  h+='<div class="ehead"><div class="d">'+esc(fmtDate(e.data))+'</div><h2>'+esc(e.titolo||'')+'</h2></div>';
+  h+='<div class="row"><button class="btn btn-ghost" onclick="editEvent()">✏️ Modifica serata</button><button class="btn btn-red" onclick="delEvent()">🗑 Elimina serata</button></div>';
+  h+='<div class="lbl" style="margin-top:14px">Menu della serata</div>';
+  (e.piatti||[]).forEach(function(p,i){
+    var key=e.id+'|'+p.id; var imgs=FOTO[key]||[];
+    var th=imgs.map(function(src,pi){return '<div class="ffit"><img src="'+src+'" onclick="zoom(this.src)"><button class="fdel" onclick="delFoto(\''+key+'\','+pi+')">×</button></div>';}).join('');
+    h+='<div class="piatto"><h3><span>'+(i+1)+'. '+esc(p.nome||'(piatto)')+'</span><button class="btn btn-red" style="padding:6px 10px;font-size:12px" onclick="delPiatto(\''+p.id+'\')">🗑</button></h3>';
+    h+='<div class="lbl">📖 Ricetta / note</div><textarea id="ric_'+p.id+'" placeholder="Ingredienti, procedimento, impiattamento…">'+esc(p.ric||'')+'</textarea>';
+    h+='<div class="row"><button class="savebtn" onclick="saveRic(\''+p.id+'\')">Salva ricetta</button></div>';
+    h+='<div class="lbl" style="margin-top:10px">📸 Foto del piatto</div><div class="fgrid">'+th+'<button class="fadd" onclick="pickFoto(\''+key+'\')">＋ Foto</button></div>';
+    h+='</div>';
+  });
+  h+='<button class="btn btn-dark" style="width:100%;margin-top:6px" onclick="addPiatto()">＋ Aggiungi piatto al menu</button>';
+  v.innerHTML=h;
+}
+
+async function nuovaSerata(){
+  var t=prompt('Titolo della serata (es. "Serata Gourmet d\'Autunno"):'); if(t==null) return;
+  var d=prompt('Data (AAAA-MM-GG):', todayISO()); if(d==null) return;
+  GDATA.events.push({id:uid(),data:d.trim(),titolo:t.trim(),piatti:[]});
+  await saveData(); render();
+}
+async function editEvent(){
+  var e=curEvent(); if(!e) return;
+  var t=prompt('Titolo serata:', e.titolo||''); if(t==null) return;
+  var d=prompt('Data (AAAA-MM-GG):', e.data||todayISO()); if(d==null) return;
+  e.titolo=t.trim(); e.data=d.trim(); await saveData(); render();
+}
+async function delEvent(){
+  var e=curEvent(); if(!e) return;
+  if(!confirm('Eliminare la serata "'+(e.titolo||'')+'"? (le ricette e le foto di questa serata verranno tolte)')) return;
+  GDATA.events=GDATA.events.filter(function(x){return x.id!==e.id;});
+  await saveData(); backHome();
+}
+async function addPiatto(){
+  var e=curEvent(); if(!e) return;
+  var n=prompt('Nome del piatto:'); if(n==null||!n.trim()) return;
+  if(!e.piatti) e.piatti=[]; e.piatti.push({id:uid(),nome:n.trim(),ric:''});
+  await saveData(); render();
+}
+async function delPiatto(pid){
+  var e=curEvent(); if(!e) return;
+  if(!confirm('Togliere questo piatto dal menu?')) return;
+  e.piatti=e.piatti.filter(function(x){return x.id!==pid;});
+  await saveData(); render();
+}
+async function saveRic(pid){
+  var e=curEvent(); if(!e) return;
+  var p=e.piatti.find(function(x){return x.id===pid;}); if(!p) return;
+  var ta=document.getElementById('ric_'+pid); p.ric=ta.value;
+  await saveData();
+  var b=event&&event.target; if(b){ var o=b.textContent; b.textContent='✓ Salvato'; setTimeout(function(){b.textContent=o;},1500); }
+}
+
+function pickFoto(key){ var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.onchange=function(){ var f=inp.files&&inp.files[0]; if(f) onFoto(key,f); }; inp.click(); }
+function onFoto(key,file){ var rd=new FileReader(); rd.onload=function(){ var img=new Image(); img.onload=function(){ var mx=1280,w=img.width,h=img.height; if(w>mx||h>mx){ if(w>h){h=Math.round(h*mx/w);w=mx;}else{w=Math.round(w*mx/h);h=mx;} } var cv=document.createElement('canvas'); cv.width=w; cv.height=h; cv.getContext('2d').drawImage(img,0,0,w,h); var durl; try{durl=cv.toDataURL('image/jpeg',0.8);}catch(e){durl=rd.result;} if(!FOTO[key])FOTO[key]=[]; FOTO[key].push(durl); saveFoto(key); render(); }; img.src=rd.result; }; rd.readAsDataURL(file); }
+function delFoto(key,i){ if(!FOTO[key])return; if(!confirm('Togliere questa foto?'))return; FOTO[key].splice(i,1); saveFoto(key); render(); }
+function zoom(src){ var lb=document.getElementById('lightbox'); lb.querySelector('img').src=src; lb.style.display='flex'; }
+
+// auto-login
+try{ if(localStorage.getItem('gourmet_pw')===APP_PW) enter(); }catch(e){}
+</script>
+</body>
+</html>
