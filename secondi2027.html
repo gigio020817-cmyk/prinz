@@ -70,6 +70,9 @@
   .subinput{margin-top:5px}.subinput input{width:150px;padding:3px 7px;border-radius:7px;border:1px solid rgba(0,0,0,.25);font-size:12px}
   .subinput .tagf{color:#1c6b34;font-weight:700;font-size:11px}.subinput .tags{color:#2f6fb0;font-weight:700;font-size:11px}
   .sendbtn{width:100%;margin-top:10px;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:800;background:var(--nero);color:#fff;cursor:pointer}
+  .trow.sent .nm{text-decoration:line-through;opacity:.62}
+  .sentbadge{background:#1c6b34;color:#fff;border-radius:6px;font-size:9px;padding:1px 5px;margin-left:5px;vertical-align:middle;font-weight:700}
+  .resetbtn{width:100%;margin-top:8px;border:1px solid #c0392b;border-radius:12px;padding:10px;font-size:13px;font-weight:700;background:#fff;color:#c0392b;cursor:pointer}
   .sendnote{font-size:11px;color:#6b5600;text-align:center;margin-top:6px}
   .toast{position:absolute;left:16px;right:16px;bottom:16px;background:#1c6b34;color:#fff;border-radius:14px;padding:14px 16px;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:9;transform:translateY(150%);transition:transform .25s ease}
   .toast.show{transform:translateY(0)} .toast b{display:block;margin-bottom:4px} .toast ul{margin:6px 0 0;padding-left:18px} .toast li{font-size:12.5px;margin-bottom:2px}
@@ -138,6 +141,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
       <div class="sub">Ogni voce: ✅ Fatto (dose) · 📦 Ho scorta (giacenza) · ⬜ Da fare. Registra sul giorno di consumo. Niente va in scheda finché non premi Invia.</div>
       <div class="bar"><i></i></div><div class="pct" id="pct"></div><div id="tasklist"></div>
       <button class="sendbtn" onclick="sendSheet()">📤 Invia alla scheda di servizio</button>
+      <button class="resetbtn" onclick="resetProd()">🧹 Azzera produzione del giorno</button>
       <div class="sendnote">Finché non premi Invia, niente viene registrato: puoi correggere quanto vuoi.</div></div>
     <div class="sectitle">Scegli il piatto (2 secondi + veg)</div>
     <div class="dchips" id="pchips"></div>
@@ -219,26 +223,31 @@ function renderPchips(){ const pc=document.getElementById('pchips'); pc.innerHTM
 function renderDay(){ document.querySelectorAll('#dchips .dchip').forEach((b,i)=>b.classList.toggle('active',i===curDay));
  const day=CD(); const who=document.getElementById('who').value;
  document.getElementById('greet').innerHTML='<b>Ciao '+who+' 👋</b>'+curWeek+' · '+day.name+' · '+day.dishes.length+' piatti (2 secondi + veg)';
- renderPchips(); renderTasks(); renderGrid();
+ renderPchips(); renderTasks(); renderGrid(); ensureProd();
 }
 function renderTasks(){ const day=CD(); const box=document.getElementById('tasklist'); box.innerHTML='';
- const dn=dkey(); if(!STORE[dn])STORE[dn]={}; (day.prod||[]).forEach((p,i)=>{ const cur=STORE[dn][i]||{st:'t',val:''}; const st=cur.st; let sub='';
+ const dn=dkey(); if(!STORE[dn])STORE[dn]={}; (day.prod||[]).forEach((p,i)=>{ const cur=STORE[dn][i]||{st:'t',val:'',sent:false}; const st=cur.st; let sub='';
   if(st==='f') sub=`<div class="subinput"><span class="tagf">✅ Fatto — dose:</span> <input value="${(cur.val||'').replace(/"/g,'&quot;')}" oninput="saveVal(${i},this.value)" placeholder="es. 3 kg"></div>`;
   if(st==='s') sub=`<div class="subinput"><span class="tags">📦 Ho scorta — giacenza:</span> <input value="${(cur.val||'').replace(/"/g,'&quot;')}" oninput="saveVal(${i},this.value)" placeholder="es. 8 pz"></div>`;
-  const row=document.createElement('div'); row.className='trow';
-  row.innerHTML=`<div class="top"><div class="nm">${p.n} <span style="font-size:10px;color:var(--muted)">· ${p.d}</span></div><div class="stbtns"><button class="stbtn ${st==='f'?'on-f':''}" onclick="setState(${i},'f')">✅</button><button class="stbtn ${st==='s'?'on-s':''}" onclick="setState(${i},'s')">📦</button><button class="stbtn ${st==='t'?'on-t':''}" onclick="setState(${i},'t')">⬜</button></div></div>${sub}`;
+  const row=document.createElement('div'); row.className='trow'+(cur.sent?' sent':'');
+  row.innerHTML=`<div class="top"><div class="nm">${p.n} <span style="font-size:10px;color:var(--muted)">· ${p.d}</span>${cur.sent?' <span class="sentbadge">✓ inviato</span>':''}</div><div class="stbtns"><button class="stbtn ${st==='f'?'on-f':''}" onclick="setState(${i},'f')">✅</button><button class="stbtn ${st==='s'?'on-s':''}" onclick="setState(${i},'s')">📦</button><button class="stbtn ${st==='t'?'on-t':''}" onclick="setState(${i},'t')">⬜</button></div></div>${sub}`;
   box.appendChild(row); }); updateProg();
 }
-function setState(i,v){ const dn=dkey(); if(!STORE[dn])STORE[dn]={}; const cur=STORE[dn][i]||{st:'t',val:''}; cur.st=v; STORE[dn][i]=cur; renderTasks(); }
-function saveVal(i,v){ const dn=dkey(); if(!STORE[dn])STORE[dn]={}; const cur=STORE[dn][i]||{st:'t',val:''}; cur.val=v; STORE[dn][i]=cur; }
+function setState(i,v){ const dn=dkey(); if(!STORE[dn])STORE[dn]={}; const cur=STORE[dn][i]||{st:'t',val:'',sent:false}; cur.st=v; if(v==='t') cur.sent=false; STORE[dn][i]=cur; renderTasks(); saveProdState(dn); }
+function saveVal(i,v){ const dn=dkey(); if(!STORE[dn])STORE[dn]={}; const cur=STORE[dn][i]||{st:'t',val:'',sent:false}; cur.val=v; STORE[dn][i]=cur; clearTimeout(window._psT); window._psT=setTimeout(function(){saveProdState(dn);},700); }
 function updateProg(){ const dn=dkey(); const sd=STORE[dn]||{}; const tot=(CD().prod||[]).length; const done=Object.values(sd).filter(o=>o&&(o.st==='f'||o.st==='s')).length; const pct=tot?Math.round(done/tot*100):0;
  document.querySelector('.bar > i').style.width=pct+'%'; document.getElementById('pct').innerHTML='Risolti: <b>'+pct+'%</b> ('+done+'/'+tot+') · ✅ fatto o 📦 controllato'; }
+let _loadedProd=null;
+function ensureProd(){ const dn=dkey(); if(_loadedProd===dn) return; _loadedProd=dn; loadProdState(dn); }
+async function loadProdState(dn){ try{ const rows=await sb("kitchen_meta?k=eq."+encodeURIComponent('prodstate|'+dn)+"&select=v"); const v=(rows&&rows[0])?rows[0].v:null; if(v && typeof v==='object'){ STORE[dn]=v; if(dkey()===dn) renderTasks(); } }catch(e){} }
+async function saveProdState(dn){ try{ await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'prodstate|'+dn,v:STORE[dn]||{}})}); }catch(e){} }
+async function resetProd(){ const dn=dkey(); if(!confirm('Azzerare la produzione di '+dn+'? Toglie tutte le spunte del giorno (anche quelle già inviate).')) return; STORE[dn]={}; try{ await sb('kitchen_meta?k=eq.'+encodeURIComponent('prodstate|'+dn),{method:'DELETE',headers:{Prefer:'return=minimal'}}); }catch(e){} renderTasks(); }
 async function sendSheet(){ const day=CD(); const dn=dkey(); const sd=STORE[dn]||{}; const prod=day.prod||[]; const who=document.getElementById('who').value; const today=new Date().toISOString().slice(0,10); const out=[];
  prod.forEach((p,i)=>{ const o=sd[i]; if(!o||(o.st!=='f'&&o.st!=='s'))return; const val=(o.val||'').trim(); out.push(o.st==='f'?('✅ '+p.n+(val?' — '+val:'')):('📦 '+p.n+(val?' — scorta '+val:' — scorta'))); });
  const t=document.getElementById('toast'); const lbl=curWeek+' · '+day.name;
  if(!out.length){t.innerHTML='<b>Niente da inviare</b>Segna almeno una voce come ✅ o 📦.'; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),4600); return;}
  try{ const cosa='Secondi · '+lbl+':\n'+out.join('\n'); await sb('kitchen_entries',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({day:today,type:'scheda',cook:who,data:{cosa:cosa}})});
-   t.innerHTML='<b>Inviato alla scheda di servizio ✓ ('+out.length+' voci) — '+lbl+'</b><ul>'+out.map(x=>'<li>'+x+'</li>').join('')+'</ul>'; }
+   t.innerHTML='<b>Inviato alla scheda di servizio ✓ ('+out.length+' voci) — '+lbl+'</b><ul>'+out.map(x=>'<li>'+x+'</li>').join('')+'</ul>'; prod.forEach(function(p,i){ var o=sd[i]; if(o&&(o.st==='f'||o.st==='s')) o.sent=true; }); saveProdState(dn); renderTasks(); }
  catch(e){ t.style.background='#c0392b'; t.innerHTML='<b>⚠️ Errore invio</b>Riprova. ('+e.message+')'; }
  t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>{t.classList.remove('show');t.style.background='';},4600); }
 function renderGrid(){ const dish=CD().dishes[curDishIdx]; const grid=document.getElementById('grid'); grid.innerHTML='';
@@ -259,7 +268,7 @@ function openDet(i){ window.curDetI=i; const c=CD().dishes[curDishIdx].comps[i];
  document.getElementById('detBar').style.background=c.hd; document.getElementById('detTitle').textContent=c.name;
  document.getElementById('detDraw').style.background=c.col; document.getElementById('detDraw').innerHTML=(c.svg?c.svg:svgFor(c.id,c.photo?'#fff':c.hd));
  let h=''; if(c.photo){ curPhotoAssembly = c.steps.length?`<div class="lbl">Ordine di impiattamento</div><ol>${c.steps.map(x=>`<li>${x}</li>`).join('')}</ol>`:''; h+=photoBox()+curPhotoAssembly; }
- else { if(c.ings.length){ h+=`<div class="lbl">Ingredienti</div>`; h+=`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;font-size:12px;flex-wrap:wrap"><span style="font-weight:800;color:var(--muted)">DOSI ×</span>`+[1,2,3,4].map(f=>`<button onclick="setDose(${f})" style="border:1px solid var(--line);background:${doseF===f?'#0d0d0d':'#fff'};color:${doseF===f?'#fff':'#1a1a1a'};border-radius:8px;padding:4px 10px;font-weight:700;cursor:pointer">${f}</button>`).join('')+`<input type="number" min="0" step="0.5" value="${doseF}" onchange="setDose(parseFloat(this.value)||1)" style="width:64px;padding:4px 6px;border-radius:8px;border:1px solid var(--line)"></div>`; h+=`<ul>${c.ings.map(x=>`<li>${scaleTxt(x)}</li>`).join('')}</ul>`; } else { h+=`<div style="color:var(--muted);font-size:14px;padding:8px 0">Ricetta da rifinire — dimmi le dosi e i passaggi e li metto io.</div>`; } if(c.steps.length) h+=`<div class="lbl">Procedimento</div><ol>${c.steps.map(x=>`<li>${x}</li>`).join('')}</ol>`; }
+ else { if(c.ings.length){ h+=`<div class="lbl">Ingredienti</div>`; h+=`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;font-size:12px;flex-wrap:wrap"><span style="font-weight:800;color:var(--muted)">DOSI ×</span>`+[{l:'½',v:0.5},{l:'1',v:1},{l:'2',v:2},{l:'3',v:3},{l:'4',v:4}].map(o=>`<button onclick="setDose(${o.v})" style="border:1px solid var(--line);background:${doseF===o.v?'#0d0d0d':'#fff'};color:${doseF===o.v?'#fff':'#1a1a1a'};border-radius:8px;padding:4px 10px;font-weight:700;cursor:pointer">${o.l}</button>`).join('')+`<input type="number" min="0" step="0.5" value="${doseF}" onchange="setDose(parseFloat(this.value)||1)" style="width:64px;padding:4px 6px;border-radius:8px;border:1px solid var(--line)"></div>`; h+=`<ul>${c.ings.map(x=>`<li>${scaleTxt(x)}</li>`).join('')}</ul>`; } else { h+=`<div style="color:var(--muted);font-size:14px;padding:8px 0">Ricetta da rifinire — dimmi le dosi e i passaggi e li metto io.</div>`; } if(c.steps.length) h+=`<div class="lbl">Procedimento</div><ol>${c.steps.map(x=>`<li>${x}</li>`).join('')}</ol>`; }
  document.getElementById('detBody').innerHTML=h; document.getElementById('detail').classList.add('open'); }
 function closeDet(){ document.getElementById('detail').classList.remove('open'); }
 let PHOTOS={};
