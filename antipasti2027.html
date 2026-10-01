@@ -129,7 +129,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   </div>
   <div class="scr hidden-r" id="s_2027">
     <header><div class="brand"><div class="mark">PR</div><div><div class="k">MENÙ 2027</div><h1>Ricette · Antipasti</h1></div></div>
-      <div class="row"><label>Sei:</label><select id="who"><option>Gigio</option><option>Gianluca</option><option>Alex</option><option>Mattia</option><option>Mirko</option><option>Banu</option><option>Manjeet</option><option>Hemant</option></select></div>
+      <div class="row"><label>Sei:</label><select id="who" onchange="try{localStorage.setItem('pr_who',this.value);}catch(e){} renderDay();"><option>Gigio</option><option>Gianluca</option><option>Alex</option><option>Mattia</option><option>Mirko</option><option>Banu</option><option>Manjeet</option><option>Hemant</option></select></div>
       <div style="margin-top:8px"><button class="back" onclick="go('s_entry')">← Cambia anno</button></div></header>
     <div class="wlabel">ANTIPASTI · 1 al giorno · 7 giorni</div>
     <div class="dchips" id="dchips"></div>
@@ -368,4 +368,5 @@ async function renderAbbina(){ var box=document.getElementById('abbinaBox'); if(
 window.addEventListener('load',function(){ setTimeout(function(){ try{ loadCatalog(); loadProdMap(); }catch(e){} },400); });
 
 </script>
+<script>(function(){try{var w=localStorage.getItem("pr_who");if(!w)return;var s=document.getElementById("who");if(!s)return;for(var i=0;i<s.options.length;i++){if((s.options[i].value||s.options[i].text)===w){s.selectedIndex=i;break;}}}catch(e){}})();</script>
 </body></html>

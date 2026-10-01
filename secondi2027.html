@@ -130,7 +130,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   </div>
   <div class="scr hidden-r" id="s_2027">
     <header><div class="brand"><div class="mark">PR</div><div><div class="k">MENÙ 2027</div><h1>Ricette · Secondi</h1></div></div>
-      <div class="row"><label>Sei:</label><select id="who"><option>Gigio</option><option>Gianluca</option><option>Alex</option><option>Mattia</option><option>Mirko</option><option>Banu</option><option>Manjeet</option><option>Hemant</option></select></div>
+      <div class="row"><label>Sei:</label><select id="who" onchange="try{localStorage.setItem('pr_who',this.value);}catch(e){} renderDay();"><option>Gigio</option><option>Gianluca</option><option>Alex</option><option>Mattia</option><option>Mirko</option><option>Banu</option><option>Manjeet</option><option>Hemant</option></select></div>
       <div style="margin-top:8px"><button class="back" onclick="go('s_entry')">← Cambia anno</button></div></header>
     <div class="wlabel">SECONDI · Mezza pensione · 2 settimane</div>
     <div class="wtabs" id="wtabs"><button class="wtab active" onclick="setWeek('S1',this)">Settimana 1</button><button class="wtab" onclick="setWeek('S2',this)">Settimana 2</button></div>
@@ -380,4 +380,5 @@ function abbinaRow(label){ var m=PRODMAP[label]; var val=m?m.prod:''; var hint=m
 async function renderAbbina(){ var box=document.getElementById('abbinaBox'); if(!CATALOG.length){ box.innerHTML='<div class="spnote">Carico i listini dei fornitori…</div>'; await loadCatalog(); } var h='<input id="abFilter" class="abfilter" placeholder="🔍 filtra i prodotti da abbinare…" oninput="filterAbbina(this.value)">'+catDatalist(); h+='<div class="lbl">🥩 Carne & pesce</div>'; PROTLABELS.forEach(function(l){h+=abbinaRow(l);}); h+='<div class="lbl">🥬 Verdure & prodotti</div>'; PRODUCE.forEach(function(p){h+=abbinaRow(p[1]);}); box.innerHTML=h; }
 function enter2027(){ if(DATA){ go('s_2027'); initDay(); } else { go('s_lock'); } }
 window.addEventListener('load',async()=>{try{const sv=localStorage.getItem('pr_sec_pw');if(sv){DATA=await decryptData(sv); try{await loadPhotos();await loadOverrides();await loadCatalog();await loadProdMap();}catch(e){}}}catch(e){}});
-</script></body></html>
+</script><script>(function(){try{var w=localStorage.getItem("pr_who");if(!w)return;var s=document.getElementById("who");if(!s)return;for(var i=0;i<s.options.length;i++){if((s.options[i].value||s.options[i].text)===w){s.selectedIndex=i;break;}}}catch(e){}})();</script>
+</body></html>
