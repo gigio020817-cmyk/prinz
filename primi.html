@@ -159,19 +159,25 @@ function renderTabs(){
 }
 function setWeek(i){curW=i;renderTabs();document.getElementById('q').value='';renderList();}
 function _hasFoto(d){return !!(d&&((d.imgs&&d.imgs.length)||d.img));}function camBadge(d){return _hasFoto(d)?'<span class="cam cam-ok" title="foto presente">📷</span>':'<span class="cam cam-no" title="foto mancante">📷✕</span>';}
+window.RECEXTRA=[];
+async function loadExtra(){ try{ var r=await sb('kitchen_meta?k=eq.extrarec&select=v'); var v=r&&r[0]&&r[0].v; window.RECEXTRA=(v&&v.items)?v.items:[]; }catch(e){ window.RECEXTRA=[]; } }
+function showExtra(ix){ var x=(window.RECEXTRA||[])[ix]; if(!x)return; var ings=(x.ings||[]).map(function(i){return '<li>'+esc(i)+'</li>';}).join(''); var steps=(x.steps||[]).map(function(st){return '<li>'+esc(st)+'</li>';}).join(''); var ov=document.createElement('div'); ov.id='__recov'; ov.setAttribute('style','position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:18px'); ov.innerHTML='<div style="background:#fffdf9;max-width:460px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:18px"><div style="font-weight:800;font-size:18px;margin-bottom:8px">'+esc(x.nome)+'</div>'+(ings?('<div style="font-weight:700;margin:8px 0 2px">Ingredienti</div><ul>'+ings+'</ul>'):'')+(steps?('<div style="font-weight:700;margin:8px 0 2px">Procedimento</div><ol>'+steps+'</ol>'):'')+((!ings&&!steps)?'<div style="color:#8a8378">(ricetta ancora da compilare)</div>':'')+'<button onclick="var e=document.getElementById(\'__recov\');if(e)e.parentNode.removeChild(e);" style="width:100%;margin-top:10px;padding:12px;border:0;border-radius:10px;background:#1f1a14;color:#fff;font-weight:700;cursor:pointer">Chiudi</button></div>'; ov.onclick=function(e){ if(e.target===ov){ ov.parentNode.removeChild(ov); } }; document.body.appendChild(ov); }
 function renderList(filter){
+  if(!window._exLoaded){window._exLoaded=1;loadExtra();}
   filter=filter||"";const list=document.getElementById('list'),detail=document.getElementById('detail');
   detail.style.display='none';list.style.display='block';document.getElementById('hTitle').textContent='Primi Piatti';
   const f=filter.trim().toLowerCase();const dishes=WEEKS[curW].dishes;
   let items=dishes.map((d,i)=>({d,i}));
   if(f)items=items.filter(({d})=>((d.title+' '+d.giorno+' '+d.comps.map(c=>c.n+' '+c.r).join(' ')).toLowerCase().includes(f)));
-  if(!items.length){list.innerHTML='<div class="empty">Nessun risultato.</div>';return;}
+  var _ex=f?((window.RECEXTRA||[]).filter(function(x){return (x.nome||'').toLowerCase().indexOf(f)>=0;})):[];
+  if(!items.length && !_ex.length){list.innerHTML='<div class="empty">Nessun risultato.</div>';return;}
   let html='',lastday=null;
   items.forEach(({d,i})=>{
     if(d.giorno!==lastday){html+='<div class="daysec">'+esc(d.giorno)+'</div>';lastday=d.giorno;}
     html+='<div class="card" onclick="openDish('+i+')"><div class="info"><h3>'+esc(d.title)+' '+camBadge(d)+'</h3></div>'
       +'<svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div>';
   });
+  if(_ex.length){ html+='<div class="daysec">\uD83D\uDCD6 Ricette base / extra</div>'; _ex.forEach(function(x){ var gi=(window.RECEXTRA).indexOf(x); html+='<div class="card" onclick="showExtra('+gi+')"><div class="info"><h3>\uD83D\uDCD6 '+esc(x.nome)+'</h3></div></div>'; }); }
   list.innerHTML=html;
 }
 function openDish(i){window._listScroll=window.scrollY;

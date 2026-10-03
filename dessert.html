@@ -123,7 +123,7 @@
   <div class="brand"><div class="mark">PR</div><div><small>Prinz Rudolf · Pasticceria</small><h1>Pasticceria</h1></div></div>
   <div class="tabs" id="tabs"></div>
 </header>
-<main><div id="status">Caricamento…</div><div id="view"></div></main>
+<main><div id="status">Caricamento…</div><input id="recsearch" type="search" placeholder="🔎 Cerca una ricetta (es. crema pasticcera, frolla…)" oninput="doSearch(this.value)" autocomplete="off" style="width:100%;box-sizing:border-box;font-size:14px;padding:10px;border:1.5px solid #ddd2bd;border-radius:10px;margin:0 0 6px"><div id="recresults" style="display:none;border:1px solid #e7ddca;border-radius:10px;margin-bottom:8px;max-height:320px;overflow:auto;background:#fff"></div><div id="view"></div></main>
 <footer>Prinz Rudolf · Dessert</footer>
 </div>
 <script>
@@ -148,7 +148,7 @@ async function unlock(p,fromStore){
   try{DATA=await decrypt(p);}catch(e){err.textContent='Errore dati';return;}
   if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dspw','1')}catch(e){}}
   document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';
-  buildTabs();loadCounts();render();
+  buildTabs();loadCounts();render();loadExtra();
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
@@ -188,6 +188,19 @@ function renderOrdini(v){if(!_ordLoaded){v.innerHTML='<div class="ordintro">Cari
  });
  h+='<button class="ordsend" onclick="inviaOrdineChef()">📤 Invia l\'ordine allo chef</button>';
  v.innerHTML=h;}
+window.RECEXTRA=[];
+async function loadExtra(){ try{ var r=await sb('kitchen_meta?k=eq.extrarec&select=v'); var v=r&&r[0]&&r[0].v; window.RECEXTRA=(v&&v.items)?v.items:[]; }catch(e){ window.RECEXTRA=[]; } }
+function _recN(s){ return (s||'').toString().toLowerCase(); }
+function doSearch(q){ var box=document.getElementById('recresults'); if(!box)return; q=_recN(q).trim(); if(q.length<2){ box.style.display='none'; box.innerHTML=''; return; } var res=[];
+ ['vetrina','gelati','torte'].forEach(function(sec){ (DATA[sec]||[]).forEach(function(it){ if(_recN(it.nm).indexOf(q)>=0) res.push({t:'d',lab:it.nm,sub:({vetrina:'Vetrina dolci',gelati:'Gelati',torte:'Torte colazioni'})[sec],sec:sec,id:it.id}); }); });
+ (DATA.mezza||[]).forEach(function(w){ (w.dishes||[]).forEach(function(d){ if(_recN(d.title).indexOf(q)>=0) res.push({t:'m',lab:d.title,sub:'Mezza pensione \u00b7 '+w.sett}); }); });
+ (window.RECEXTRA||[]).forEach(function(x,ix){ if(_recN(x.nome).indexOf(q)>=0) res.push({t:'extra',lab:x.nome,ix:ix}); });
+ if(!res.length){ box.innerHTML='<div style="padding:10px;color:#8a8378">Nessun risultato</div>'; box.style.display='block'; return; }
+ box.innerHTML=res.slice(0,40).map(function(r){ if(r.t==='d') return '<div onclick="goRec(\''+r.sec+'\',\''+r.id+'\')" style="padding:10px;border-bottom:1px solid #eee;cursor:pointer"><b>'+esc(r.lab)+'</b><div style="font-size:12px;color:#8a8378">'+esc(r.sub)+'</div></div>'; if(r.t==='m') return '<div style="padding:10px;border-bottom:1px solid #eee"><b>'+esc(r.lab)+'</b><div style="font-size:12px;color:#8a8378">'+esc(r.sub)+'</div></div>'; return '<div onclick="showExtra('+r.ix+')" style="padding:10px;border-bottom:1px solid #eee;cursor:pointer;background:#fff8e6"><b>\uD83D\uDCD6 '+esc(r.lab)+'</b><div style="font-size:12px;color:#8a6d00">Ricetta base/extra \u2014 tocca per vedere</div></div>'; }).join(''); box.style.display='block';
+}
+function hideSearch(){ var box=document.getElementById('recresults'); if(box){ box.style.display='none'; box.innerHTML=''; } var inp=document.getElementById('recsearch'); if(inp)inp.value=''; }
+function goRec(sec,id){ setTab(sec); setTimeout(function(){ var el=document.getElementById('c_'+sec+'_'+id); if(el){ if(!el.classList.contains('open'))el.classList.add('open'); try{el.scrollIntoView({block:'center'});}catch(e){} el.style.outline='2px solid #c9a227'; setTimeout(function(){el.style.outline='';},1500); } },80); hideSearch(); }
+function showExtra(ix){ var x=(window.RECEXTRA||[])[ix]; if(!x)return; var ings=(x.ings||[]).map(function(i){return '<li>'+esc(i)+'</li>';}).join(''); var steps=(x.steps||[]).map(function(st){return '<li>'+esc(st)+'</li>';}).join(''); var ov=document.createElement('div'); ov.id='__recov'; ov.setAttribute('style','position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:18px'); ov.innerHTML='<div style="background:#fffdf9;max-width:460px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:18px"><div style="font-weight:800;font-size:18px;margin-bottom:8px">'+esc(x.nome)+'</div>'+(ings?('<div style="font-weight:700;margin:8px 0 2px">Ingredienti</div><ul>'+ings+'</ul>'):'')+(steps?('<div style="font-weight:700;margin:8px 0 2px">Procedimento</div><ol>'+steps+'</ol>'):'')+((!ings&&!steps)?'<div style="color:#8a8378">(ricetta ancora da compilare)</div>':'')+'<button onclick="var e=document.getElementById(\'__recov\');if(e)e.parentNode.removeChild(e);" style="width:100%;margin-top:10px;padding:12px;border:0;border-radius:10px;background:#1f1a14;color:#fff;font-weight:700;cursor:pointer">Chiudi</button></div>'; ov.onclick=function(e){ if(e.target===ov){ ov.parentNode.removeChild(ov); } }; document.body.appendChild(ov); }
 function render(){
   var v=document.getElementById('view');
   if(curTab==='mezza'){renderMezza(v);return;}
