@@ -107,6 +107,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 .fotostar{position:absolute;left:5px;bottom:5px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:8px;padding:4px 8px;font-size:11px;font-weight:700;cursor:pointer}
 .fotomain{position:absolute;left:5px;bottom:5px;background:#2f6b1f;color:#fff;border-radius:8px;padding:4px 8px;font-size:11px;font-weight:700}
 html,body{max-width:100%;overflow-x:hidden;overscroll-behavior:none}*{box-sizing:border-box}img,svg{max-width:100%}.dchips{flex-wrap:wrap;overflow-x:visible !important}
+.ubtn{min-width:46px;padding:7px 8px;border-radius:8px;border:1px solid var(--line);background:#fff;font-weight:700;font-size:13px;cursor:pointer}
 </style></head><body>
 <div class="phone">
   <div class="scr" id="s_entry">
@@ -369,20 +370,21 @@ function genLista(){
  window._lastProd=rows;
  let h='<div class="lbl">🥩 Carne & pesce — fabbisogno servizio</div>';
  h+='<div class="spnote">Numeri con +15% di cuscinetto (avanzo → scorta o personale). Metti la giacenza: l\'ordine lo decidi tu (di solito 60/80 pz per coprire + rifare scorta). In Ordini poi cambi kg↔pz al volo.</div>';
- window._lastProt.forEach(p=>{ h+=`<div class="protrow"><div class="pn">${p.disp}</div><div class="pf">~${p.fab} porz.</div><label>in casa <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="gia_${p.i}" onfocus="this.select()" oninput="updGia(${p.i},${p.fab})"></label><label class="po">ordina <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="ord_${p.i}" value="${p.fab}" onfocus="this.select()"></label></div>`; });
+ window._lastProt.forEach(p=>{ h+=`<div class="protrow"><div class="pn">${p.disp}</div><div class="pf">~${p.fab} porz.</div><label>in casa <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="gia_${p.i}" onfocus="this.select()" oninput="updGia(${p.i},${p.fab})"></label><label class="po">ordina <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="ord_${p.i}" value="${p.fab}" onfocus="this.select()"></label><button type="button" class="ubtn" id="u_${p.i}" onclick="cycleU(this)">pz</button></div>`; });
  const vegKeys=Object.keys(prot).filter(k=>!MEATRE.test(k));
  if(vegKeys.length){ h+='<div class="lbl">🌱 Veg (prep abbattute, scongeli al servizio)</div>'; vegKeys.forEach(k=>{ h+=`<div class="protrow"><div class="pn">${k}</div><div class="pf">~${prot[k]} porz.</div></div>`; }); }
  h+='<div class="lbl">🥬 Verdure & prodotti — indicativo</div>';
  h+='<div class="spnote">Stima "a spanne", si somma con le altre partite. Premi Invia: vanno nelle richieste dell\'app Ordini, tu accetti e li agganci al fornitore.</div>';
- rows.forEach(r=>{ h+=`<div class="prodrow"><div class="pn">${r.name}</div><div class="pq">~${r.q} ${r.unit} <span class="pkg">(≈${r.kg} kg)</span></div></div>`; });
+ rows.forEach((r,vi)=>{ h+=`<div class="protrow"><div class="pn">${r.name}</div><div class="pf">~${r.q} ${r.unit}</div><label class="po">ordina <input type="number" inputmode="decimal" min="0" id="ordv_${vi}" value="${r.q}" onfocus="this.select()"></label><button type="button" class="ubtn" id="uv_${vi}" onclick="cycleU(this)">${r.unit||'kg'}</button></div>`; });
  if(!provKeys.length && !rows.length){ document.getElementById('spesaOut').innerHTML='<div class="spnote">Metti i coperti dei giorni e premi Genera.</div>'; return; }
  h+='<button class="sendbtn" style="margin-top:12px;background:#2f6b1f" onclick="sendToOrdini()">📤 Invia a Ordini</button>';
  document.getElementById('spesaOut').innerHTML=h;
 }
+function cycleU(b){var L=['kg','pz','cart','cassa','g','L'];var i=L.indexOf((b.textContent||'').trim());b.textContent=L[(i+1)%L.length];}
 function updGia(i,fab){ const g=parseInt(document.getElementById('gia_'+i).value)||0; const ord=Math.max(0,fab-g); var oe=document.getElementById('ord_'+i); if(oe) oe.value=ord; }
 async function sendToOrdini(){ const items=[];
- (window._lastProt||[]).forEach(p=>{ var oe=document.getElementById('ord_'+p.i); var q=oe?(parseInt(oe.value)||0):Math.max(0,p.fab-(parseInt((document.getElementById('gia_'+p.i)||{}).value)||0)); if(q>0) items.push({n:p.disp,q:''+q,u:'pz'}); });
- (window._lastProd||[]).forEach(r=>{ items.push({n:r.name,q:''+r.q,u:r.unit}); });
+ (window._lastProt||[]).forEach(p=>{ var oe=document.getElementById('ord_'+p.i); var q=oe?(parseInt(oe.value)||0):Math.max(0,p.fab-(parseInt((document.getElementById('gia_'+p.i)||{}).value)||0)); if(q>0) items.push({n:p.disp,q:''+q,u:((document.getElementById('u_'+p.i)||{}).textContent||'pz')}); });
+ (window._lastProd||[]).forEach((r,vi)=>{ var oe=document.getElementById('ordv_'+vi); var q=oe?(parseFloat((''+oe.value).replace(',','.'))||0):r.q; if(q>0) items.push({n:r.name,q:''+q,u:((document.getElementById('uv_'+vi)||{}).textContent||r.unit)}); });
  const t=document.getElementById('toast');
  if(!items.length){ t.innerHTML='<b>Niente da inviare</b>Genera prima la lista.'; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),4000); return; }
  try{ let cur=await sb('kitchen_meta?k=eq.pastreq&select=v'); let arr=(cur&&cur[0]&&cur[0].v&&cur[0].v.items)?cur[0].v.items:[];
@@ -409,4 +411,5 @@ async function renderAbbina(){ var box=document.getElementById('abbinaBox'); if(
 function enter2027(){ if(DATA){ go('s_2027'); initDay(); } else { go('s_lock'); } }
 window.addEventListener('load',async()=>{try{const sv=localStorage.getItem('pr_sec_pw');if(sv){DATA=await decryptData(sv); try{await loadPhotos();await loadOverrides();await loadCatalog();await loadProdMap();await loadExtra();}catch(e){}}}catch(e){} enter2027();});
 </script><script>(function(){try{var w=localStorage.getItem("pr_who");if(!w)return;var s=document.getElementById("who");if(!s)return;for(var i=0;i<s.options.length;i++){if((s.options[i].value||s.options[i].text)===w){s.selectedIndex=i;break;}}}catch(e){}})();</script>
+<script>(function(){function _wmWho(){try{return localStorage.getItem('pr_who')||localStorage.getItem('pr_cook')||((document.getElementById('who')||{}).value)||'';}catch(e){return '';}}function _wmStamp(){try{var d=new Date();var dd=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);var txt=(_wmWho()||'—')+' \u00b7 '+dd+' \u00b7 Ricette di Gigio — riservate, non diffondere';var ov=document.getElementById('__wm');if(!ov){ov=document.createElement('div');ov.id='__wm';ov.setAttribute('style','position:fixed;inset:-20%;z-index:5;pointer-events:none;overflow:hidden;opacity:.11;display:flex;flex-wrap:wrap;align-content:flex-start;gap:0;transform:rotate(-28deg);transform-origin:center');document.body.appendChild(ov);}var cell='<span style="color:#8a6d00;font-size:12px;font-weight:800;white-space:nowrap;padding:24px 26px">'+txt.replace(/</g,'&lt;')+'</span>';ov.innerHTML=cell.repeat(160);}catch(e){}}if(document.body)_wmStamp();else window.addEventListener('DOMContentLoaded',_wmStamp);setInterval(_wmStamp,4000);})();</script>
 </body></html>

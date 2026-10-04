@@ -140,8 +140,8 @@ async function decrypt(password){
   const p=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64(ENC.iv)},key,b64(ENC.ct));
   return JSON.parse(new TextDecoder().decode(p));
 }
-var DATA=null, SCOUNT={}, CORR={}, curTab='mezza', curW=0;
-const TABS=[['mezza','🍮 Mezza pensione'],['vetrina','🍰 Vetrina dolci'],['gelati','🍨 Gelati'],['torte','🥧 Torte colazioni'],['ordini','🛒 Ordini']];
+var DATA=null, SCOUNT={}, CORR={}, curTab='prod', curW=0;
+const TABS=[['prod','📋 Produzione'],['mezza','🍮 Mezza pensione'],['vetrina','🍰 Vetrina dolci'],['gelati','🍨 Gelati'],['torte','🥧 Torte colazioni'],['ordini','🛒 Ordini']];
 const pw=document.getElementById('pw'),err=document.getElementById('err');
 async function unlock(p,fromStore){
   if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}
@@ -210,6 +210,7 @@ function showExtra(ix){ var x=(window.RECEXTRA||[])[ix]; if(!x)return; _recCur=x
 
 function render(){
   var v=document.getElementById('view');
+  if(curTab==='prod'){renderProd(v);return;}
   if(curTab==='mezza'){renderMezza(v);return;}
   if(curTab==='ordini'){renderOrdini(v);return;}
   renderSection(v,curTab);
@@ -296,5 +297,79 @@ function copyCorr(){var t=document.getElementById('corrModal').querySelector('te
   if(document.readyState!=='loading')start();else document.addEventListener('DOMContentLoaded',start);
  }catch(e){}
 })();</script>
+<script>
+/* ===== Produzione / Scheda di servizio pasticceria (Erjola) ===== */
+var _prodLoaded=false;var PROD={items:{},free:[]};var prodW=0;var prodD=0;
+function setProdW(i){prodW=i;prodD=0;renderProd(document.getElementById('view'));window.scrollTo(0,0);}
+function setProdD(i){prodD=i;renderProd(document.getElementById('view'));window.scrollTo(0,0);}
+async function loadProd(){try{var r=await sb('kitchen_meta?k=eq.prodstatePast&select=v');var v=(r&&r[0]&&r[0].v)?r[0].v:{};PROD.items=v.items||{};PROD.free=v.free||[];}catch(e){PROD.items={};PROD.free=[];}_prodLoaded=true;}
+async function saveProd(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'prodstatePast',v:{items:PROD.items,free:PROD.free}})});}catch(e){}}
+function pGet(k){return PROD.items[k]||{st:'t',val:'',sent:false};}
+function pSet(k,st){var o=pGet(k);o.st=st;if(st==='t')o.sent=false;PROD.items[k]=o;renderProd(document.getElementById('view'));saveProd();}
+function pVal(k,v){var o=pGet(k);o.val=v;PROD.items[k]=o;saveProd();}
+function addFree(){var inp=document.getElementById('pfnew');var n=(inp&&inp.value||'').trim();if(!n)return;PROD.free.push({id:'f'+Date.now(),n:n,q:'',sent:false});if(inp)inp.value='';renderProd(document.getElementById('view'));saveProd();}
+function addFreeName(n){PROD.free.push({id:'f'+Date.now()+Math.floor(Math.random()*999),n:n,q:'',sent:false});renderProd(document.getElementById('view'));saveProd();}
+function freeQ(id,v){var o=PROD.free.find(function(x){return x.id===id;});if(o){o.q=v;saveProd();}}
+function delFree(id){PROD.free=PROD.free.filter(function(x){return x.id!==id;});renderProd(document.getElementById('view'));saveProd();}
+function _pwho(){try{return localStorage.getItem('pr_who')||localStorage.getItem('pr_cook')||'Erjola';}catch(e){return 'Erjola';}}
+function prodRowC(k,c,o){
+ var st=o.st;var sub='';
+ if(st==='f')sub='<div style="padding:4px 2px 2px"><input value="'+(o.val||'').replace(/"/g,'&quot;')+'" oninput="pVal(\''+k+'\',this.value)" placeholder="dose fatta (es. 2 kg)" style="width:100%;border:1px solid #e7ddca;border-radius:8px;padding:8px;font:inherit;box-sizing:border-box"></div>';
+ if(st==='s')sub='<div style="padding:4px 2px 2px"><input value="'+(o.val||'').replace(/"/g,'&quot;')+'" oninput="pVal(\''+k+'\',this.value)" placeholder="giacenza (es. 8 pz)" style="width:100%;border:1px solid #e7ddca;border-radius:8px;padding:8px;font:inherit;box-sizing:border-box"></div>';
+ function b(v,lab,col){return '<button onclick="pSet(\''+k+'\',\''+v+'\')" style="border:1px solid '+(st===v?col:'#e7ddca')+';background:'+(st===v?col:'#fff')+';color:'+(st===v?'#fff':'#6b1f2a')+';border-radius:8px;width:40px;height:36px;font-size:16px;flex:0 0 auto">'+lab+'</button>';}
+ return '<div style="padding:9px 2px;border-bottom:1px solid #eee4cf'+(o.sent?';opacity:.6':'')+'"><div style="display:flex;align-items:center;gap:6px"><span style="flex:1;font-size:14.5px;font-weight:700;color:#4b1528'+(o.sent?';text-decoration:line-through':'')+'">'+esc(c.n)+(o.sent?' <span style="color:#1e7a46;font-weight:800;font-size:12px">✓ inviato</span>':'')+'</span>'+b('f','✅','#1e7a46')+b('s','📦','#a06b00')+b('t','⬜','#999')+'</div>'+sub+'</div>';
+}
+function prodRow(k,name,o){
+ var st=o.st;var sub='';
+ if(st==='f')sub='<div style="padding:4px 2px 2px"><input value="'+(o.val||'').replace(/"/g,'&quot;')+'" oninput="pVal(\''+k+'\',this.value)" placeholder="dose fatta (es. 2 kg)" style="width:100%;border:1px solid #e7ddca;border-radius:8px;padding:8px;font:inherit;box-sizing:border-box"></div>';
+ if(st==='s')sub='<div style="padding:4px 2px 2px"><input value="'+(o.val||'').replace(/"/g,'&quot;')+'" oninput="pVal(\''+k+'\',this.value)" placeholder="giacenza (es. 8 pz)" style="width:100%;border:1px solid #e7ddca;border-radius:8px;padding:8px;font:inherit;box-sizing:border-box"></div>';
+ function b(v,lab,col){return '<button onclick="pSet(\''+k+'\',\''+v+'\')" style="border:1px solid '+(st===v?col:'#e7ddca')+';background:'+(st===v?col:'#fff')+';color:'+(st===v?'#fff':'#6b1f2a')+';border-radius:8px;width:40px;height:36px;font-size:16px">'+lab+'</button>';}
+ return '<div style="padding:8px 2px;border-bottom:1px solid #eee4cf'+(o.sent?';opacity:.6':'')+'"><div style="display:flex;align-items:center;gap:6px"><span style="flex:1;font-size:14.5px'+(o.sent?';text-decoration:line-through':'')+'">'+esc(name)+(o.sent?' <span style="color:#1e7a46;font-weight:800;font-size:12px">✓ inviato</span>':'')+'</span>'+b('f','✅','#1e7a46')+b('s','📦','#a06b00')+b('t','⬜','#999')+'</div>'+sub+'</div>';
+}
+function renderProd(v){
+ if(!DATA){v.innerHTML='';return;}
+ if(!_prodLoaded){v.innerHTML='<div style="padding:16px;color:#6b1f2a">Carico…</div>';loadProd().then(function(){renderProd(v);});return;}
+ var who=_pwho();
+ var h='<div style="background:#fff;border:1px solid #e7ddca;border-left:6px solid #c9a227;border-radius:14px;padding:14px;margin:10px 0"><div style="font-weight:800;font-size:18px;color:#6b1f2a">📋 Scheda di servizio — Pasticceria</div><div style="font-size:13px;color:#8a6d1a;background:#fff8e6;border:1px solid #ecdca0;border-radius:10px;padding:9px 11px;margin-top:8px">Segna cosa hai preparato. La mezza pensione è già pronta qui sotto; tutto il resto (vetrina, torte, basi…) aggiungilo tu in fondo. Poi invia allo chef: le voci inviate restano sbarrate.</div><div style="font-size:12px;color:#666;margin-top:6px">Invio come: <b>'+esc(who)+'</b></div></div>';
+ h+='<div style="font-weight:800;font-size:16px;color:#6b1f2a;margin:14px 0 6px">🍮 Mezza pensione</div>';
+ h+='<div style="display:flex;gap:8px;margin-bottom:8px">'+(DATA.mezza||[]).map(function(w,wi){return '<button onclick="setProdW('+wi+')" style="flex:1;border:1px solid #c9a227;background:'+(wi===prodW?'#6b1f2a':'#fff')+';color:'+(wi===prodW?'#fff':'#6b1f2a')+';border-radius:10px;padding:10px;font-weight:800;font-size:14px">'+esc(w.sett||('Settimana '+(wi+1)))+'</button>';}).join('')+'</div>';
+ var _w=(DATA.mezza||[])[prodW];
+ if(_w){
+   var _dishes=_w.dishes||[];
+   if(prodD>=_dishes.length)prodD=0;
+   h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">'+_dishes.map(function(d,di){var gg=(d.giorno||('Giorno '+(di+1)));return '<button onclick="setProdD('+di+')" style="border:1px solid #c9a227;background:'+(di===prodD?'#c9a227':'#fff')+';color:'+(di===prodD?'#1a1400':'#6b1f2a')+';border-radius:16px;padding:7px 12px;font-weight:800;font-size:12.5px">'+esc(gg)+'</button>';}).join('')+'</div>';
+   var _d=_dishes[prodD];
+   if(_d){
+     var _comps=_d.comps||[];
+     var _done=_comps.filter(function(c,ci){var o=PROD.items[prodW+'|'+prodD+'|'+ci];return o&&(o.st==='f'||o.st==='s');}).length;
+     h+='<div style="font-weight:800;font-size:15.5px;color:#4b1528;margin:2px 0 2px">'+esc((_d.giorno?_d.giorno+' — ':'')+_d.title)+'</div>';
+     h+='<div style="font-size:12px;color:#888;margin-bottom:4px">Segnati: <b>'+_done+'/'+_comps.length+'</b></div>';
+     _comps.forEach(function(c,ci){var k=prodW+'|'+prodD+'|'+ci;h+=prodRowC(k,c,pGet(k));});
+   }
+ }
+ h+='<div style="font-weight:800;font-size:16px;color:#6b1f2a;margin:18px 0 4px">🍰 Altre preparazioni (vetrina, torte, basi…)</div>';
+ if(PROD.free.length){PROD.free.forEach(function(fr){h+='<div style="display:flex;align-items:center;gap:6px;padding:9px 2px;border-bottom:1px solid #eee4cf'+(fr.sent?';opacity:.55':'')+'"><span style="flex:1;font-size:14.5px'+(fr.sent?';text-decoration:line-through':'')+'">'+esc(fr.n)+(fr.sent?' <span style="color:#1e7a46;font-weight:800;font-size:12px">✓ inviato</span>':'')+'</span><input value="'+(fr.q||'').replace(/"/g,'&quot;')+'" oninput="freeQ(\''+fr.id+'\',this.value)" placeholder="dose/qt" style="width:92px;border:1px solid #e7ddca;border-radius:8px;padding:7px;font:inherit;box-sizing:border-box"><button onclick="delFree(\''+fr.id+'\')" style="border:1px solid #e7ddca;background:#fff;border-radius:8px;width:34px;height:34px;color:#6b1f2a;font-size:16px">🗑</button></div>';});}else{h+='<div style="color:#999;font-size:13px;padding:4px 2px">Niente ancora. Aggiungi qui sotto cosa hai preparato.</div>';}
+ h+='<div style="display:flex;gap:6px;margin-top:10px"><input id="pfnew" placeholder="Es. Bignè, pan di spagna, frolla…" onkeydown="if(event.key===\'Enter\')addFree()" style="flex:1;border:1px solid #e7ddca;border-radius:9px;padding:10px;font:inherit;box-sizing:border-box;min-width:0"><button onclick="addFree()" style="border:0;background:#6b1f2a;color:#fff;border-radius:9px;padding:0 16px;font-weight:800;white-space:nowrap">+ Aggiungi</button></div>';
+ var sugg=[];['vetrina','torte','gelati'].forEach(function(s){(DATA[s]||[]).forEach(function(x){if(x.nm)sugg.push(x.nm);});});
+ if(sugg.length){h+='<div style="margin-top:10px;font-size:12px;color:#888">Aggiunta rapida:</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:5px">'+sugg.map(function(n){return '<button onclick="addFreeName('+JSON.stringify(n).replace(/"/g,'&quot;')+')" style="border:1px solid #e7ddca;background:#faf6ee;border-radius:16px;padding:6px 11px;font-size:12.5px;color:#6b1f2a">'+esc(n)+'</button>';}).join('')+'</div>';}
+ var _GG=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];var _todayName=_GG[new Date().getDay()];
+ h+='<div style="margin-top:16px"><button onclick="sendProd()" style="width:100%;border:0;border-radius:12px;padding:15px;font-size:16px;font-weight:800;background:#6b1f2a;color:#fff">📤 Invia la scheda allo chef — '+esc(_todayName)+'</button><div style="font-size:11.5px;color:#888;margin-top:6px">Segna quello che prepari in ogni giorno/settimana; la scheda unica si invia dal giorno di oggi ('+esc(_todayName)+'). Quello che invii resta sbarrato.</div><div id="ptoast" style="display:none;margin-top:8px"></div></div>';
+ v.innerHTML=h;
+}
+async function sendProd(){
+ var who=_pwho();var today=new Date().toISOString().slice(0,10);var t=document.getElementById('ptoast');
+ var sections=[],count=0,touchedItems=[],touchedFree=[];
+ (DATA.mezza||[]).forEach(function(w,wi){(w.dishes||[]).forEach(function(d,di){var lines=[];(d.comps||[]).forEach(function(c,ci){var k=wi+'|'+di+'|'+ci;var o=PROD.items[k];if(!o||(o.st!=='f'&&o.st!=='s')||o.sent)return;var val=(o.val||'').trim();lines.push(o.st==='f'?('✅ '+c.n+(val?' — '+val:'')):('📦 '+c.n+(val?' — scorta '+val:' — scorta')));touchedItems.push(k);count++;});if(lines.length){sections.push('— '+(w.sett||('Sett '+(wi+1)))+' · '+(d.giorno?d.giorno+' · ':'')+d.title+' —\n'+lines.join('\n'));}});});
+ var altLines=[];PROD.free.forEach(function(fr){if(fr.sent||!(fr.n||'').trim())return;var q=(fr.q||'').trim();altLines.push('✅ '+fr.n+(q?' — '+q:''));touchedFree.push(fr.id);count++;});
+ if(!count){t.style.cssText='display:block;background:#c0392b;color:#fff;border-radius:10px;padding:12px;margin-top:8px;font-weight:700';t.textContent='Niente di nuovo da inviare. Segna qualcosa con ✅/📦 o aggiungi una preparazione.';return;}
+ var cosa='SCHEDA PASTICCERIA — '+who+':';if(sections.length)cosa+='\n\n'+sections.join('\n\n');if(altLines.length)cosa+='\n\n— Altre preparazioni —\n'+altLines.join('\n');
+ try{await sb('kitchen_entries',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({day:today,type:'scheda',cook:who,data:{cosa:cosa}})});
+  touchedItems.forEach(function(k){PROD.items[k].sent=true;});touchedFree.forEach(function(id){var o=PROD.free.find(function(x){return x.id===id;});if(o)o.sent=true;});
+  await saveProd();renderProd(document.getElementById('view'));
+  t=document.getElementById('ptoast');t.style.cssText='display:block;background:#1e7a46;color:#fff;border-radius:10px;padding:12px;margin-top:8px;font-weight:700';t.textContent='Inviato allo chef ✓ ('+(mez.length+alt.length)+' voci)';
+ }catch(e){t.style.cssText='display:block;background:#c0392b;color:#fff;border-radius:10px;padding:12px;margin-top:8px;font-weight:700';t.textContent='⚠️ Errore invio, riprova.';}
+}
+</script>
+<script>(function(){function _wmWho(){try{return localStorage.getItem('pr_who')||localStorage.getItem('pr_cook')||((document.getElementById('who')||{}).value)||'';}catch(e){return '';}}function _wmStamp(){try{var d=new Date();var dd=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);var txt=(_wmWho()||'—')+' \u00b7 '+dd+' \u00b7 Ricette di Gigio — riservate, non diffondere';var ov=document.getElementById('__wm');if(!ov){ov=document.createElement('div');ov.id='__wm';ov.setAttribute('style','position:fixed;inset:-20%;z-index:5;pointer-events:none;overflow:hidden;opacity:.11;display:flex;flex-wrap:wrap;align-content:flex-start;gap:0;transform:rotate(-28deg);transform-origin:center');document.body.appendChild(ov);}var cell='<span style="color:#8a6d00;font-size:12px;font-weight:800;white-space:nowrap;padding:24px 26px">'+txt.replace(/</g,'&lt;')+'</span>';ov.innerHTML=cell.repeat(160);}catch(e){}}if(document.body)_wmStamp();else window.addEventListener('DOMContentLoaded',_wmStamp);setInterval(_wmStamp,4000);})();</script>
 </body>
 </html>

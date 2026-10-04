@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>try{location.replace('cuochi.html'+location.search+location.hash);}catch(e){location.href='cuochi.html';}</script>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -415,7 +416,7 @@ function missingFor(cook){
   if(cook==='Gigio')return [];
   if(cook==='Banu')return [];
   var miss=[];
-  if(cook!=='Gigio'&&!(TIMBRA[cook]&&TIMBRA[cook].pIn))miss.push({t:"Mark the lunch arrival",from:0});
+  if(cook!=='Gigio'&&!(TIMBRA[cook]&&(TIMBRA[cook].pIn||TIMBRA[cook].sIn||TIMBRA[cook].in)))miss.push({t:"Mark the arrival",from:0});
   var tour=PEOPLE[cook]&&PEOPLE[cook].tournant;
   var cov=tour?(getCover()||badrCovers()):'';
   if(tour&&cov){var g='pulizia#'+cov,tot=puliziaFor(cov).length,d=countDone(g);if(d<tot)miss.push({t:"Cleaning of "+cov+" station ("+d+"/"+tot+")",from:DUE_PULIZIA});}

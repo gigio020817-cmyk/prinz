@@ -128,6 +128,7 @@
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
+var PENALI_ON=false; /* penali sospese per questa stagione — metti true per riattivarle */
 const TEAM=[["Gianluca","Secondo cuoco · Tournant"],["Alex","Bistro"],["Banu","Colazioni + antipasti (sera)"],["Mattia","Primi"],["Ubaldo","Pizzeria + Panificazione · turno serale"],["Erjola","Pasticceria"],["Majeet","Bistro"],["Mirko","Secondi"]];
 const APERTURA=["Accendere le attrezzature del mattino","Controllare le PRESENZE settimanali","Ricevere e sistemare la merce (FIFO)","Controllo mise en place e scorte","Pasto del personale fuori per le 11:30","Controllare gli avanzi e stoccarli"];
 const PULIZIA=["Piani e zona di lavoro (piano sanificato · coperchi in ordine · niente sporco vicino ai piatti)","Cotture (fornelli/piastra/griglia · forno sopra e fronte · salamandra)","Attrezzatura della partita (bilance, bimby/pacojet, sottovuoto, friggitrice, microonde · cambio acqua roner)","Freddo (banco frigo: riordino, date, FIFO · abbattitore davanti)","Pass (dietro, sopra, decorazioni)"];
@@ -227,6 +228,7 @@ async function loadAll(silent){
     window.RECMODS=(recmods||[]).map(function(r){var k=r.k||'';var app=k.indexOf('anticorr|')===0?'Antipasti':k.indexOf('primicorr|')===0?'Primi':k.indexOf('dcorr|')===0?'Pasticceria':k.indexOf('panecorr|')===0?'Pane':'?';return {key:k,app:app,label:(r.v&&r.v.label)||'',text:(r.v&&r.v.text)||'',at:(r.v&&r.v.at)||null};}).filter(function(x){return x.text && x.text.trim();});
     try{var _pl=await sb('kitchen_meta?k=eq.passlist&select=*');window.PASSL=(_pl&&_pl[0]&&_pl[0].v&&_pl[0].v.items)?_pl[0].v.items:[];}catch(e){window.PASSL=[];}
     try{var _co=await sb('kitchen_meta?k=eq.chefordini'+''+'&select=*');window.CHEFORD=(_co&&_co[0]&&_co[0].v&&_co[0].v.items)?_co[0].v.items:[];}catch(e){window.CHEFORD=[];}
+    try{var _cn=await sb('kitchen_meta?k=eq.chefnotes&select=*');window.CHEFNOTES=(_cn&&_cn[0]&&_cn[0].v&&_cn[0].v.items)?_cn[0].v.items:[];}catch(e){window.CHEFNOTES=[];}
     try{var _bd=await sb('kitchen_meta?k=eq.'+encodeURIComponent('banuck|d|'+day)+'&select=v');window.BANUCK_D=(_bd&&_bd[0]&&_bd[0].v)?_bd[0].v:{items:[]};}catch(e){window.BANUCK_D={items:[]};}try{var _bw=await sb('kitchen_meta?k=eq.'+encodeURIComponent('banuck|w|'+weekTok())+'&select=v');window.BANUCK_W=(_bw&&_bw[0]&&_bw[0].v)?_bw[0].v:{items:[]};window.BANUCK=window.BANUCK_W;}catch(e){window.BANUCK_W={items:[]};window.BANUCK={items:[]};}
     if(!window._PMONTH){var _pn=new Date();window._PMONTH=_pn.getFullYear()+'-'+('0'+(_pn.getMonth()+1)).slice(-2);}try{var _pr=await sb('kitchen_meta?k=like.'+encodeURIComponent('presenze|'+window._PMONTH)+'*&select=k,v');window.PRESENZE={};(_pr||[]).forEach(function(r){window.PRESENZE[r.k.slice(9)]=r.v||{};});}catch(e){window.PRESENZE=window.PRESENZE||{};}
     render(day,ck,ckw,ent,(meta&&meta[0])?meta[0].v:null,presa);
@@ -544,6 +546,48 @@ async function saveCO(){var day=(window.LAST&&window.LAST.day)||todayStr();try{a
 function addChefOrd(){var t=document.getElementById('coTxt'),c=document.getElementById('coCook');var txt=((t&&t.value)||'').trim();if(!txt){alert('Scrivi cosa hai chiesto.');return;}window.CHEFORD=window.CHEFORD||[];window.CHEFORD.push({id:Date.now(),txt:txt,cook:(c&&c.value)||'',at:new Date().toISOString(),done:null});if(t)t.value='';saveCO();rerenderDash();}
 function setCO(id,val){window.CHEFORD=(window.CHEFORD||[]).map(function(o){if(o.id===id){o.done=val;o.doneAt=new Date().toISOString();}return o;});saveCO();rerenderDash();}
 function delCO(id){if(!confirm('Togliere questo ordine dalla lista?'))return;window.CHEFORD=(window.CHEFORD||[]).filter(function(o){return o.id!==id;});saveCO();rerenderDash();}
+function noteCard(){
+  var list=window.CHEFNOTES||[];
+  var opts=TEAM.filter(function(t){return t[0]!=='Gigio';}).map(function(t){return '<option>'+t[0]+'</option>';}).join('');
+  var rows=list.slice().reverse().map(function(o){
+    var ackd=o.ack===true;
+    var stx=ackd?('<span class="pill ok">✓ letto e capito · '+tloc(o.ackAt)+'</span>'):'<span class="pill no">⏳ non ancora letto</span>';
+    return '<div class="row" style="align-items:flex-start;gap:8px"><span style="flex:1"><b>'+esc(o.cook||'?')+'</b> — '+esc(o.txt)+' <span class="muted">'+tloc(o.at)+'</span><div style="margin-top:4px">'+stx+'</div></span><button class="ctrlbtn" style="padding:7px 10px;margin:0;background:#9a9082;flex:0 0 auto" onclick="delNote('+o.id+')">🗑</button></div>';
+  }).join('');
+  if(!rows)rows='<div class="muted">Nessuna osservazione attiva. Scrivi sopra cosa hai notato e a chi.</div>';
+  return '<div class="card" style="border:2px solid #791F1F"><div class="card-h"><div class="t">📣 Osservazioni / richiami<div class="sub">arriva nella app della persona · lei conferma "Ho capito" · la cancelli tu quando vuoi</div></div></div><div class="card-b"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"><input id="noTxt" placeholder="Es. attento alla pulizia dell abbattitore" style="flex:1;min-width:150px;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px" onkeydown="if(event.key===\'Enter\')addChefNote()"><select id="noCook" style="border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px">'+opts+'</select><button class="ctrlbtn" style="margin:0;background:#791F1F" onclick="addChefNote()">+ Invia</button></div>'+rows+'</div></div>';
+}
+async function saveNotes(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefnotes',v:{items:window.CHEFNOTES||[]}})});}catch(e){console.error(e);}}
+function addChefNote(){var t=document.getElementById('noTxt'),c=document.getElementById('noCook');var txt=((t&&t.value)||'').trim();if(!txt){alert('Scrivi cosa hai notato.');return;}window.CHEFNOTES=window.CHEFNOTES||[];window.CHEFNOTES.push({id:Date.now(),txt:txt,cook:(c&&c.value)||'',at:new Date().toISOString(),ack:false,ackAt:null});if(t)t.value='';saveNotes();rerenderDash();}
+function delNote(id){if(!confirm('Cancellare questa osservazione?'))return;window.CHEFNOTES=(window.CHEFNOTES||[]).filter(function(o){return o.id!==id;});saveNotes();rerenderDash();}
+/* ===== Dimenticanze timbrature ===== */
+var _dimenLoaded=false;window.DIMENALL=[];
+async function loadDimenAll(){try{var r=await sb('kitchen_meta?k=like.timbra|*&select=k,v');window.DIMENALL=r||[];}catch(e){window.DIMENALL=[];}_dimenLoaded=true;}
+function dimenOfD(v){var L=[];if(!v)return L;if(v.sOutFix)L.push({s:'sera',w:'uscita'});else if(v.sIn&&!v.sOut)L.push({s:'sera',w:'uscita'});if(v.sInFix)L.push({s:'sera',w:'entrata'});else if(v.sOut&&!v.sIn)L.push({s:'sera',w:'entrata'});if(v.pOutFix)L.push({s:'pranzo',w:'uscita'});else if(v.pIn&&!v.pOut)L.push({s:'pranzo',w:'uscita'});if(v.pInFix)L.push({s:'pranzo',w:'entrata'});else if(v.pOut&&!v.pIn)L.push({s:'pranzo',w:'entrata'});return L;}
+function dimenCardDash(){
+  if(!_dimenLoaded){loadDimenAll().then(rerenderDash);return '<div class="card"><div class="card-b"><div class="muted">Carico…</div></div></div>';}
+  var by={};window.DIMENALL.forEach(function(r){var p=(r.k||'').split('|');var cook=p[2];if(cook==='Gigio')return;dimenOfD(r.v||{}).forEach(function(x){(by[cook]=by[cook]||[]).push({date:p[1],s:x.s,w:x.w});});});
+  var cooks=Object.keys(by).sort(function(a,b){return by[b].length-by[a].length;});
+  if(!cooks.length)return '<div class="card"><div class="card-b"><div class="muted">Nessuna dimenticanza registrata.</div></div></div>';
+  var GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+  var rows=cooks.map(function(c){var items=by[c].sort(function(a,b){return a.date<b.date?1:-1;});var n=items.length;var col=n>=3?'#8a1f10':'#b5651d';var det=items.slice(0,12).map(function(x){var dt=new Date(x.date+'T00:00:00');return '<div class="missrow" style="font-weight:400">'+GG[dt.getDay()]+' '+x.date.split('-').reverse().slice(0,2).join('/')+' — '+x.w+' '+x.s+'</div>';}).join('');return '<div class="row" style="align-items:flex-start;gap:8px"><span style="flex:1"><b>'+esc(c)+'</b>'+det+'</span><span class="pill" style="background:'+col+';color:#fff;flex:0 0 auto">'+n+(n>=3?' ⚠':'')+'</span></div>';}).join('');
+  return '<div class="card" style="border:2px solid #8a1f10"><div class="card-h"><div class="t">⏱️ Dimenticanze timbrature<div class="sub">entrate/uscite mancate · le serali le ho chiuse alle 22:00 · soglia conseguenze: 3</div></div></div><div class="card-b">'+rows+'</div></div>';
+}
+/* ===== Acquisti Martina ===== */
+var _marLoaded=false;window.MARACQ=[];window.MARMETA={};window._MARREC=[];
+async function loadMar(){try{var a=await sb('kitchen_meta?k=like.maracq|*&select=k,v');window.MARACQ=(a||[]).map(function(r){return r.v||{};});}catch(e){window.MARACQ=[];}try{var m=await sb('kitchen_meta?k=eq.marmeta&select=v');window.MARMETA=(m&&m[0]&&m[0].v)?m[0].v:{};}catch(e){window.MARMETA={};}_marLoaded=true;}
+function eurD(n){var x=parseFloat(n);if(isNaN(x))return '–';try{return '€ '+x.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});}catch(e){return '€ '+x;}}
+function martinaCard(){
+  if(!_marLoaded){loadMar().then(rerenderDash);return '<div class="card"><div class="card-b"><div class="muted">Carico…</div></div></div>';}
+  var acq=window.MARACQ.slice();var META=window.MARMETA||{};var cop=(META&&(META.coperti||META.cop))||{};
+  var byM={};acq.forEach(function(a){var d=(a.data||'').slice(0,7);if(!d)return;if(!byM[d])byM[d]={tot:0,n:0,noimp:0};var imp=parseFloat(a.importo);if(!isNaN(imp)&&imp>0)byM[d].tot+=imp;else byM[d].noimp++;byM[d].n++;});
+  var months=Object.keys(byM).sort().reverse();
+  var mh=months.map(function(k){var m=byM[k];var tc=parseFloat(cop[k]||cop[k.replace('-','/')]||0);var perc=(tc>0&&m.tot>0)?(m.tot/tc):null;var mm=k.split('-');return '<div class="row"><span><b>'+mm[2-1]+'/'+mm[0]+'</b> · '+m.n+' bolle'+(m.noimp?' · <span style="color:#b5651d">'+m.noimp+' senza importo</span>':'')+'</span><span>'+eurD(m.tot)+(perc!=null?(' · '+eurD(perc)+'/cop'):'')+'</span></div>';}).join('');
+  window._MARREC=acq.sort(function(a,b){return (a.data||'')<(b.data||'')?1:-1;}).slice(0,20);
+  var rrows=window._MARREC.map(function(a,ix){var isPdf=((a.imgtype||'')+'').indexOf('pdf')>=0;var btn=a.img?('<button class="ctrlbtn" style="padding:5px 9px;margin:0" onclick="marZoom('+ix+')">'+(isPdf?'📄 doc':'📷 foto')+'</button>'):'<span class="muted">—</span>';return '<div class="row" style="align-items:flex-start;gap:8px"><span style="flex:1"><b>'+esc(a.forn||'(senza fornitore)')+'</b> <span class="muted">'+esc((a.data||'').split('-').reverse().slice(0,2).join('/'))+'</span>'+(a.cat?' <span class="pill" style="background:#efe7d0;color:#6a5500">'+esc(a.cat)+'</span>':'')+(a.note?'<div class="missrow" style="font-weight:400">'+esc(a.note)+'</div>':'')+'</span><span style="text-align:right;flex:0 0 auto">'+(a.importo?eurD(a.importo):'<span style="color:#b5651d">manca importo</span>')+'<div style="margin-top:4px">'+btn+'</div></span></div>';}).join('');
+  return '<div class="card" style="border:2px solid var(--gold)"><div class="card-h"><div class="t">💶 Acquisti / Martina<div class="sub">spesa per mese, € a coperto e ultime bolle con foto/PDF</div></div></div><div class="card-b">'+(mh||'<div class="muted">Nessun dato di spesa.</div>')+'<div style="margin-top:12px;font-weight:800;color:var(--wine);border-top:1px solid var(--gold);padding-top:6px">Ultime bolle</div>'+(rrows||'<div class="muted">Nessuna bolla caricata.</div>')+'</div></div>';
+}
+function marZoom(ix){var a=(window._MARREC||[])[ix];if(!a||!a.img){alert('Nessun documento.');return;}var isPdf=((a.imgtype||'')+'').indexOf('pdf')>=0;var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;padding:14px;overflow:auto';ov.onclick=function(e){if(e.target===ov){if(ov.parentNode)ov.parentNode.removeChild(ov);}};ov.innerHTML='<div style="color:#fff;font-weight:700;font-size:14px;cursor:pointer" onclick="this.closest(\'div\').remove?this.parentNode.remove():0">'+esc((a.forn||'Bolla')+' · '+(a.data||''))+' — tocca lo sfondo per chiudere</div>'+(isPdf?('<iframe src="'+a.img+'" style="width:100%;height:85vh;border:0;background:#fff;border-radius:8px"></iframe>'):('<img src="'+a.img+'" style="max-width:100%;max-height:85vh;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.5)">'));document.body.appendChild(ov);}
 
 function _wshift(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return ymd(d);}
 function _dm(ds){return ds.split('-').reverse().slice(0,2).join('/');}
@@ -571,7 +615,7 @@ function renderReportBody(){
     cooks.forEach(function(c){
       var forgot=0,puliInc=0,pauseN=0,pauseMin=0;
       for(var i=0;i<7;i++){var day=_wshift(ws,i);if(day>today)continue;var off=(typeof isOff==='function'&&isOff(c,day));
-        var hasIn=D.timbra.some(function(r){return r.k==='timbra|'+day+'|'+c&&r.v&&r.v.in;});
+        var hasIn=D.timbra.some(function(r){return r.k==='timbra|'+day+'|'+c&&r.v&&(r.v.pIn||r.v.sIn||r.v.in);});
         if(!off&&!hasIn)forgot++;
         if(!off){var exp=(puliziaFor(c)||[]).length;if(exp){var done=D.checks.filter(function(r){return r.day===day&&r.grp==='pulizia#'+c;}).length;if(done<exp)puliInc++;}}
       }
@@ -732,6 +776,9 @@ function render(day,ck,ckw,ent,meta,presa){
     scheda: schedaCardH,
     passaggi: passCardH,
     consegne: consegneDashCard()+coCard(day),
+    osserv: noteCard(),
+    dimen: dimenCardDash(),
+    acquisti: martinaCard(),
     compiti: chefCard(ck,day),
     report: reportCard()+oreReportCard(),
     rif: recModsCard()+cookNotesCard()+respCardH+presaCardH+menuCard()
@@ -742,6 +789,7 @@ function render(day,ck,ckw,ent,meta,presa){
   var nArr=_cnt(function(x){var c=x[0];var t=_T[c];var off=(typeof isOff==='function'&&isOff(c,day));return !off && !(t&&(t.pIn||t.sIn||t.in));});
   var nPau=(window.PAUSE||[]).filter(function(p){return !p.in;}).length;
   var nCons=(window.PASSL?window.PASSL.filter(function(x){return !x.done;}).length:0);
+  var nOss=(window.CHEFNOTES||[]).filter(function(o){return !o.ack;}).length;
   var TILES=[
     {id:'sblocco',l:'Sblocca uscite',e:'🔓',b:'#F7C1C1',fg:'#501313',a:'#791F1F',n:(nSbl||'')},
     {id:'penali',l:'Penali (totale)',e:'⚖️',b:'#F09595',fg:'#501313',a:'#791F1F',n:(nPen||'')},
@@ -753,10 +801,14 @@ function render(day,ck,ckw,ent,meta,presa){
     {id:'scheda',l:'Scheda servizio',e:'📝',b:'#F4C0D1',fg:'#4B1528',a:'#72243E',n:(scheda.length||'')},
     {id:'passaggi',l:'Passaggi',e:'🔄',b:'#F5C4B3',fg:'#4A1B0C',a:'#712B13',n:(allPass.length||'')},
     {id:'consegne',l:'Consegne e ordini',e:'📋',b:'#D3D1C7',fg:'#2C2C2A',a:'#444441',n:(nCons||'')},
+    {id:'osserv',l:'Osservazioni ai cuochi',e:'📣',b:'#F09595',fg:'#501313',a:'#791F1F',s:'richiami · conferma lettura',n:(nOss?('⏳ '+nOss):'')},
+    {id:'dimen',l:'Dimenticanze timbrature',e:'⏱️',b:'#F7C1C1',fg:'#501313',a:'#8a1f10',s:'chi salta entrate/uscite',n:''},
+    {id:'acquisti',l:'Acquisti / Martina',e:'💶',b:'#F7D8A8',fg:'#4a2f02',a:'#7a4e06',s:'spesa fornitori · bolle',n:''},
     {id:'compiti',l:'I miei compiti',e:'✅',b:'#FAC775',fg:'#412402',a:'#633806',n:''},
     {id:'report',l:'Report ore',e:'📊',b:'#B5D4F4',fg:'#042C53',a:'#0C447C',n:''},
     {id:'rif',l:'Riferimento',e:'📚',b:'#D3D1C7',fg:'#2C2C2A',a:'#444441',n:''}
   ];
+  if(typeof PENALI_ON!=='undefined' && !PENALI_ON){TILES=TILES.filter(function(t){return t.id!=='penali';});}
   var LBL={};TILES.forEach(function(t){LBL[t.id]=t.l;});
   if(window.TILEVIEW && VIEWS[window.TILEVIEW]!==undefined){
     document.getElementById('view').innerHTML='<button class="btn" style="width:100%;margin-bottom:12px;font-size:15px" onclick="setTile(null)">‹ Indietro ai quadrati</button><div style="font-size:18px;font-weight:700;margin:2px 0 10px">'+esc(LBL[window.TILEVIEW]||'')+'</div>'+VIEWS[window.TILEVIEW];
