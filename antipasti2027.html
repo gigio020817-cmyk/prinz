@@ -319,8 +319,18 @@ let CATALOG=[]; let PRODMAP={};
 let PAX={};
 try{ const sv=localStorage.getItem('pax_anti'); if(sv) PAX=JSON.parse(sv); }catch(e){}
 function savePaxLS(){ try{ localStorage.setItem('pax_anti',JSON.stringify(PAX)); }catch(e){} }
-function savePax(day,f,v){ if(!PAX[day])PAX[day]={}; PAX[day][f]=v; savePaxLS(); }
-function openSpesa(){ loadProdMap(); go('s_spesa'); renderSpesa(); }
+let _paxCloudLoaded=false,_paxCloudT=null;
+function schedulePaxCloud(){ clearTimeout(_paxCloudT); _paxCloudT=setTimeout(savePaxCloud,800); }
+async function savePaxCloud(){ try{ await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'paxanti',v:PAX})}); }catch(e){} }
+async function loadPaxCloud(){ if(_paxCloudLoaded)return; _paxCloudLoaded=true; try{ const r=await sb('kitchen_meta?k=eq.paxanti&select=v'); const v=(r&&r[0]&&r[0].v)?r[0].v:null; if(v&&typeof v==='object'){ PAX=v; savePaxLS(); } }catch(e){} }
+var ORDSENT={}; let _ordSentLoaded=false;
+async function loadOrdSent(){ if(_ordSentLoaded)return; _ordSentLoaded=true; try{ const r=await sb('kitchen_meta?k=eq.ordsent_anti&select=v'); const v=(r&&r[0]&&r[0].v)?r[0].v:null; if(v&&typeof v==='object')ORDSENT=v; }catch(e){} }
+async function saveOrdSent(){ try{ await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'ordsent_anti',v:ORDSENT})}); }catch(e){} }
+function resetOrdSent(){ if(!confirm('Azzerare il "già ordinato" degli antipasti?\nServe quando inizi un nuovo giro di ordini.'))return; ORDSENT={}; saveOrdSent(); genLista(); }
+function bump(id,delta){ var e=document.getElementById(id); if(!e)return; var v=parseFloat((''+e.value).replace(',','.'))||0; v=Math.max(0,Math.round((v+delta)*100)/100); e.value=v; }
+function _fmtd(iso){ try{ var d=new Date(iso); return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2); }catch(e){ return ''; } }
+function savePax(day,f,v){ if(!PAX[day])PAX[day]={}; PAX[day][f]=v; savePaxLS(); schedulePaxCloud(); }
+function openSpesa(){ loadProdMap(); go('s_spesa'); Promise.all([loadPaxCloud(),loadOrdSent()]).then(renderSpesa); }
 function renderSpesa(){ const box=document.getElementById('paxrows'); box.innerHTML=''; document.getElementById('spesaOut').innerHTML='';
  (DATA.S1||[]).forEach(d=>{ const p=PAX[d.name]||{}; const row=document.createElement('div'); row.className='paxrow';
   row.innerHTML='<div class="pd">'+d.name+'</div><label>Coperti <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" value="'+(p.pax!=null?p.pax:'')+'" onfocus="this.select()" oninput="savePax(\''+d.name+'\',\'pax\',this.value)"></label>';
@@ -372,13 +382,16 @@ function genLista(){
  window._lastRows=rows;
  if(!rows.length){ document.getElementById('spesaOut').innerHTML='<div class="spnote">Metti i coperti dei giorni e premi Genera.</div>'; return; }
  const freschi=rows.filter(r=>r.fresco), verdure=rows.filter(r=>!r.fresco);
+ var _stp='width:30px;height:34px;border:1px solid var(--line);background:#fff;border-radius:7px;font-size:18px;font-weight:700;flex:0 0 auto';
+ function badge(name){var s=ORDSENT[name];return s?(' <span style="color:#2e7d32;font-weight:700;font-size:11px">✓ ordinato '+s.q+' '+s.u+(s.at?(' · '+_fmtd(s.at)):'')+'</span>'):'';}
  let h='';
  if(freschi.length){ h+='<div class="lbl">🧀 Freschi & proteine — fabbisogno</div>';
   h+='<div class="spnote">Con +cuscinetto. Metti la <b>giacenza</b>: l\'ordine lo decidi tu. In Ordini poi cambi kg↔pz al volo.</div>';
-  freschi.forEach(r=>{ h+='<div class="protrow"><div class="pn">'+r.name+'</div><div class="pf">~'+r.q+' '+r.unit+'</div><label>in casa <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="gia_'+r.i+'" onfocus="this.select()" oninput="updGia('+r.i+','+r.q+')"></label><label class="po">ordina <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="ord_'+r.i+'" value="'+r.q+'" onfocus="this.select()"></label><button type="button" class="ubtn" id="u_'+r.i+'" onclick="cycleU(this)">'+(r.unit||'pz')+'</button></div>'; }); }
+  freschi.forEach(r=>{ var sent=ORDSENT[r.name]; var dU=sent?sent.u:(r.unit||'pz'); var dV=sent?0:r.q; h+='<div class="protrow" style="'+(sent?'opacity:.6':'')+'"><div class="pn">'+r.name+badge(r.name)+'</div><div class="pf">~'+r.q+' '+r.unit+'</div><label>in casa <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="gia_'+r.i+'" onfocus="this.select()" oninput="updGia('+r.i+','+r.q+')"></label><label class="po">ordina <span style="display:inline-flex;align-items:center;gap:4px"><button type="button" onclick="bump(\'ord_'+r.i+'\',-1)" style="'+_stp+'">−</button><input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="ord_'+r.i+'" value="'+dV+'" onfocus="this.select()"><button type="button" onclick="bump(\'ord_'+r.i+'\',1)" style="'+_stp+'">+</button></span></label><button type="button" class="ubtn" id="u_'+r.i+'" onclick="cycleU(this)">'+dU+'</button></div>'; }); }
  h+='<div class="lbl">🥬 Verdure & prodotti — indicativo</div>';
- h+='<div class="spnote">Stima \"a spanne\", si somma con le altre partite. Premi Invia: vanno nelle richieste di Ordini, tu accetti e agganci al fornitore.</div>';
- verdure.forEach(r=>{ h+='<div class="protrow"><div class="pn">'+r.name+'</div><div class="pf">~'+r.q+' '+r.unit+'</div><label class="po">ordina <input type="number" inputmode="decimal" min="0" id="ord_'+r.i+'" value="'+r.q+'" onfocus="this.select()"></label><button type="button" class="ubtn" id="u_'+r.i+'" onclick="cycleU(this)">'+(r.unit||'pz')+'</button></div>'; });
+ h+='<div class="spnote">Verdura e congelato a <b>cart/cassa</b> (non a kg): il "~X kg" è solo la stima, tu metti i colli con + / −.</div>';
+ verdure.forEach(r=>{ var sent=ORDSENT[r.name]; var dU=sent?sent.u:'cart'; var dV=sent?0:1; h+='<div class="protrow" style="'+(sent?'opacity:.6':'')+'"><div class="pn">'+r.name+badge(r.name)+'</div><div class="pf">~'+r.q+' '+r.unit+'</div><label class="po">ordina <span style="display:inline-flex;align-items:center;gap:4px"><button type="button" onclick="bump(\'ord_'+r.i+'\',-1)" style="'+_stp+'">−</button><input type="number" inputmode="decimal" min="0" id="ord_'+r.i+'" value="'+dV+'" onfocus="this.select()"><button type="button" onclick="bump(\'ord_'+r.i+'\',1)" style="'+_stp+'">+</button></span></label><button type="button" class="ubtn" id="u_'+r.i+'" onclick="cycleU(this)">'+dU+'</button></div>'; });
+ h+='<div style="margin-top:10px;font-size:12px;color:var(--muted)">Le voci con ✓ sono già state inviate: restano a 0, così ordini solo il resto. <button type="button" onclick="resetOrdSent()" style="border:1px solid var(--line);background:#fff;border-radius:7px;padding:5px 9px;font-weight:700;margin-left:4px">🔄 Azzera già ordinato</button></div>';
  h+='<button class="sendbtn" style="margin-top:12px;background:#2f6b1f" onclick="sendToOrdini()">📤 Invia a Ordini</button>';
  document.getElementById('spesaOut').innerHTML=h;
 }
@@ -390,7 +403,8 @@ async function sendToOrdini(){ const items=[]; (window._lastRows||[]).forEach(r=
  try{ let cur=await sb('kitchen_meta?k=eq.pastreq&select=v'); let arr=(cur&&cur[0]&&cur[0].v&&cur[0].v.items)?cur[0].v.items:[];
   arr=arr.concat(items.map(it=>({n:it.n,q:it.q,u:it.u,src:'Antipasti'})));
   await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pastreq',v:{items:arr}})});
-  t.innerHTML='<b>Inviato a Ordini ✓ ('+items.length+' voci)</b>Aprili in Ordini → richieste, accetta e aggancia al fornitore.'; }
+  var nowIso=new Date().toISOString(); items.forEach(function(it){ ORDSENT[it.n]={q:it.q,u:it.u,at:nowIso}; }); saveOrdSent(); genLista();
+  t.innerHTML='<b>Inviato a Ordini ✓ ('+items.length+' voci)</b>Quello inviato resta "già ordinato": rigenera e ordini solo il resto.'; }
  catch(e){ t.style.background='#c0392b'; t.innerHTML='<b>⚠️ Errore invio</b>('+e.message+')'; }
  t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>{t.classList.remove('show');t.style.background='';},5200); }
 /* ---- catalogo fornitori (live da ordcat) + abbina ---- */
