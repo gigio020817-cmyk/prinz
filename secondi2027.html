@@ -321,19 +321,32 @@ let curPhotoAssembly='';
 let sWeek='S1'; let PAX={S1:{},S2:{}};
 try{ const sv=localStorage.getItem('pax_sec'); if(sv) PAX=JSON.parse(sv); }catch(e){}
 function savePaxLS(){ try{ localStorage.setItem('pax_sec',JSON.stringify(PAX)); }catch(e){} }
-function openSpesa(){ sWeek=curWeek; go('s_spesa'); renderSpesa(); }
+let _paxCloudLoaded=false,_paxCloudT=null;
+function schedulePaxCloud(){ clearTimeout(_paxCloudT); _paxCloudT=setTimeout(savePaxCloud,800); }
+async function savePaxCloud(){ try{ await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'paxsec',v:PAX})}); }catch(e){} }
+async function loadPaxCloud(){ if(_paxCloudLoaded)return; _paxCloudLoaded=true; try{ const r=await sb('kitchen_meta?k=eq.paxsec&select=v'); const v=(r&&r[0]&&r[0].v)?r[0].v:null; if(v&&typeof v==='object'){ PAX=v; savePaxLS(); } }catch(e){} }
+let ORDSENT={S1:{},S2:{}}; let _ordSentLoaded=false;
+async function loadOrdSent(){ if(_ordSentLoaded)return; _ordSentLoaded=true; try{ const r=await sb('kitchen_meta?k=eq.ordsent_sec&select=v'); const v=(r&&r[0]&&r[0].v)?r[0].v:null; if(v&&typeof v==='object'){ ORDSENT={S1:v.S1||{},S2:v.S2||{}}; } }catch(e){} }
+async function saveOrdSent(){ try{ await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'ordsent_sec',v:ORDSENT})}); }catch(e){} }
+function resetOrdSent(){ if(!confirm('Azzerare il "già ordinato" della '+(sWeek==='S1'?'Settimana 1':'Settimana 2')+'?\nServe quando inizi un nuovo giro di ordini.'))return; ORDSENT[sWeek]={}; saveOrdSent(); genLista(); }
+function bump(id,delta){ var e=document.getElementById(id); if(!e)return; var v=parseFloat((''+e.value).replace(',','.'))||0; v=Math.max(0,Math.round((v+delta)*100)/100); e.value=v; }
+function _fmtd(iso){ try{ var d=new Date(iso); return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2); }catch(e){ return ''; } }
+function openSpesa(){ sWeek=curWeek; go('s_spesa'); Promise.all([loadPaxCloud(),loadOrdSent()]).then(renderSpesa); }
 function spesaWeek(w,el){ sWeek=w; document.querySelectorAll('#stabs .wtab').forEach(x=>x.classList.remove('active')); if(el)el.classList.add('active'); renderSpesa(); }
-function savePax(day,f,v){ if(!PAX[sWeek])PAX[sWeek]={}; if(!PAX[sWeek][day])PAX[sWeek][day]={}; PAX[sWeek][day][f]=v; savePaxLS(); }
+function savePax(day,f,v){ if(!PAX[sWeek])PAX[sWeek]={}; if(!PAX[sWeek][day])PAX[sWeek][day]={}; PAX[sWeek][day][f]=v; savePaxLS(); schedulePaxCloud(); }
+function saveDish(day,di,v){ if(!PAX[sWeek])PAX[sWeek]={}; if(!PAX[sWeek][day])PAX[sWeek][day]={}; if(!PAX[sWeek][day].dp)PAX[sWeek][day].dp={}; PAX[sWeek][day].dp[di]=v; savePaxLS(); schedulePaxCloud(); }
+function suggestDish(day,dayi){ const d=(DATA[sWeek]||[]).find(x=>x.name===day); if(!d)return; const p=(PAX[sWeek]&&PAX[sWeek][day])||{}; const pax=parseInt(p.pax)||0; if(!pax)return; if(!PAX[sWeek][day].dp)PAX[sWeek][day].dp={}; const dp=PAX[sWeek][day].dp; const nonVeg=d.dishes.map((ds,i)=>({ds:ds,i:i})).filter(o=>!o.ds.veg); nonVeg.forEach((o,k)=>{ if(dp[o.i]==null||dp[o.i]===''){ const val=Math.round(pax*(k===0?0.6:0.4)); dp[o.i]=val; const el=document.getElementById('dp_'+dayi+'_'+o.i); if(el)el.value=val; } }); savePaxLS(); schedulePaxCloud(); }
 function renderSpesa(){ const box=document.getElementById('paxrows'); box.innerHTML=''; document.getElementById('spesaOut').innerHTML='';
- (DATA[sWeek]||[]).forEach(d=>{ const p=(PAX[sWeek]&&PAX[sWeek][d.name])||{}; const row=document.createElement('div'); row.className='paxrow';
-  row.innerHTML=`<div class="pd">${d.name}</div><label>Coperti <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" value="${p.pax!=null?p.pax:''}" onfocus="this.select()" oninput="savePax('${d.name}','pax',this.value)"></label><label>Veg <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" value="${p.veg!=null?p.veg:''}" onfocus="this.select()" oninput="savePax('${d.name}','veg',this.value)"></label>`;
-  box.appendChild(row); }); }
+ (DATA[sWeek]||[]).forEach((d,dayi)=>{ const p=(PAX[sWeek]&&PAX[sWeek][d.name])||{}; const dp=p.dp||{}; const row=document.createElement('div'); row.className='paxrow'; row.style.flexWrap='wrap';
+  let html=`<div class="pd">${d.name}</div><label>Coperti <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="px_${dayi}" value="${p.pax!=null?p.pax:''}" onfocus="this.select()" oninput="savePax('${d.name}','pax',this.value);suggestDish('${d.name}',${dayi})"></label>`;
+  d.dishes.forEach((dish,di)=>{ const lab=(dish.veg?'🌱 ':'')+dish.short.replace(/\s*\(VEG\)/,''); html+=`<label style="max-width:150px">${lab} <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="dp_${dayi}_${di}" value="${dp[di]!=null?dp[di]:''}" onfocus="this.select()" oninput="saveDish('${d.name}',${di},this.value)"></label>`; });
+  row.innerHTML=html; box.appendChild(row); }); }
 /* prodotti VERI: [keywords, Nome prodotto, g/porzione, kg/collo, unità] — nomi come li ordini */
 const PRODUCE=[
  [["patate dolci","patata dolce"],"Patate dolci",150],
- [["patate","patata","gratin","duchessa","purè di patate","purea di patate","novelle","rösti","rosti","millefoglie di patata"],"Patate",180],
+ [["patate","patata","gratin","duchessa","purè di patate","purea di patate","novelle","rösti","rosti","millefoglie di patata"],"Patate",120],
  [["zucchine"],"Zucchine",100],[["zucca"],"Zucca",130],
- [["purea di carote","carotine","carote","carota"],"Carote",90],
+ [["purea di carote","carotine","carote","carota"],"Carote",60],
  [["cavolo rosso","insalata di cavolo rosso"],"Cavolo rosso",120],
  [["cappuccio verde","cavolo cappuccio"],"Cappuccio verde",120],
  [["verza"],"Verza",120],[["scarola"],"Scarola",120],[["spinac"],"Spinaci",80],
@@ -346,7 +359,8 @@ const PRODUCE=[
  [["porri","porro"],"Porri",70],[["taccole"],"Taccole",60],
  [["cavolfiore"],"Cavolfiore",150],[["carciof"],"Carciofi",100],
  [["topinambur"],"Topinambur",50],
- [["pomodorini","pomodoro confit","pomodoro"],"Pomodorini/pomodoro",40],
+ [["pomodorini","datterini","ciliegini","pomodori gialli","pachino"],"Pomodorini",30],
+ [["pomodoro confit","pomodori confit","confit di pomodoro","pomodoro ramato","pomodoro a filetti","filetti di pomodoro","pomodoro pelato","pomodoro"],"Pomodoro",40],
  [["mele","mela"],"Mele",70],[["uvetta","uva"],"Uva",40],
  [["lenticchie"],"Lenticchie di montagna",40],[["ceci"],"Ceci",40],
  [["cannellini"],"Fagioli cannellini",40],[["castagne"],"Castagne",70],
@@ -360,7 +374,7 @@ const MEATRE=/maiale|tacchino|anatra|manzo|pollo|faraona|salsiccia|salmone|agnel
 function genLista(){
  const days=DATA[sWeek]||[]; const prot={}; const prod={};
  days.forEach(d=>{ const pp=(PAX[sWeek]&&PAX[sWeek][d.name])||{}; const pax=parseInt(pp.pax)||0; const veg=parseInt(pp.veg)||0;
-  d.dishes.forEach((dish,di)=>{ let porz=0; if(dish.veg) porz=veg; else if(di===0) porz=Math.round(pax*0.6*1.15); else porz=Math.round(pax*0.4*1.15);
+  d.dishes.forEach((dish,di)=>{ let porz=0; const dpv=(pp.dp&&pp.dp[di]!=null&&pp.dp[di]!=='')?parseInt(pp.dp[di]):null; if(dpv!=null) porz=dpv; else if(dish.veg) porz=veg; else if(di===0) porz=Math.round(pax*0.6*1.15); else porz=Math.round(pax*0.4*1.15);
    if(porz<=0) return; const key=dish.short.replace(/\s*\(VEG\)/,''); prot[key]=(prot[key]||0)+porz;
    let txt=dish.short+' '+dish.comps.map(c=>c.name+' '+(c.ings||[]).join(' ')).join(' ');
    detectProduce(txt).forEach(idx=>{ prod[idx]=(prod[idx]||0)+porz; }); }); });
@@ -370,13 +384,16 @@ function genLista(){
  window._lastProd=rows;
  let h='<div class="lbl">🥩 Carne & pesce — fabbisogno servizio</div>';
  h+='<div class="spnote">Numeri con +15% di cuscinetto (avanzo → scorta o personale). Metti la giacenza: l\'ordine lo decidi tu (di solito 60/80 pz per coprire + rifare scorta). In Ordini poi cambi kg↔pz al volo.</div>';
- window._lastProt.forEach(p=>{ h+=`<div class="protrow"><div class="pn">${p.disp}</div><div class="pf">~${p.fab} porz.</div><label>in casa <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="gia_${p.i}" onfocus="this.select()" oninput="updGia(${p.i},${p.fab})"></label><label class="po">ordina <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="ord_${p.i}" value="${p.fab}" onfocus="this.select()"></label><button type="button" class="ubtn" id="u_${p.i}" onclick="cycleU(this)">pz</button></div>`; });
+ var _stp='width:30px;height:34px;border:1px solid var(--line);background:#fff;border-radius:7px;font-size:18px;font-weight:700;flex:0 0 auto';
+ window._lastProt.forEach(p=>{ var sent=ORDSENT[sWeek]&&ORDSENT[sWeek][p.disp]; var dU=sent?sent.u:'pz'; var dV=sent?0:p.fab; var badge=sent?(' <span style="color:#2e7d32;font-weight:700;font-size:11px">✓ ordinato '+sent.q+' '+sent.u+(sent.at?(' · '+_fmtd(sent.at)):'')+'</span>'):''; h+=`<div class="protrow" style="${sent?'opacity:.6':''}"><div class="pn">${p.disp}${badge}</div><div class="pf">~${p.fab} porz.</div><label>in casa <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="gia_${p.i}" onfocus="this.select()" oninput="updGia(${p.i},${p.fab})"></label><label class="po">ordina <span style="display:inline-flex;align-items:center;gap:4px"><button type="button" onclick="bump('ord_${p.i}',-1)" style="${_stp}">−</button><input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="ord_${p.i}" value="${dV}" onfocus="this.select()"><button type="button" onclick="bump('ord_${p.i}',1)" style="${_stp}">+</button></span></label><button type="button" class="ubtn" id="u_${p.i}" onclick="cycleU(this)">${dU}</button></div>`; });
  const vegKeys=Object.keys(prot).filter(k=>!MEATRE.test(k));
  if(vegKeys.length){ h+='<div class="lbl">🌱 Veg (prep abbattute, scongeli al servizio)</div>'; vegKeys.forEach(k=>{ h+=`<div class="protrow"><div class="pn">${k}</div><div class="pf">~${prot[k]} porz.</div></div>`; }); }
  h+='<div class="lbl">🥬 Verdure & prodotti — indicativo</div>';
  h+='<div class="spnote">Stima "a spanne", si somma con le altre partite. Premi Invia: vanno nelle richieste dell\'app Ordini, tu accetti e li agganci al fornitore.</div>';
- rows.forEach((r,vi)=>{ h+=`<div class="protrow"><div class="pn">${r.name}</div><div class="pf">~${r.q} ${r.unit}</div><label class="po">ordina <input type="number" inputmode="decimal" min="0" id="ordv_${vi}" value="${r.q}" onfocus="this.select()"></label><button type="button" class="ubtn" id="uv_${vi}" onclick="cycleU(this)">${r.unit||'kg'}</button></div>`; });
+ h+='<div class="spnote">Verdura e congelato si ordinano a <b>cart/cassa</b> (non a kg): il "~X kg" è solo la stima, tu metti i colli con le frecce + / −.</div>';
+ rows.forEach((r,vi)=>{ var sent=ORDSENT[sWeek]&&ORDSENT[sWeek][r.name]; var dU=sent?sent.u:'cart'; var dV=sent?0:1; var badge=sent?(' <span style="color:#2e7d32;font-weight:700;font-size:11px">✓ ordinato '+sent.q+' '+sent.u+(sent.at?(' · '+_fmtd(sent.at)):'')+'</span>'):''; h+=`<div class="protrow" style="${sent?'opacity:.6':''}"><div class="pn">${r.name}${badge}</div><div class="pf">~${r.q} ${r.unit}</div><label class="po">ordina <span style="display:inline-flex;align-items:center;gap:4px"><button type="button" onclick="bump('ordv_${vi}',-1)" style="${_stp}">−</button><input type="number" inputmode="decimal" min="0" id="ordv_${vi}" value="${dV}" onfocus="this.select()"><button type="button" onclick="bump('ordv_${vi}',1)" style="${_stp}">+</button></span></label><button type="button" class="ubtn" id="uv_${vi}" onclick="cycleU(this)">${dU}</button></div>`; });
  if(!provKeys.length && !rows.length){ document.getElementById('spesaOut').innerHTML='<div class="spnote">Metti i coperti dei giorni e premi Genera.</div>'; return; }
+ h+='<div style="margin-top:10px;font-size:12px;color:var(--muted)">Le voci con ✓ sono già state inviate: restano a 0, così ordini solo il resto (es. la carne fatta dopo). <button type="button" onclick="resetOrdSent()" style="border:1px solid var(--line);background:#fff;border-radius:7px;padding:5px 9px;font-weight:700;margin-left:4px">🔄 Azzera già ordinato</button></div>';
  h+='<button class="sendbtn" style="margin-top:12px;background:#2f6b1f" onclick="sendToOrdini()">📤 Invia a Ordini</button>';
  document.getElementById('spesaOut').innerHTML=h;
 }
@@ -390,7 +407,8 @@ async function sendToOrdini(){ const items=[];
  try{ let cur=await sb('kitchen_meta?k=eq.pastreq&select=v'); let arr=(cur&&cur[0]&&cur[0].v&&cur[0].v.items)?cur[0].v.items:[];
   const tag='Secondi '+sWeek; arr=arr.concat(items.map(it=>({n:it.n,q:it.q,u:it.u,src:tag})));
   await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pastreq',v:{items:arr}})});
-  t.innerHTML='<b>Inviato a Ordini ✓ ('+items.length+' voci)</b>Aprili nell\'app Ordini → richieste, accetta e aggancia al fornitore.'; }
+  var nowIso=new Date().toISOString(); if(!ORDSENT[sWeek])ORDSENT[sWeek]={}; items.forEach(function(it){ ORDSENT[sWeek][it.n]={q:it.q,u:it.u,at:nowIso}; }); saveOrdSent(); genLista();
+  t.innerHTML='<b>Inviato a Ordini ✓ ('+items.length+' voci)</b>Quello inviato ora resta segnato "già ordinato": rigenera e ordini solo il resto.'; }
  catch(e){ t.style.background='#c0392b'; t.innerHTML='<b>⚠️ Errore invio</b>('+e.message+')'; }
  t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>{t.classList.remove('show');t.style.background='';},5200); }
 /* ===== ABBINA PRODOTTI AI FORNITORI ===== */
