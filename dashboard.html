@@ -129,6 +129,7 @@ const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 var PENALI_ON=false; /* penali sospese per questa stagione — metti true per riattivarle */
+var DIMEN_START='2026-10-04'; /* dimenticanze timbrature contate da questa data in poi (azzerate) */
 const TEAM=[["Gianluca","Secondo cuoco · Tournant"],["Alex","Bistro"],["Banu","Colazioni + antipasti (sera)"],["Mattia","Primi"],["Ubaldo","Pizzeria + Panificazione · turno serale"],["Erjola","Pasticceria"],["Majeet","Bistro"],["Mirko","Secondi"]];
 const APERTURA=["Accendere le attrezzature del mattino","Controllare le PRESENZE settimanali","Ricevere e sistemare la merce (FIFO)","Controllo mise en place e scorte","Pasto del personale fuori per le 11:30","Controllare gli avanzi e stoccarli"];
 const PULIZIA=["Piani e zona di lavoro (piano sanificato · coperchi in ordine · niente sporco vicino ai piatti)","Cotture (fornelli/piastra/griglia · forno sopra e fronte · salamandra)","Attrezzatura della partita (bilance, bimby/pacojet, sottovuoto, friggitrice, microonde · cambio acqua roner)","Freddo (banco frigo: riordino, date, FIFO · abbattitore davanti)","Pass (dietro, sopra, decorazioni)"];
@@ -566,7 +567,7 @@ async function loadDimenAll(){try{var r=await sb('kitchen_meta?k=like.timbra|*&s
 function dimenOfD(v){var L=[];if(!v)return L;if(v.sOutFix)L.push({s:'sera',w:'uscita'});else if(v.sIn&&!v.sOut)L.push({s:'sera',w:'uscita'});if(v.sInFix)L.push({s:'sera',w:'entrata'});else if(v.sOut&&!v.sIn)L.push({s:'sera',w:'entrata'});if(v.pOutFix)L.push({s:'pranzo',w:'uscita'});else if(v.pIn&&!v.pOut)L.push({s:'pranzo',w:'uscita'});if(v.pInFix)L.push({s:'pranzo',w:'entrata'});else if(v.pOut&&!v.pIn)L.push({s:'pranzo',w:'entrata'});return L;}
 function dimenCardDash(){
   if(!_dimenLoaded){loadDimenAll().then(rerenderDash);return '<div class="card"><div class="card-b"><div class="muted">Carico…</div></div></div>';}
-  var by={};window.DIMENALL.forEach(function(r){var p=(r.k||'').split('|');var cook=p[2];if(cook==='Gigio')return;dimenOfD(r.v||{}).forEach(function(x){(by[cook]=by[cook]||[]).push({date:p[1],s:x.s,w:x.w});});});
+  var by={};window.DIMENALL.forEach(function(r){var p=(r.k||'').split('|');var cook=p[2];if(cook==='Gigio')return;if(typeof DIMEN_START!=='undefined'&&p[1]<DIMEN_START)return;dimenOfD(r.v||{}).forEach(function(x){(by[cook]=by[cook]||[]).push({date:p[1],s:x.s,w:x.w});});});
   var cooks=Object.keys(by).sort(function(a,b){return by[b].length-by[a].length;});
   if(!cooks.length)return '<div class="card"><div class="card-b"><div class="muted">Nessuna dimenticanza registrata.</div></div></div>';
   var GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
@@ -578,14 +579,7 @@ var _marLoaded=false;window.MARACQ=[];window.MARMETA={};window._MARREC=[];
 async function loadMar(){try{var a=await sb('kitchen_meta?k=like.maracq|*&select=k,v');window.MARACQ=(a||[]).map(function(r){return r.v||{};});}catch(e){window.MARACQ=[];}try{var m=await sb('kitchen_meta?k=eq.marmeta&select=v');window.MARMETA=(m&&m[0]&&m[0].v)?m[0].v:{};}catch(e){window.MARMETA={};}_marLoaded=true;}
 function eurD(n){var x=parseFloat(n);if(isNaN(x))return '–';try{return '€ '+x.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});}catch(e){return '€ '+x;}}
 function martinaCard(){
-  if(!_marLoaded){loadMar().then(rerenderDash);return '<div class="card"><div class="card-b"><div class="muted">Carico…</div></div></div>';}
-  var acq=window.MARACQ.slice();var META=window.MARMETA||{};var cop=(META&&(META.coperti||META.cop))||{};
-  var byM={};acq.forEach(function(a){var d=(a.data||'').slice(0,7);if(!d)return;if(!byM[d])byM[d]={tot:0,n:0,noimp:0};var imp=parseFloat(a.importo);if(!isNaN(imp)&&imp>0)byM[d].tot+=imp;else byM[d].noimp++;byM[d].n++;});
-  var months=Object.keys(byM).sort().reverse();
-  var mh=months.map(function(k){var m=byM[k];var tc=parseFloat(cop[k]||cop[k.replace('-','/')]||0);var perc=(tc>0&&m.tot>0)?(m.tot/tc):null;var mm=k.split('-');return '<div class="row"><span><b>'+mm[2-1]+'/'+mm[0]+'</b> · '+m.n+' bolle'+(m.noimp?' · <span style="color:#b5651d">'+m.noimp+' senza importo</span>':'')+'</span><span>'+eurD(m.tot)+(perc!=null?(' · '+eurD(perc)+'/cop'):'')+'</span></div>';}).join('');
-  window._MARREC=acq.sort(function(a,b){return (a.data||'')<(b.data||'')?1:-1;}).slice(0,20);
-  var rrows=window._MARREC.map(function(a,ix){var isPdf=((a.imgtype||'')+'').indexOf('pdf')>=0;var btn=a.img?('<button class="ctrlbtn" style="padding:5px 9px;margin:0" onclick="marZoom('+ix+')">'+(isPdf?'📄 doc':'📷 foto')+'</button>'):'<span class="muted">—</span>';return '<div class="row" style="align-items:flex-start;gap:8px"><span style="flex:1"><b>'+esc(a.forn||'(senza fornitore)')+'</b> <span class="muted">'+esc((a.data||'').split('-').reverse().slice(0,2).join('/'))+'</span>'+(a.cat?' <span class="pill" style="background:#efe7d0;color:#6a5500">'+esc(a.cat)+'</span>':'')+(a.note?'<div class="missrow" style="font-weight:400">'+esc(a.note)+'</div>':'')+'</span><span style="text-align:right;flex:0 0 auto">'+(a.importo?eurD(a.importo):'<span style="color:#b5651d">manca importo</span>')+'<div style="margin-top:4px">'+btn+'</div></span></div>';}).join('');
-  return '<div class="card" style="border:2px solid var(--gold)"><div class="card-h"><div class="t">💶 Acquisti / Martina<div class="sub">spesa per mese, € a coperto e ultime bolle con foto/PDF</div></div></div><div class="card-b">'+(mh||'<div class="muted">Nessun dato di spesa.</div>')+'<div style="margin-top:12px;font-weight:800;color:var(--wine);border-top:1px solid var(--gold);padding-top:6px">Ultime bolle</div>'+(rrows||'<div class="muted">Nessuna bolla caricata.</div>')+'</div></div>';
+  return '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Questa è l’app Acquisti di Martina, identica a come la apri tu (vista Direzione). <a href="martina.html#dir" target="_blank" style="color:var(--wine);font-weight:700">apri a tutto schermo ↗</a></div><iframe src="martina.html#dir" style="width:100%;height:78vh;border:1px solid var(--line);border-radius:12px;background:#fff" title="Acquisti Martina"></iframe>';
 }
 function marZoom(ix){var a=(window._MARREC||[])[ix];if(!a||!a.img){alert('Nessun documento.');return;}var isPdf=((a.imgtype||'')+'').indexOf('pdf')>=0;var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;padding:14px;overflow:auto';ov.onclick=function(e){if(e.target===ov){if(ov.parentNode)ov.parentNode.removeChild(ov);}};ov.innerHTML='<div style="color:#fff;font-weight:700;font-size:14px;cursor:pointer" onclick="this.closest(\'div\').remove?this.parentNode.remove():0">'+esc((a.forn||'Bolla')+' · '+(a.data||''))+' — tocca lo sfondo per chiudere</div>'+(isPdf?('<iframe src="'+a.img+'" style="width:100%;height:85vh;border:0;background:#fff;border-radius:8px"></iframe>'):('<img src="'+a.img+'" style="max-width:100%;max-height:85vh;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.5)">'));document.body.appendChild(ov);}
 
@@ -809,6 +803,7 @@ function render(day,ck,ckw,ent,meta,presa){
     {id:'rif',l:'Riferimento',e:'📚',b:'#D3D1C7',fg:'#2C2C2A',a:'#444441',n:''}
   ];
   if(typeof PENALI_ON!=='undefined' && !PENALI_ON){TILES=TILES.filter(function(t){return t.id!=='penali';});}
+  TILES=TILES.filter(function(t){return ['resoconto','passaggi','consegne','compiti','rif'].indexOf(t.id)<0;});
   var LBL={};TILES.forEach(function(t){LBL[t.id]=t.l;});
   if(window.TILEVIEW && VIEWS[window.TILEVIEW]!==undefined){
     document.getElementById('view').innerHTML='<button class="btn" style="width:100%;margin-bottom:12px;font-size:15px" onclick="setTile(null)">‹ Indietro ai quadrati</button><div style="font-size:18px;font-weight:700;margin:2px 0 10px">'+esc(LBL[window.TILEVIEW]||'')+'</div>'+VIEWS[window.TILEVIEW];
