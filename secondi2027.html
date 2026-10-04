@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Prinz Rudolf · Secondi 2026/2027</title>
 <style>
   :root{--nero:#0d0d0d;--cream:#faf8f2;--paper:#fff;--ink:#1a1a1a;--muted:#8a8378;--line:#e8e5df;--gold:#c9a227;--yellow:#f6c945;}
@@ -32,7 +32,7 @@
   .lock button{margin-top:12px;width:100%;max-width:260px;border:none;border-radius:12px;padding:13px;font-size:16px;font-weight:800;background:linear-gradient(135deg,var(--yellow),var(--gold));color:#3a2c00;cursor:pointer}
   .lock .err{color:#c0392b;font-size:14px;font-weight:700;height:20px;margin-top:12px}
   .wlabel{background:var(--nero);color:#fff;padding:6px 16px 10px;font-size:12px;font-weight:800;letter-spacing:1px;opacity:.85}
-  .dchips{display:flex;gap:6px;overflow-x:auto;padding:10px 14px 6px}
+  .dchips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px 6px}
   .dchip{white-space:nowrap;font-size:13px;font-weight:700;padding:7px 12px;border-radius:16px;background:#fff;border:1px solid var(--line);color:var(--muted);cursor:pointer}
   .dchip.active{background:var(--nero);color:#fff;border-color:var(--nero)}
   .wtabs{display:flex;gap:8px;padding:8px 14px 0}
@@ -42,8 +42,8 @@
   .paxrow input{width:64px;padding:5px 7px;border-radius:8px;border:1px solid var(--line);font-size:14px}
   .spnote{font-size:12px;color:var(--muted);line-height:1.5;margin:4px 0 10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
   #spesaOut .lbl{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 6px}
-  .protrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid rgba(0,0,0,.07)}
-  .protrow .pn{flex:1;font-weight:700;font-size:13px}
+  .protrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0;border-top:1px solid rgba(0,0,0,.07)}
+  .protrow .pn{flex:1 1 100%;font-weight:700;font-size:13px}
   .protrow .pf{font-size:13px;font-weight:800;color:#b52216;white-space:nowrap}
   .protrow label{font-size:10px;color:var(--muted);font-weight:700;display:flex;flex-direction:column;gap:2px}
   .protrow input{width:56px;padding:4px 6px;border-radius:8px;border:1px solid var(--line);font-size:13px}
@@ -98,7 +98,7 @@
 
 input[type=number]{-moz-appearance:textfield}
 input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.paxrow input,.protrow input{min-width:72px;font-size:17px;padding:8px 10px;text-align:center}
+.paxrow input,.protrow input{min-width:0;width:72px;font-size:16px;padding:8px 8px;text-align:center}
 
 .fotogrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
 .fotoit{position:relative}
@@ -106,6 +106,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 .fotodel{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.62);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:17px;line-height:1;cursor:pointer}
 .fotostar{position:absolute;left:5px;bottom:5px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:8px;padding:4px 8px;font-size:11px;font-weight:700;cursor:pointer}
 .fotomain{position:absolute;left:5px;bottom:5px;background:#2f6b1f;color:#fff;border-radius:8px;padding:4px 8px;font-size:11px;font-weight:700}
+html,body{max-width:100%;overflow-x:hidden;overscroll-behavior:none}*{box-sizing:border-box}img,svg{max-width:100%}.dchips{flex-wrap:wrap;overflow-x:visible !important}
 </style></head><body>
 <div class="phone">
   <div class="scr" id="s_entry">
@@ -221,20 +222,27 @@ function dkey(){ return curWeek+'|'+CD().name; }
 function initDay(){ const dc=document.getElementById('dchips'); dc.innerHTML=''; DATA[curWeek].forEach((d,i)=>{ const b=document.createElement('div'); b.className='dchip'+(i===curDay?' active':''); b.textContent=d.name; b.onclick=()=>{curDay=i;curDishIdx=0;renderDay();}; dc.appendChild(b); }); renderDay(); }
 function setWeek(w,el){ curWeek=w; curDay=0; curDishIdx=0; document.querySelectorAll('#wtabs .wtab').forEach(x=>x.classList.remove('active')); if(el)el.classList.add('active'); initDay(); }
 function renderPchips(){ const pc=document.getElementById('pchips'); pc.innerHTML=''; CD().dishes.forEach((dish,i)=>{ const b=document.createElement('div'); b.className='dchip'+(i===curDishIdx?' active':'')+(dish.veg?' veg':''); b.textContent=(dish.veg?'🌱 ':(i+1)+' · ')+dish.short; b.onclick=()=>{curDishIdx=i;renderPchips();renderGrid();}; pc.appendChild(b); }); }
-window.RECEXTRA=[];
+window.RECEXTRA=[]; var APPCAT='secondi'; function _okCat(x){ var c=(x&&x.cat)||'tutte'; return c===APPCAT||c==='tutte'; }
 async function loadExtra(){ try{ var r=await sb('kitchen_meta?k=eq.extrarec&select=v'); var v=r&&r[0]&&r[0].v; window.RECEXTRA=(v&&v.items)?v.items:[]; }catch(e){ window.RECEXTRA=[]; } }
 function _recEsc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function _recN(s){ return (s||'').toString().toLowerCase(); }
 function doSearch(q){ var box=document.getElementById('recresults'); if(!box)return; q=_recN(q).trim(); if(q.length<2){ box.style.display='none'; box.innerHTML=''; return; } var res=[]; var _seen={}; var _exN={};
- (window.RECEXTRA||[]).forEach(function(x,ix){ if(_recN(x.nome).indexOf(q)>=0){ res.push({t:'extra',lab:x.nome,ix:ix}); } _exN[_recN(x.nome)]=1; });
- function _add(lab,sub,w,di,pi){ var k=_recN(lab); if(_exN[k]||_seen[k])return; _seen[k]=1; res.push({t:'menu',lab:lab,sub:sub,w:w,di:di,pi:pi}); }
+ (window.RECEXTRA||[]).forEach(function(x,ix){ if(_recN(x.nome).indexOf(q)>=0 && _okCat(x)){ res.push({t:'extra',lab:x.nome,ix:ix}); } _exN[_recN(x.nome)]=1; });
+ function _add(lab,sub,w,di,pi){ var k=_recN(lab); if(_seen[k])return; var _EA=window.RECEXTRA||[]; for(var _e=0;_e<_EA.length;_e++){ var _en=_recN(_EA[_e].nome); if(_okCat(_EA[_e]) && (_en.indexOf(k)>=0||k.indexOf(_en)>=0)) return; } _seen[k]=1; res.push({t:'menu',lab:lab,sub:sub,w:w,di:di,pi:pi}); }
  ['S1','S2'].forEach(function(w){ (DATA[w]||[]).forEach(function(d,di){ (d.dishes||[]).forEach(function(dish,pi){ var dn=dish.title||dish.short||''; if(_recN(dn).indexOf(q)>=0) _add(dish.short||dn, w+' \u00b7 '+d.name, w,di,pi); (dish.comps||[]).forEach(function(c){ if(c.name&&_recN(c.name).indexOf(q)>=0) _add(c.name, w+' \u00b7 '+d.name+' \u00b7 '+(dish.short||''), w,di,pi); }); }); }); });
  if(!res.length){ box.innerHTML='<div style="padding:10px;color:#8a8378">Nessun risultato</div>'; box.style.display='block'; return; }
  box.innerHTML=res.slice(0,40).map(function(r){ if(r.t==='menu') return '<div onclick="jumpTo(\''+r.w+'\','+r.di+','+r.pi+')" style="padding:10px;border-bottom:1px solid #eee;cursor:pointer"><b>'+_recEsc(r.lab)+'</b><div style="font-size:12px;color:#8a8378">'+_recEsc(r.sub)+'</div></div>'; return '<div onclick="showExtra('+r.ix+')" style="padding:10px;border-bottom:1px solid #eee;cursor:pointer;background:#fff8e6"><b>\uD83D\uDCD6 '+_recEsc(r.lab)+'</b><div style="font-size:12px;color:#8a6d00">Ricetta base/extra \u2014 tocca per vedere</div></div>'; }).join(''); box.style.display='block';
 }
 function hideSearch(){ var box=document.getElementById('recresults'); if(box){ box.style.display='none'; box.innerHTML=''; } var inp=document.getElementById('recsearch'); if(inp)inp.value=''; }
 function jumpTo(w,di,pi){ curWeek=w; curDay=di; curDishIdx=pi; var tabs=document.querySelectorAll('#wtabs .wtab'); if(tabs.length>=2){ tabs.forEach(function(x){x.classList.remove('active');}); (w==='S1'?tabs[0]:tabs[1]).classList.add('active'); } if(typeof initDay==='function')initDay(); renderDay(); hideSearch(); try{window.scrollTo(0,0);}catch(e){} }
-function showExtra(ix){ var x=(window.RECEXTRA||[])[ix]; if(!x)return; var ings=(x.ings||[]).map(function(i){return '<li>'+_recEsc(i)+'</li>';}).join(''); var steps=(x.steps||[]).map(function(st){return '<li>'+_recEsc(st)+'</li>';}).join(''); var ov=document.createElement('div'); ov.id='__recov'; ov.setAttribute('style','position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:18px'); ov.innerHTML='<div style="background:#fffdf9;max-width:460px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:18px"><div style="font-weight:800;font-size:18px;margin-bottom:8px">'+_recEsc(x.nome)+'</div>'+(ings?('<div style="font-weight:700;margin:8px 0 2px">Ingredienti</div><ul>'+ings+'</ul>'):'')+(steps?('<div style="font-weight:700;margin:8px 0 2px">Procedimento</div><ol>'+steps+'</ol>'):'')+((!ings&&!steps)?'<div style="color:#8a8378">(ricetta ancora da compilare)</div>':'')+'<button onclick="var e=document.getElementById(\'__recov\');if(e)e.parentNode.removeChild(e);" style="width:100%;margin-top:10px;padding:12px;border:0;border-radius:10px;background:#1f1a14;color:#fff;font-weight:700;cursor:pointer">Chiudi</button></div>'; ov.onclick=function(e){ if(e.target===ov){ ov.parentNode.removeChild(ov); } }; document.body.appendChild(ov); }
+var _recMult=1, _recCur=null;
+function _recFmt(v){ v=Math.round(v*100)/100; if(Math.abs(v-Math.round(v))<1e-9) return ''+Math.round(v); return (''+v).replace('.',','); }
+function _recScale(s,m){ if(m===1||!s) return s; s=s.replace(/(\d+(?:[.,]\d+)?)(\s*)(kg|g|ml|l|L|pz|foglie|grani|spicchi[oa]?|ramett[oi])\b/g,function(_,n,sp,u){ return _recFmt(parseFloat(n.replace(',','.'))*m)+sp+u; }); s=s.replace(/(\u2014\s*)(\d+(?:[.,]\d+)?)(\s*)$/,function(_,d,n,sp){ return d+_recFmt(parseFloat(n.replace(',','.'))*m)+sp; }); return s; }
+function _recBody(){ var x=_recCur; if(!x) return ''; var E=_recEsc; var ings=(x.ings||[]).map(function(i){return '<li>'+E(_recScale(i,_recMult))+'</li>';}).join(''); var steps=(x.steps||[]).map(function(st){return '<li>'+E(st)+'</li>';}).join(''); var bar='<div style="font-size:12px;color:#8a8378;margin:2px 0 3px">Dosi</div><div style="display:flex;gap:6px;margin-bottom:10px">'+[0.5,1,2,3].map(function(m){return '<button onclick="_recSetMult('+m+')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd2bd;font-weight:700;cursor:pointer;background:'+(m===_recMult?'#1f1a14':'#fff')+';color:'+(m===_recMult?'#fff':'#1f1a14')+'">'+(m===0.5?'\u00bd':('\u00d7'+m))+'</button>';}).join('')+'</div>'; return '<div style="font-weight:800;font-size:18px;margin-bottom:6px">'+E(x.nome)+'</div>'+bar+(ings?('<div style="font-weight:700;margin:4px 0 2px">Ingredienti</div><ul>'+ings+'</ul>'):'')+(steps?('<div style="font-weight:700;margin:8px 0 2px">Procedimento</div><ol>'+steps+'</ol>'):'')+((!ings&&!steps)?'<div style="color:#8a8378">(ricetta ancora da compilare)</div>':'')+'<button onclick="_recClose()" style="width:100%;margin-top:10px;padding:12px;border:0;border-radius:10px;background:#1f1a14;color:#fff;font-weight:700;cursor:pointer">Chiudi</button>'; }
+function _recClose(){ var e=document.getElementById('__recov'); if(e)e.parentNode.removeChild(e); }
+function _recSetMult(m){ _recMult=m; var bx=document.getElementById('__recbox'); if(bx)bx.innerHTML=_recBody(); }
+function showExtra(ix){ var x=(window.RECEXTRA||[])[ix]; if(!x)return; _recCur=x; _recMult=1; var ov=document.createElement('div'); ov.id='__recov'; ov.setAttribute('style','position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:18px'); ov.innerHTML='<div id="__recbox" style="background:#fffdf9;max-width:460px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:18px">'+_recBody()+'</div>'; ov.onclick=function(e){ if(e.target===ov){ _recClose(); } }; document.body.appendChild(ov); }
+
 function renderDay(){ document.querySelectorAll('#dchips .dchip').forEach((b,i)=>b.classList.toggle('active',i===curDay));
  const day=CD(); const who=document.getElementById('who').value;
  document.getElementById('greet').innerHTML='<b>Ciao '+who+' 👋</b>'+curWeek+' · '+day.name+' · '+day.dishes.length+' piatti (2 secondi + veg)';
@@ -361,7 +369,7 @@ function genLista(){
  window._lastProd=rows;
  let h='<div class="lbl">🥩 Carne & pesce — fabbisogno servizio</div>';
  h+='<div class="spnote">Numeri con +15% di cuscinetto (avanzo → scorta o personale). Metti la giacenza: l\'ordine lo decidi tu (di solito 60/80 pz per coprire + rifare scorta). In Ordini poi cambi kg↔pz al volo.</div>';
- window._lastProt.forEach(p=>{ h+=`<div class="protrow"><div class="pn">${p.disp}</div><div class="pf">~${p.fab} porz.</div><label>in casa <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="gia_${p.i}" onfocus="this.select()" oninput="updGia(${p.i},${p.fab})"></label><div class="po" id="po_${p.i}">ordina: ~${p.fab}</div></div>`; });
+ window._lastProt.forEach(p=>{ h+=`<div class="protrow"><div class="pn">${p.disp}</div><div class="pf">~${p.fab} porz.</div><label>in casa <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="gia_${p.i}" onfocus="this.select()" oninput="updGia(${p.i},${p.fab})"></label><label class="po">ordina <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="ord_${p.i}" value="${p.fab}" onfocus="this.select()"></label></div>`; });
  const vegKeys=Object.keys(prot).filter(k=>!MEATRE.test(k));
  if(vegKeys.length){ h+='<div class="lbl">🌱 Veg (prep abbattute, scongeli al servizio)</div>'; vegKeys.forEach(k=>{ h+=`<div class="protrow"><div class="pn">${k}</div><div class="pf">~${prot[k]} porz.</div></div>`; }); }
  h+='<div class="lbl">🥬 Verdure & prodotti — indicativo</div>';
@@ -371,9 +379,9 @@ function genLista(){
  h+='<button class="sendbtn" style="margin-top:12px;background:#2f6b1f" onclick="sendToOrdini()">📤 Invia a Ordini</button>';
  document.getElementById('spesaOut').innerHTML=h;
 }
-function updGia(i,fab){ const g=parseInt(document.getElementById('gia_'+i).value)||0; const ord=Math.max(0,fab-g); document.getElementById('po_'+i).textContent='ordina: ~'+ord; }
+function updGia(i,fab){ const g=parseInt(document.getElementById('gia_'+i).value)||0; const ord=Math.max(0,fab-g); var oe=document.getElementById('ord_'+i); if(oe) oe.value=ord; }
 async function sendToOrdini(){ const items=[];
- (window._lastProt||[]).forEach(p=>{ const g=parseInt((document.getElementById('gia_'+p.i)||{}).value)||0; const q=Math.max(0,p.fab-g); if(q>0) items.push({n:p.disp,q:''+q,u:'pz'}); });
+ (window._lastProt||[]).forEach(p=>{ var oe=document.getElementById('ord_'+p.i); var q=oe?(parseInt(oe.value)||0):Math.max(0,p.fab-(parseInt((document.getElementById('gia_'+p.i)||{}).value)||0)); if(q>0) items.push({n:p.disp,q:''+q,u:'pz'}); });
  (window._lastProd||[]).forEach(r=>{ items.push({n:r.name,q:''+r.q,u:r.unit}); });
  const t=document.getElementById('toast');
  if(!items.length){ t.innerHTML='<b>Niente da inviare</b>Genera prima la lista.'; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),4000); return; }
