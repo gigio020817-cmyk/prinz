@@ -359,10 +359,10 @@ function renderProd(v){
 async function sendProd(){
  var who=_pwho();var today=new Date().toISOString().slice(0,10);var t=document.getElementById('ptoast');
  var sections=[],count=0,touchedItems=[],touchedFree=[];
- (DATA.mezza||[]).forEach(function(w,wi){(w.dishes||[]).forEach(function(d,di){var lines=[];(d.comps||[]).forEach(function(c,ci){var k=wi+'|'+di+'|'+ci;var o=PROD.items[k];if(!o||(o.st!=='f'&&o.st!=='s')||o.sent)return;var val=(o.val||'').trim();lines.push(o.st==='f'?('✅ '+c.n+(val?' — '+val:'')):('📦 '+c.n+(val?' — scorta '+val:' — scorta')));touchedItems.push(k);count++;});if(lines.length){sections.push('— '+(w.sett||('Sett '+(wi+1)))+' · '+(d.giorno?d.giorno+' · ':'')+d.title+' —\n'+lines.join('\n'));}});});
+ (DATA.mezza||[]).forEach(function(w,wi){(w.dishes||[]).forEach(function(d,di){var lines=[];(d.comps||[]).forEach(function(c,ci){var k=wi+'|'+di+'|'+ci;var o=PROD.items[k];if(!o||(o.st!=='f'&&o.st!=='s')||o.sent)return;var val=(o.val||'').trim();lines.push(o.st==='f'?('✅ '+c.n+(val?' — '+val:'')):('📦 '+c.n+(val?' — scorta '+val:' — scorta')));touchedItems.push(k);count++;});if(lines.length){sections.push(lines.join('\n'));}});});
  var altLines=[];PROD.free.forEach(function(fr){if(fr.sent||!(fr.n||'').trim())return;var q=(fr.q||'').trim();altLines.push('✅ '+fr.n+(q?' — '+q:''));touchedFree.push(fr.id);count++;});
  if(!count){t.style.cssText='display:block;background:#c0392b;color:#fff;border-radius:10px;padding:12px;margin-top:8px;font-weight:700';t.textContent='Niente di nuovo da inviare. Segna qualcosa con ✅/📦 o aggiungi una preparazione.';return;}
- var cosa='SCHEDA PASTICCERIA — '+who+':';if(sections.length)cosa+='\n\n'+sections.join('\n\n');if(altLines.length)cosa+='\n\n— Altre preparazioni —\n'+altLines.join('\n');
+ var cosa='SCHEDA PASTICCERIA — '+who+' ('+today+'):';if(sections.length)cosa+='\n'+sections.join('\n');if(altLines.length)cosa+='\n'+altLines.join('\n');
  try{await sb('kitchen_entries',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({day:today,type:'scheda',cook:who,data:{cosa:cosa}})});
   touchedItems.forEach(function(k){PROD.items[k].sent=true;});touchedFree.forEach(function(id){var o=PROD.free.find(function(x){return x.id===id;});if(o)o.sent=true;});
   await saveProd();renderProd(document.getElementById('view'));
