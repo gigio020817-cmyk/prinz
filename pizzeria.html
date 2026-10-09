@@ -61,7 +61,7 @@
 <main id="view"></main>
 <div class="ver" id="ver"></div>
 <script>
-const APP_VER='09/10 17:35';
+const APP_VER='09/10 18:05';
 document.getElementById('ver').textContent='v '+APP_VER;
 const TABS=[['giro','Il giro'],['frighi','Frighi'],['ricette','Ricette'],['pizze','Le pizze'],['ordini','Ordini']];
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -71,7 +71,7 @@ function _vetDefault(){return {zones:[
   {name:"Vetrina 1",type:"stack",cols:[_emptycol('s',3),_emptycol('s',3),_emptycol('b',2),_emptycol('b',2)]},
   {name:"Vetrina 2",type:"stack",cols:[_emptycol('s',3),_emptycol('s',3),_emptycol('b',2),_emptycol('b',2),_emptycol('s',3)]},
   {name:"Cassetto 1",type:"grid",bins:["","","","","",""]},
-  {name:"Cassetto 2",type:"grid",bins:["","","","","",""]},
+  {name:"Cassetto 2",type:"grid",bins:["","",""]},
   {name:"Sportello 1 \u00b7 4 ripiani",type:"grid",bins:["","","",""]},
   {name:"Mise en place \u00b7 finitura pizza",type:"grid",bins:["","","","","","","",""]}
 ]};}
@@ -159,11 +159,11 @@ function frighiView(){
       h+='</div>';
     } else if(z.name&&z.name.toLowerCase().indexOf('cassetto 2')>=0){
       h+='<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">';
-      h+='<div style="display:grid;grid-template-rows:repeat(2,auto);grid-auto-flow:column;gap:10px">';
-      z.bins.forEach(function(b,bi){h+=quadro(b,zi,bi);});
+      h+='<div style="display:flex;gap:10px">';
+      z.bins.forEach(function(b,bi){h+=rettVert(b,zi,bi);});
       h+='</div>';
       h+='<div style="display:grid;grid-template-rows:repeat(3,auto);grid-auto-flow:column;gap:10px">';
-      ['Maionese alla senape','Maionese al wasabi',"'Nduja calabrese",'Pesto di basilico','Crema di Monte 27'].forEach(function(x){h+=biberon(x);});
+      ['Maionese alla senape','Maionese al wasabi',"'Nduja calabrese",'Pesto di basilico','Crema di Monte 27','Crema alla carbonara'].forEach(function(x){h+=biberon(x);});
       h+='</div>';
       h+='</div>';
     } else {
@@ -203,6 +203,15 @@ function quadro(b,zi,bi){
       +'<span onclick="event.stopPropagation();vetClear('+zi+',-1,'+bi+')" style="position:absolute;top:2px;right:6px;color:#b23a3a;font-weight:900;font-size:15px">\u00d7</span></div>';
   }
   return '<div onclick="vetOpenPick('+zi+',-1,'+bi+')" style="'+base+';border:2px dashed #c9c3b6;background:#fff;color:#b8b2a6;font-size:22px;font-weight:700">\uff0b</div>';
+}
+function rettVert(b,zi,bi){
+  var base='width:100px;height:196px;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;position:relative';
+  if(b){
+    return '<div onclick="vetOpenPick('+zi+',-1,'+bi+')" style="'+base+';border:2px solid #1e7a46;background:#eef7f1">'
+      +'<span style="font-size:12px;font-weight:800;color:#1b5e38;line-height:1.15;padding:6px">'+esc(b)+'</span>'
+      +'<span onclick="event.stopPropagation();vetClear('+zi+',-1,'+bi+')" style="position:absolute;top:3px;right:8px;color:#b23a3a;font-weight:900;font-size:16px">\u00d7</span></div>';
+  }
+  return '<div onclick="vetOpenPick('+zi+',-1,'+bi+')" style="'+base+';border:2px dashed #c9c3b6;background:#fff;color:#b8b2a6;font-size:24px;font-weight:700">\uff0b</div>';
 }
 function biberon(label){
   return '<div style="display:flex;flex-direction:column;align-items:center;width:62px">'
