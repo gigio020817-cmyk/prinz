@@ -61,7 +61,7 @@
 <main id="view"></main>
 <div class="ver" id="ver"></div>
 <script>
-const APP_VER='09/10 21:30';
+const APP_VER='09/10 22:00';
 document.getElementById('ver').textContent='v '+APP_VER;
 const TABS=[['giro','Il giro'],['frighi','Frighi'],['ricette','Ricette'],['pizze','Le pizze'],['ordini','Ordini']];
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -124,48 +124,41 @@ function giroView(){
  steps.forEach(function(s,i){ h+='<div class="pz"><div class="top"><span class="nm">'+(i+1)+'. '+esc(s[0])+'</span></div><div class="ing">'+esc(s[1])+'</div></div>'; });
  return h;
 }
+function _flatOrd(){var a=[];ORD.forEach(function(g){g.items.forEach(function(it){a.push({forn:g.forn,it:it});});});a.sort(function(x,y){return x.it.localeCompare(y.it,'it');});return a;}
 function ordiniView(){
- var d=ordLoad();var open=window._ORDOPEN||{};
- var h='<div class="hint">Tocca un fornitore per aprirlo e segnare le quantità con − / +. Poi premi <b>Invia ordine allo chef</b>: arriva sulla dashboard di Luigi (card “Ordini ai cuochi”).</div>';
+ var d=ordLoad();var F=_flatOrd();
+ var h='<div class="hint">Segna i pezzi da ordinare con − / +. Poi premi <b>Invia ordine allo chef</b>: arriva sulla dashboard di Luigi (card “Ordini ai cuochi”), già diviso per fornitore.</div>';
  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="ctrlbtn" style="width:auto;margin:0;background:#1e7a46;color:#fff;border:0;padding:11px 16px;font-size:15px" onclick="inviaOrdinePizza()">📤 Invia ordine allo chef</button><button class="ctrlbtn" style="width:auto;margin:0" onclick="ordReset()">Svuota</button></div>';
- ORD.forEach(function(g,gi){
-   var cnt=0;g.items.forEach(function(it){if((d[g.forn+'|'+it]||'').trim())cnt++;});
-   if((d['ALTRO|'+g.forn]||'').trim())cnt++;
-   var isopen=!!open[g.forn];
-   h+='<div class="sec" style="padding:0;overflow:hidden">';
-   h+='<div onclick="ordToggle('+gi+')" style="display:flex;align-items:center;gap:8px;padding:12px 13px;cursor:pointer"><b style="flex:1;font-size:15px;color:#6b1f2a">'+esc(g.forn)+'</b>'+(cnt?'<span style="background:#1e7a46;color:#fff;border-radius:12px;padding:2px 9px;font-size:12px;font-weight:800">'+cnt+'</span>':'')+'<span style="color:#b8b2a6;font-size:16px;font-weight:900">'+(isopen?'–':'+')+'</span></div>';
-   if(isopen){
-     h+='<div style="padding:0 13px 12px">';
-     g.items.forEach(function(it,ii){
-       var val=d[g.forn+'|'+it]||'';
-       h+='<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-top:1px solid #f1ede3"><span style="flex:1;font-size:14px">'+esc(it)+'</span>'
-         +'<button onclick="ordStep('+gi+','+ii+',-1)" style="width:34px;height:34px;border:1px solid #ddd;background:#fff;border-radius:8px;font-size:18px;font-weight:800;cursor:pointer">−</button>'
-         +'<input id="ord_'+gi+'_'+ii+'" value="'+esc(val)+'" oninput="ordSet('+gi+','+ii+',this.value)" placeholder="0" style="width:58px;padding:7px;border:1px solid #ddd;border-radius:8px;font:inherit;text-align:center">'
-         +'<button onclick="ordStep('+gi+','+ii+',1)" style="width:34px;height:34px;border:1px solid #ddd;background:#fff;border-radius:8px;font-size:18px;font-weight:800;cursor:pointer">+</button></div>';
-     });
-     h+='<input value="'+esc(d['ALTRO|'+g.forn]||'')+'" oninput="ordSetAltro('+gi+',this.value)" placeholder="➕ Altro / mancanze…" style="width:100%;box-sizing:border-box;margin-top:8px;padding:9px;border:1px dashed #c9a227;border-radius:9px;font:inherit">';
-     h+='</div>';
-   }
-   h+='</div>';
+ h+='<div class="sec" style="padding:0;overflow:hidden">';
+ h+='<div style="display:flex;align-items:center;background:#f3efe2;border-bottom:1px solid #e6e0d4"><span style="flex:1;padding:10px 13px;font-weight:800;color:#6b1f2a;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em">Cosa ordinare</span><span style="width:146px;text-align:center;padding:10px;font-weight:800;color:#6b1f2a;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em">Pezzi</span></div>';
+ F.forEach(function(o,idx){
+   var key=o.forn+'|'+o.it;var val=d[key]||'';
+   h+='<div style="display:flex;align-items:center;gap:6px;padding:6px 13px;border-top:1px solid #f1ede3"><span style="flex:1;font-size:14px">'+esc(o.it)+'</span>'
+     +'<button onclick="ordStep('+idx+',-1)" style="width:34px;height:34px;border:1px solid #ddd;background:#fff;border-radius:8px;font-size:18px;font-weight:800;cursor:pointer">−</button>'
+     +'<input id="ord_'+idx+'" value="'+esc(val)+'" oninput="ordSet('+idx+',this.value)" placeholder="0" style="width:54px;padding:7px;border:1px solid #ddd;border-radius:8px;font:inherit;text-align:center">'
+     +'<button onclick="ordStep('+idx+',1)" style="width:34px;height:34px;border:1px solid #ddd;background:#fff;border-radius:8px;font-size:18px;font-weight:800;cursor:pointer">+</button></div>';
  });
+ h+='</div>';
+ h+='<input value="'+esc(d['ALTRO|__G__']||'')+'" oninput="ordSetG(this.value)" placeholder="➕ Altro / mancanze (facoltativo)…" style="width:100%;box-sizing:border-box;margin-top:10px;padding:10px;border:1px dashed #c9a227;border-radius:9px;font:inherit">';
  return h;
 }
 function ordLoad(){var d={};try{d=JSON.parse(localStorage.getItem('pizza_ordraft')||'{}')||{};}catch(e){d={};}return d;}
 function ordSaveAll(d){try{localStorage.setItem('pizza_ordraft',JSON.stringify(d));}catch(e){}}
-function ordSet(gi,ii,v){var d=ordLoad();d[ORD[gi].forn+'|'+ORD[gi].items[ii]]=v;ordSaveAll(d);}
-function ordSetAltro(gi,v){var d=ordLoad();d['ALTRO|'+ORD[gi].forn]=v;ordSaveAll(d);}
-function ordStep(gi,ii,delta){var d=ordLoad();var key=ORD[gi].forn+'|'+ORD[gi].items[ii];var cur=parseInt((''+(d[key]||'')).replace(/[^0-9]/g,''),10);if(isNaN(cur))cur=0;cur=Math.max(0,cur+delta);d[key]=cur?String(cur):'';ordSaveAll(d);var inp=document.getElementById('ord_'+gi+'_'+ii);if(inp)inp.value=d[key];}
-function ordToggle(gi){window._ORDOPEN=window._ORDOPEN||{};var f=ORD[gi].forn;window._ORDOPEN[f]=!window._ORDOPEN[f];render();}
+function ordSet(idx,v){var F=_flatOrd();var o=F[idx];if(!o)return;var d=ordLoad();d[o.forn+'|'+o.it]=v;ordSaveAll(d);}
+function ordSetG(v){var d=ordLoad();d['ALTRO|__G__']=v;ordSaveAll(d);}
+function ordStep(idx,delta){var F=_flatOrd();var o=F[idx];if(!o)return;var key=o.forn+'|'+o.it;var d=ordLoad();var cur=parseInt((''+(d[key]||'')).replace(/[^0-9]/g,''),10);if(isNaN(cur))cur=0;cur=Math.max(0,cur+delta);d[key]=cur?String(cur):'';ordSaveAll(d);var inp=document.getElementById('ord_'+idx);if(inp)inp.value=d[key];}
 function ordReset(){if(!confirm('Svuotare tutto l\'ordine?'))return;try{localStorage.removeItem('pizza_ordraft');}catch(e){}render();}
 async function inviaOrdinePizza(){
  var d=ordLoad();var blocks=[];
- ORD.forEach(function(g){var items=[];g.items.forEach(function(it){var v=(d[g.forn+'|'+it]||'').trim();if(v)items.push(it+': '+v);});var altro=(d['ALTRO|'+g.forn]||'').trim();if(altro)items.push('Altro: '+altro);if(items.length)blocks.push({forn:g.forn,line:items.join(', ')});});
- if(!blocks.length){alert('Non hai segnato niente da ordinare.');return;}
+ ORD.forEach(function(g){var items=[];g.items.forEach(function(it){var v=(d[g.forn+'|'+it]||'').trim();if(v)items.push(it+': '+v);});if(items.length)blocks.push({forn:g.forn,line:items.join(', ')});});
+ var gAltro=(d['ALTRO|__G__']||'').trim();
+ if(!blocks.length&&!gAltro){alert('Non hai segnato niente da ordinare.');return;}
  try{
    var r=await fetch(SB_URL+"/rest/v1/kitchen_meta?k=eq.chefordini&select=v",{headers:{apikey:SB_KEY}});
    var j=await r.json();var items=(j&&j[0]&&j[0].v&&j[0].v.items)||[];
    var now=Date.now();
    blocks.forEach(function(b,idx){items.push({id:now+idx,txt:'🍕 '+b.forn+': '+b.line,cook:'Pizzeria',at:new Date().toISOString(),done:null});});
+   if(gAltro)items.push({id:now+999,txt:'🍕 Altro: '+gAltro,cook:'Pizzeria',at:new Date().toISOString(),done:null});
    await fetch(SB_URL+"/rest/v1/kitchen_meta?on_conflict=k",{method:"POST",headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefordini',v:{items:items}})});
    try{localStorage.removeItem('pizza_ordraft');}catch(e){}
    alert('Ordine inviato allo chef ✓\nLo trovi sulla dashboard, card “Ordini ai cuochi”.');
