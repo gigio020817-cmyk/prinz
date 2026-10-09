@@ -150,6 +150,13 @@ function frighiView(){
         h+='</div>';
       });
       h+='</div>';
+    } else if(z.name&&z.name.toLowerCase().indexOf('cassetto 1')>=0){
+      h+='<div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap">';
+      h+='<div style="display:grid;grid-template-columns:repeat(2,auto);gap:10px">';
+      z.bins.forEach(function(b,bi){h+=ciotola(b,zi,bi);});
+      h+='</div>';
+      h+=burrataStack();
+      h+='</div>';
     } else {
       h+='<div style="display:flex;flex-wrap:wrap;gap:8px">';
       z.bins.forEach(function(b,bi){h+=binBox(b,zi,-1,bi,false,true);});
@@ -170,6 +177,26 @@ function binBox(b,zi,ci,bi,big,wide){
   }
   return '<div onclick="vetOpenPick('+zi+','+ci+','+bi+')" style="width:'+w+';height:'+hh+';border:2px dashed #c9c3b6;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#b8b2a6;font-size:24px;font-weight:700">'+(big?'＋<span style=\"font-size:11px;margin-left:3px;align-self:flex-end;padding-bottom:6px\">grande</span>':'＋')+'</div>';
 }
+function ciotola(b,zi,bi){
+  var base='width:94px;height:94px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;position:relative;box-shadow:inset 0 -3px 6px rgba(0,0,0,.05)';
+  if(b){
+    return '<div onclick="vetOpenPick('+zi+',-1,'+bi+')" style="'+base+';border:2px solid #1e7a46;background:#eef7f1">'
+      +'<span style="font-size:11px;font-weight:800;color:#1b5e38;line-height:1.1;padding:6px">'+esc(b)+'</span>'
+      +'<span onclick="event.stopPropagation();vetClear('+zi+',-1,'+bi+')" style="position:absolute;top:3px;right:12px;color:#b23a3a;font-weight:900;font-size:15px">\u00d7</span></div>';
+  }
+  return '<div onclick="vetOpenPick('+zi+',-1,'+bi+')" style="'+base+';border:2px dashed #c9c3b6;background:#fff;color:#b8b2a6;font-size:22px;font-weight:700">\uff0b</div>';
+}
+function burrataStack(){
+  function ball(top,left,sz){return '<div style="position:absolute;top:'+top+'px;left:'+left+'px;width:'+sz+'px;height:'+sz+'px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffffff,#f3efe2);border:2px solid #e3d5a4;box-shadow:0 1px 3px rgba(0,0,0,.08)"></div>';}
+  return '<div style="display:flex;flex-direction:column;align-items:center">'
+    +'<div style="font-size:12px;font-weight:800;color:#6b1f2a;margin-bottom:4px">Burrata</div>'
+    +'<div style="position:relative;width:78px;height:150px">'
+      +ball(0,19,40)
+      +ball(30,10,58)
+      +ball(74,6,66)
+    +'</div></div>';
+}
+
 var VETPROD=[
   ["🧀 Formaggi e latticini",["Fior di latte (mozzarella pizzeria)","Mozzarella di bufala","Mozzarella di bufala affumicata","Burrata","Stracciatella","Gorgonzola DOP","Taleggio","Fontina di malga","Scaglie di Grana Padano","Grana Padano grattugiato","Parmigiano","Pecorino","Ricotta affumicata","Crema di Monte 27"]],
   ["🥩 Salumi e carni",["Prosciutto cotto del contadino","Prosciutto crudo","Speck altoatesino","Guanciale croccante","Spianata calabra piccante Levoni","Salsiccia al finocchietto","Roast beef (il nostro)","Tataki di tonno rosso"]],
