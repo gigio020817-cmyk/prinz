@@ -61,7 +61,7 @@
 <main id="view"></main>
 <div class="ver" id="ver"></div>
 <script>
-const APP_VER='09/10 15:00';
+const APP_VER='09/10 16:30';
 document.getElementById('ver').textContent='v '+APP_VER;
 const TABS=[['giro','Il giro'],['frighi','Frighi'],['ricette','Ricette'],['pizze','Le pizze'],['ordini','Ordini']];
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -151,11 +151,14 @@ function frighiView(){
       });
       h+='</div>';
     } else if(z.name&&z.name.toLowerCase().indexOf('cassetto 1')>=0){
-      h+='<div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap">';
-      h+='<div style="display:grid;grid-template-columns:repeat(2,auto);gap:10px">';
-      z.bins.forEach(function(b,bi){h+=ciotola(b,zi,bi);});
-      h+='</div>';
+      h+='<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">';
+      z.bins.forEach(function(b,bi){h+=quadro(b,zi,bi);});
       h+=burrataStack();
+      h+='</div>';
+    } else if(z.name&&z.name.toLowerCase().indexOf('cassetto 2')>=0){
+      h+='<div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">';
+      ['Maionese alla senape','Maionese al wasabi',"'Nduja calabrese",'Pesto di basilico','Crema di Monte 27'].forEach(function(x){h+=biberon(x);});
+      z.bins.forEach(function(b,bi){h+=quadro(b,zi,bi);});
       h+='</div>';
     } else {
       h+='<div style="display:flex;flex-wrap:wrap;gap:8px">';
@@ -185,6 +188,22 @@ function ciotola(b,zi,bi){
       +'<span onclick="event.stopPropagation();vetClear('+zi+',-1,'+bi+')" style="position:absolute;top:3px;right:12px;color:#b23a3a;font-weight:900;font-size:15px">\u00d7</span></div>';
   }
   return '<div onclick="vetOpenPick('+zi+',-1,'+bi+')" style="'+base+';border:2px dashed #c9c3b6;background:#fff;color:#b8b2a6;font-size:22px;font-weight:700">\uff0b</div>';
+}
+function quadro(b,zi,bi){
+  var base='width:92px;height:92px;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;position:relative';
+  if(b){
+    return '<div onclick="vetOpenPick('+zi+',-1,'+bi+')" style="'+base+';border:2px solid #1e7a46;background:#eef7f1">'
+      +'<span style="font-size:11px;font-weight:800;color:#1b5e38;line-height:1.1;padding:5px">'+esc(b)+'</span>'
+      +'<span onclick="event.stopPropagation();vetClear('+zi+',-1,'+bi+')" style="position:absolute;top:2px;right:6px;color:#b23a3a;font-weight:900;font-size:15px">\u00d7</span></div>';
+  }
+  return '<div onclick="vetOpenPick('+zi+',-1,'+bi+')" style="'+base+';border:2px dashed #c9c3b6;background:#fff;color:#b8b2a6;font-size:22px;font-weight:700">\uff0b</div>';
+}
+function biberon(label){
+  return '<div style="display:flex;flex-direction:column;align-items:center;width:62px">'
+    +'<div style="width:14px;height:12px;background:#b23a3a;border-radius:3px 3px 0 0"></div>'
+    +'<div style="width:12px;height:8px;background:#cdbf8f"></div>'
+    +'<div style="width:56px;min-height:82px;background:#f6f2e6;border:2px solid #c9a227;border-radius:12px 12px 16px 16px;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px">'
+    +'<span style="font-size:10px;font-weight:800;color:#6b1f2a;line-height:1.12">'+esc(label)+'</span></div></div>';
 }
 function burrataStack(){
   function ball(top,left,sz){return '<div style="position:absolute;top:'+top+'px;left:'+left+'px;width:'+sz+'px;height:'+sz+'px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffffff,#f3efe2);border:2px solid #e3d5a4;box-shadow:0 1px 3px rgba(0,0,0,.08)"></div>';}
