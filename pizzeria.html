@@ -61,7 +61,7 @@
 <main id="view"></main>
 <div class="ver" id="ver"></div>
 <script>
-const APP_VER='09/10 17:10';
+const APP_VER='09/10 17:35';
 document.getElementById('ver').textContent='v '+APP_VER;
 const TABS=[['giro','Il giro'],['frighi','Frighi'],['ricette','Ricette'],['pizze','Le pizze'],['ordini','Ordini']];
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -159,11 +159,11 @@ function frighiView(){
       h+='</div>';
     } else if(z.name&&z.name.toLowerCase().indexOf('cassetto 2')>=0){
       h+='<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">';
-      h+='<div style="display:flex;flex-direction:column;gap:10px">';
-      ['Maionese alla senape','Maionese al wasabi',"'Nduja calabrese",'Pesto di basilico','Crema di Monte 27'].forEach(function(x){h+=biberon(x);});
-      h+='</div>';
       h+='<div style="display:grid;grid-template-rows:repeat(2,auto);grid-auto-flow:column;gap:10px">';
       z.bins.forEach(function(b,bi){h+=quadro(b,zi,bi);});
+      h+='</div>';
+      h+='<div style="display:grid;grid-template-rows:repeat(3,auto);grid-auto-flow:column;gap:10px">';
+      ['Maionese alla senape','Maionese al wasabi',"'Nduja calabrese",'Pesto di basilico','Crema di Monte 27'].forEach(function(x){h+=biberon(x);});
       h+='</div>';
       h+='</div>';
     } else {
