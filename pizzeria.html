@@ -61,7 +61,7 @@
 <main id="view"></main>
 <div class="ver" id="ver"></div>
 <script>
-const APP_VER='09/10 20:10';
+const APP_VER='09/10 20:40';
 document.getElementById('ver').textContent='v '+APP_VER;
 const TABS=[['giro','Il giro'],['frighi','Frighi'],['ricette','Ricette'],['pizze','Le pizze'],['ordini','Ordini']];
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -291,7 +291,8 @@ var VETPROD=[
   ["🥩 Salumi e carni",["Prosciutto cotto del contadino","Prosciutto crudo","Speck altoatesino","Guanciale croccante","Spianata calabra piccante Levoni","Salsiccia al finocchietto","Roast beef (il nostro)","Tataki di tonno rosso"]],
   ["🍆 Verdure, funghi e preparati",["Champignon trifolati","Funghi misti trifolati (aglio e prezzemolo)","Carciofi","Carciofini sott'olio","Olive Leccino","Peperoni lombardi","Melanzana alla piastra","Patate al forno","Friarielli","Caponatina di verdure","Cipolla caramellata","Cipolla croccante","Cipolla di Tropea agrodolce","Pere saltate","Pomodorini","Pomodori confit rossi","Pomodori confit gialli","Rucola","Basilico","Prezzemolo","Peperone crusco"]],
   ["🥣 Salse, creme e maionesi",["Salsa pomodoro base","Crema alla carbonara","Pesto di basilico","Maionese alla senape","Maionese al wasabi","'Nduja calabrese (crema)"]],
-  ["✨ Finiture, polveri e condimenti",["Polvere di pepe nero","Polvere di nocciole tostate","Polvere di rosmarino","Filo di miele (dosatore)","Grattata di limone","Aglio in polvere","Acciughe (filetti)","Noci tostate","Origano","Olio EVO"]]
+  ["✨ Finiture, polveri e condimenti",["Polvere di pepe nero","Polvere di nocciole tostate","Polvere di rosmarino","Filo di miele (dosatore)","Grattata di limone","Aglio in polvere","Acciughe (filetti)","Noci tostate","Origano","Olio EVO"]],
+  ["📦 Scorte pronte (da preparare)",["Champignon trifolati sottovuoto","Funghi misti trifolati sottovuoto","Carciofini scolati (riserva)","Melanzane alla piastra (porzioni)","Friarielli (porzioni)","Caponatina (riserva)","Patate al forno (porzioni)","Cipolla caramellata (riserva)","Pere saltate (riserva)","Peperone crusco tritato","Scaglie di grana (riserva)","Grana grattugiato (riserva)","Parmigiano grattugiato (riserva)","Pecorino grattugiato (riserva)","Crema di Monte 27 (sac à poche)","Salsa pomodoro base (porzioni)","Pesto (riserva)","Crema carbonara (riserva)","'Nduja (riserva)","Prosciutto cotto porzionato","Spianata piccante porzionata","Speck porzionato","Guanciale croccante (riserva)","Salsiccia sbriciolata"]]
 ];
 function _emptycol(size,n){var a=[];for(var i=0;i<n;i++)a.push("");return {size:size,bins:a};}
 function vetLoad(){
