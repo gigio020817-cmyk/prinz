@@ -206,9 +206,9 @@
 
 <div id="lightbox" onclick="this.style.display='none'"><button id="lbclose" onclick="event.stopPropagation();document.getElementById('lightbox').style.display='none'">&times;</button><img id="lbimg" alt=""></div>
 
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 08/10 12:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 09/10 21:00</div>
 <script>
-var APP_VER='08/10 12:00';
+var APP_VER='09/10 21:00';
 var PW_MARTINA='martina2026';
 var PW_CAPO='Capo2026';
 var SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -512,10 +512,10 @@ async function loadPresenze(){
 function prsChip(hid,val,el){var h=document.getElementById(hid);if(!h)return;var nv=(h.value===val)?'':val;h.value=nv;var wrap=el.parentNode;[].forEach.call(wrap.querySelectorAll('button'),function(b){var on=(b.getAttribute('data-v')===nv&&nv!=='');b.style.background=on?'#c9a227':'#fff';b.style.color=on?'#fff':'#6b1f2a';});}
 function prsChipRow(hid,label,opts,sel){var btns=opts.map(function(o){var on=(sel===o);return '<button type="button" data-v="'+o+'" onclick="prsChip(\''+hid+'\',\''+o+'\',this)" style="border:1px solid #c9a227;border-radius:16px;padding:5px 12px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;background:'+(on?'#c9a227':'#fff')+';color:'+(on?'#fff':'#6b1f2a')+'">'+o+'</button>';}).join(' ');return '<div style="flex:1 1 100%;margin-top:2px"><div style="font-size:12px;font-weight:700;margin-bottom:4px">'+label+'</div><input type="hidden" id="'+hid+'" value="'+(sel||'')+'"><div style="display:flex;gap:6px;flex-wrap:wrap">'+btns+'</div></div>';}
 function presenzeCard(){
-  var m=window._PMONTH||_pMonthNow();var P=window.PRESENZE||{};var today=todayStr();var cur=P[today]||{};
+  var m=window._PMONTH||_pMonthNow();var P=window.PRESENZE||{};var today=todayStr();var sel=window._PRSDAY||today;var cur=P[sel]||{};
   function inp(id,lbl,val){return '<label style="font-size:12px;font-weight:700">'+lbl+'<br><input id="'+id+'" type="number" min="0" value="'+(val!=null&&val!==''?val:'')+'" style="width:82px;padding:8px;border:1px solid #ddd;border-radius:8px;font:inherit"></label>';}
   var form='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">'
-    +'<label style="font-size:12px;font-weight:700">Giorno<br><input id="prsDay" type="date" value="'+today+'" onchange="onPrsDay()" style="padding:8px;border:1px solid #ddd;border-radius:8px;font:inherit"></label>'
+    +'<label style="font-size:12px;font-weight:700">Giorno<br><input id="prsDay" type="date" value="'+sel+'" onchange="onPrsDay()" style="padding:8px;border:1px solid #ddd;border-radius:8px;font:inherit"></label>'
     +inp('prsMp','🍽️ Mezza pensione',cur.mp)+inp('prsCol','🥐 Colazioni',cur.col)+inp('prsBis','🍷 Bistro (opz.)',cur.bistro)
     +prsChipRow('prsPiz','🍕 Pizzeria/Bistro',['metà e metà','tanta pizza','tanto bistro'],cur.piz)+prsChipRow('prsTak','🥡 Take-away',['tanto','poco'],cur.tak)
     +'<label style="font-size:12px;font-weight:700;flex:1 1 100%">📝 Nota del giorno (pizzeria, take-away…)<br><textarea id="prsNota" rows="2" placeholder="es. tanta pizzeria · oppure metà e metà · parecchio take-away…" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:8px;font:inherit;resize:vertical">'+(cur.nota?esc(cur.nota):'')+'</textarea></label>'
@@ -524,19 +524,17 @@ function presenzeCard(){
   var nav='<div style="display:flex;align-items:center;gap:12px;margin:4px 0 10px"><button class="ctrlbtn" style="width:auto;padding:6px 12px;margin:0" onclick="changePMonth(-1)">◀</button><b style="font-size:15px">'+GGm[mo]+' '+y+'</b><button class="ctrlbtn" style="width:auto;padding:6px 12px;margin:0" onclick="changePMonth(1)">▶</button></div>';
   var days=Object.keys(P).sort();var GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
   var tot={mp:0,col:0,bistro:0},cnt={mp:0,col:0,bistro:0};
-  var rows=days.map(function(d){var v=P[d]||{};['mp','col','bistro'].forEach(function(f){if(v[f]!=null&&v[f]!==''){tot[f]+=(+v[f]||0);cnt[f]++;}});var dt=new Date(d+'T00:00:00');function c(x){return (x!=null&&x!=='')?x:'—';}var _ex=[];if(v.piz)_ex.push('🍕 '+esc(v.piz));if(v.tak)_ex.push('🥡 '+esc(v.tak));if(v.bisq)_ex.push('🍷 '+esc(v.bisq));if(v.nota)_ex.push('📝 '+esc(v.nota));var _sub=_ex.length?'<tr><td colspan="4" style="padding:0 8px 7px;color:#6b1f2a;font-size:12px;line-height:1.35">'+_ex.join(' · ')+'</td></tr>':'';return '<tr><td style="padding:4px 8px">'+GG[dt.getDay()]+' '+d.split('-').reverse().slice(0,2).join('/')+'</td><td style="text-align:center">'+c(v.mp)+'</td><td style="text-align:center">'+c(v.col)+'</td><td style="text-align:center">'+c(v.bistro)+'</td></tr>'+_sub;}).join('');
+  var rows=days.map(function(d){var v=P[d]||{};['mp','col','bistro'].forEach(function(f){if(v[f]!=null&&v[f]!==''){tot[f]+=(+v[f]||0);cnt[f]++;}});var dt=new Date(d+'T00:00:00');function c(x){return (x!=null&&x!=='')?x:'—';}var _ex=[];if(v.piz)_ex.push('🍕 '+esc(v.piz));if(v.tak)_ex.push('🥡 '+esc(v.tak));if(v.bisq)_ex.push('🍷 '+esc(v.bisq));if(v.nota)_ex.push('📝 '+esc(v.nota));var _sub=_ex.length?'<tr><td colspan="4" style="padding:0 8px 7px;color:#6b1f2a;font-size:12px;line-height:1.35">'+_ex.join(' · ')+'</td></tr>':'';return '<tr onclick="prsEdit(\''+d+'\')" style="cursor:pointer;background:'+(d===sel?'#fff7e8':'transparent')+'"><td style="padding:4px 8px">'+GG[dt.getDay()]+' '+d.split('-').reverse().slice(0,2).join('/')+'</td><td style="text-align:center">'+c(v.mp)+'</td><td style="text-align:center">'+c(v.col)+'</td><td style="text-align:center">'+c(v.bistro)+'</td></tr>'+_sub;}).join('');
   function avg(f){return cnt[f]?Math.round(tot[f]/cnt[f]*10)/10:0;}
   var table=days.length?('<table style="width:100%;border-collapse:collapse;font-size:13.5px"><thead><tr style="color:#6b1f2a;font-weight:800;border-bottom:1px solid #eee"><td style="padding:5px 8px;text-align:left">Giorno</td><td style="text-align:center">🍽️ MP</td><td style="text-align:center">🥐 Col</td><td style="text-align:center">🍷 Bistro</td></tr></thead><tbody>'+rows+'</tbody><tfoot><tr style="font-weight:800;border-top:2px solid #c9a227"><td style="padding:6px 8px">TOTALE</td><td style="text-align:center">'+tot.mp+'</td><td style="text-align:center">'+tot.col+'</td><td style="text-align:center">'+tot.bistro+'</td></tr><tr style="font-weight:700;color:#666"><td style="padding:2px 8px">Media / giorno</td><td style="text-align:center">'+avg('mp')+'</td><td style="text-align:center">'+avg('col')+'</td><td style="text-align:center">'+avg('bistro')+'</td></tr></tfoot></table>'):'<div class="muted" style="padding:8px">Nessun dato per questo mese.</div>';
-  return '<div class="card" style="border:2px solid var(--gold)"><div class="card-h"><div class="t">🏨 Presenze<div class="sub">segna ogni giorno mezza pensione e colazioni · totale e media a fine mese · il bistro solo se ti serve · nota libera per pizzeria e take-away</div></div></div><div class="card-b">'+form+nav+table+'</div></div>';
+  return '<div class="card" style="border:2px solid var(--gold)"><div class="card-h"><div class="t">🏨 Presenze<div class="sub">segna ogni giorno mezza pensione e colazioni · totale e media a fine mese · il bistro solo se ti serve · <b>tocca un giorno nella tabella per correggerlo</b></div></div></div><div class="card-b">'+form+nav+table+'</div></div>';
 }
 function onPrsDay(){
-  var d=((document.getElementById('prsDay')||{}).value)||todayStr();var mm=d.slice(0,7);
+  var d=((document.getElementById('prsDay')||{}).value)||todayStr();window._PRSDAY=d;var mm=d.slice(0,7);
   if(mm!==(window._PMONTH||_pMonthNow())){window._PMONTH=mm;loadPresenze();}
-  else{var v=(window.PRESENZE||{})[d]||{};
-    function sv(id,x){var e=document.getElementById(id);if(e)e.value=(x!=null&&x!=='')?x:'';}
-    sv('prsMp',v.mp);sv('prsCol',v.col);sv('prsBis',v.bistro);sv('prsNota',v.nota);
-  }
+  else{renderPresenze();}
 }
+function prsEdit(d){window._PRSDAY=d;renderPresenze();var c=document.getElementById('prsWrap');if(c){try{c.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}}}
 async function savePresenze(){
   var d=((document.getElementById('prsDay')||{}).value)||todayStr();
   var _ex={};try{var _r=await sb('kitchen_meta?k=eq.'+encodeURIComponent('presenze|'+d)+'&select=v');_ex=(_r&&_r[0]&&_r[0].v)||{};}catch(e){_ex=(window.PRESENZE&&window.PRESENZE[d])||{};}
@@ -545,14 +543,14 @@ async function savePresenze(){
   var v={mp:val('prsMp','mp'),col:val('prsCol','col'),bistro:val('prsBis','bistro'),piz:txt('prsPiz','piz'),tak:txt('prsTak','tak'),nota:txt('prsNota','nota'),at:new Date().toISOString()};
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'presenze|'+d,v:v})});
     window.PRESENZE=window.PRESENZE||{};if(d.slice(0,7)===(window._PMONTH||d.slice(0,7)))window.PRESENZE[d]=v;
-    renderPresenze();
+    window._PRSDAY=d;renderPresenze();
   }catch(e){alert('Non salvato, controlla internet');}
 }
 async function changePMonth(delta){
   var m=window._PMONTH||_pMonthNow();var dt=new Date(+m.slice(0,4),(+m.slice(5,7)-1)+delta,1);
   window._PMONTH=dt.getFullYear()+'-'+('0'+(dt.getMonth()+1)).slice(-2);
   try{var pr=await sb('kitchen_meta?k=like.'+encodeURIComponent('presenze|'+window._PMONTH)+'*&select=k,v');window.PRESENZE={};(pr||[]).forEach(function(r){window.PRESENZE[r.k.slice(9)]=r.v||{};});}catch(e){window.PRESENZE={};}
-  renderPresenze();
+  window._PRSDAY=null;renderPresenze();
 }
 
 /* ---- auto-aggiornamento: registra il service worker (sempre ultima versione) ---- */
