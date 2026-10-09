@@ -61,7 +61,7 @@
 <main id="view"></main>
 <div class="ver" id="ver"></div>
 <script>
-const APP_VER='09/10 20:40';
+const APP_VER='09/10 21:30';
 document.getElementById('ver').textContent='v '+APP_VER;
 const TABS=[['giro','Il giro'],['frighi','Frighi'],['ricette','Ricette'],['pizze','Le pizze'],['ordini','Ordini']];
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -125,42 +125,52 @@ function giroView(){
  return h;
 }
 function ordiniView(){
- var d=ordLoad();
- var h='<div class="hint">Segna le quantità da ordinare accanto ai prodotti che mancano. Quando hai finito premi <b>Invia ordine a Luigi</b>: gli arriva su WhatsApp già diviso per fornitore.</div>';
- h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="ctrlbtn" style="width:auto;margin:0;background:#1e7a46;color:#fff;border:0;padding:11px 16px;font-size:15px" onclick="inviaOrdinePizza()">📤 Invia ordine a Luigi</button><button class="ctrlbtn" style="width:auto;margin:0" onclick="ordReset()">Svuota</button></div>';
+ var d=ordLoad();var open=window._ORDOPEN||{};
+ var h='<div class="hint">Tocca un fornitore per aprirlo e segnare le quantità con − / +. Poi premi <b>Invia ordine allo chef</b>: arriva sulla dashboard di Luigi (card “Ordini ai cuochi”).</div>';
+ h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="ctrlbtn" style="width:auto;margin:0;background:#1e7a46;color:#fff;border:0;padding:11px 16px;font-size:15px" onclick="inviaOrdinePizza()">📤 Invia ordine allo chef</button><button class="ctrlbtn" style="width:auto;margin:0" onclick="ordReset()">Svuota</button></div>';
  ORD.forEach(function(g,gi){
    var cnt=0;g.items.forEach(function(it){if((d[g.forn+'|'+it]||'').trim())cnt++;});
-   h+='<div class="sec"><h3>'+esc(g.forn)+(cnt?' <span style="color:#1e7a46;font-size:13px">('+cnt+')</span>':'')+'</h3>';
-   g.items.forEach(function(it,ii){
-     var val=d[g.forn+'|'+it]||'';
-     h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f1ede3"><span style="flex:1;font-size:14px">'+esc(it)+'</span><input value="'+esc(val)+'" oninput="ordSet('+gi+','+ii+',this.value)" placeholder="q.tà" style="width:96px;padding:8px;border:1px solid #ddd;border-radius:8px;font:inherit;text-align:center"></div>';
-   });
-   h+='<div style="margin-top:8px"><input value="'+esc(d['ALTRO|'+g.forn]||'')+'" oninput="ordSetAltro('+gi+',this.value)" placeholder="➕ Altro da questo fornitore (mancanze…)" style="width:100%;box-sizing:border-box;padding:9px;border:1px dashed #c9a227;border-radius:9px;font:inherit"></div>';
+   if((d['ALTRO|'+g.forn]||'').trim())cnt++;
+   var isopen=!!open[g.forn];
+   h+='<div class="sec" style="padding:0;overflow:hidden">';
+   h+='<div onclick="ordToggle('+gi+')" style="display:flex;align-items:center;gap:8px;padding:12px 13px;cursor:pointer"><b style="flex:1;font-size:15px;color:#6b1f2a">'+esc(g.forn)+'</b>'+(cnt?'<span style="background:#1e7a46;color:#fff;border-radius:12px;padding:2px 9px;font-size:12px;font-weight:800">'+cnt+'</span>':'')+'<span style="color:#b8b2a6;font-size:16px;font-weight:900">'+(isopen?'–':'+')+'</span></div>';
+   if(isopen){
+     h+='<div style="padding:0 13px 12px">';
+     g.items.forEach(function(it,ii){
+       var val=d[g.forn+'|'+it]||'';
+       h+='<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-top:1px solid #f1ede3"><span style="flex:1;font-size:14px">'+esc(it)+'</span>'
+         +'<button onclick="ordStep('+gi+','+ii+',-1)" style="width:34px;height:34px;border:1px solid #ddd;background:#fff;border-radius:8px;font-size:18px;font-weight:800;cursor:pointer">−</button>'
+         +'<input id="ord_'+gi+'_'+ii+'" value="'+esc(val)+'" oninput="ordSet('+gi+','+ii+',this.value)" placeholder="0" style="width:58px;padding:7px;border:1px solid #ddd;border-radius:8px;font:inherit;text-align:center">'
+         +'<button onclick="ordStep('+gi+','+ii+',1)" style="width:34px;height:34px;border:1px solid #ddd;background:#fff;border-radius:8px;font-size:18px;font-weight:800;cursor:pointer">+</button></div>';
+     });
+     h+='<input value="'+esc(d['ALTRO|'+g.forn]||'')+'" oninput="ordSetAltro('+gi+',this.value)" placeholder="➕ Altro / mancanze…" style="width:100%;box-sizing:border-box;margin-top:8px;padding:9px;border:1px dashed #c9a227;border-radius:9px;font:inherit">';
+     h+='</div>';
+   }
    h+='</div>';
  });
  return h;
 }
 function ordLoad(){var d={};try{d=JSON.parse(localStorage.getItem('pizza_ordraft')||'{}')||{};}catch(e){d={};}return d;}
 function ordSaveAll(d){try{localStorage.setItem('pizza_ordraft',JSON.stringify(d));}catch(e){}}
-function ordSet(gi,ii,v){var d=ordLoad();var it=ORD[gi].items[ii];d[ORD[gi].forn+'|'+it]=v;ordSaveAll(d);}
+function ordSet(gi,ii,v){var d=ordLoad();d[ORD[gi].forn+'|'+ORD[gi].items[ii]]=v;ordSaveAll(d);}
 function ordSetAltro(gi,v){var d=ordLoad();d['ALTRO|'+ORD[gi].forn]=v;ordSaveAll(d);}
+function ordStep(gi,ii,delta){var d=ordLoad();var key=ORD[gi].forn+'|'+ORD[gi].items[ii];var cur=parseInt((''+(d[key]||'')).replace(/[^0-9]/g,''),10);if(isNaN(cur))cur=0;cur=Math.max(0,cur+delta);d[key]=cur?String(cur):'';ordSaveAll(d);var inp=document.getElementById('ord_'+gi+'_'+ii);if(inp)inp.value=d[key];}
+function ordToggle(gi){window._ORDOPEN=window._ORDOPEN||{};var f=ORD[gi].forn;window._ORDOPEN[f]=!window._ORDOPEN[f];render();}
 function ordReset(){if(!confirm('Svuotare tutto l\'ordine?'))return;try{localStorage.removeItem('pizza_ordraft');}catch(e){}render();}
-function inviaOrdinePizza(){
+async function inviaOrdinePizza(){
  var d=ordLoad();var blocks=[];
- ORD.forEach(function(g){
-   var lines=[];
-   g.items.forEach(function(it){var v=(d[g.forn+'|'+it]||'').trim();if(v)lines.push('- '+it+': '+v);});
-   var altro=(d['ALTRO|'+g.forn]||'').trim();if(altro)lines.push('- Altro: '+altro);
-   if(lines.length)blocks.push(g.forn.toUpperCase()+':\n'+lines.join('\n'));
- });
+ ORD.forEach(function(g){var items=[];g.items.forEach(function(it){var v=(d[g.forn+'|'+it]||'').trim();if(v)items.push(it+': '+v);});var altro=(d['ALTRO|'+g.forn]||'').trim();if(altro)items.push('Altro: '+altro);if(items.length)blocks.push({forn:g.forn,line:items.join(', ')});});
  if(!blocks.length){alert('Non hai segnato niente da ordinare.');return;}
- var tel='';try{tel=localStorage.getItem('pizza_luigi_tel')||'';}catch(e){}
- if(!tel){var t=prompt('Numero WhatsApp di Luigi (solo cifre):');if(!t)return;var dd=t.replace(/\D/g,'');if(dd&&!dd.startsWith('39'))dd='39'+dd;try{localStorage.setItem('pizza_luigi_tel',dd);}catch(e){}tel=dd;}
- var today=new Date().toLocaleDateString('it-IT');
- var msg='🍕 ORDINE PIZZERIA Prinz Rudolf — '+today+'\n\n'+blocks.join('\n\n');
- window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(msg),'_blank');
- try{var _dt=new Date();var _ymd=_dt.getFullYear()+'-'+('0'+(_dt.getMonth()+1)).slice(-2)+'-'+('0'+_dt.getDate()).slice(-2);
-   fetch(SB_URL+"/rest/v1/kitchen_meta?on_conflict=k",{method:"POST",headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pizzaordlog|'+_ymd,v:{date:_ymd,testo:msg,at:new Date().toISOString()}})});}catch(e){}
+ try{
+   var r=await fetch(SB_URL+"/rest/v1/kitchen_meta?k=eq.chefordini&select=v",{headers:{apikey:SB_KEY}});
+   var j=await r.json();var items=(j&&j[0]&&j[0].v&&j[0].v.items)||[];
+   var now=Date.now();
+   blocks.forEach(function(b,idx){items.push({id:now+idx,txt:'🍕 '+b.forn+': '+b.line,cook:'Pizzeria',at:new Date().toISOString(),done:null});});
+   await fetch(SB_URL+"/rest/v1/kitchen_meta?on_conflict=k",{method:"POST",headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefordini',v:{items:items}})});
+   try{localStorage.removeItem('pizza_ordraft');}catch(e){}
+   alert('Ordine inviato allo chef ✓\nLo trovi sulla dashboard, card “Ordini ai cuochi”.');
+   render();
+ }catch(e){alert('Non inviato, controlla internet');}
 }
 function renderTabs(){document.getElementById('tabs').innerHTML=TABS.map(function(t){return '<button class="tab'+(t[0]===cur?' on':'')+'" onclick="setTab(\''+t[0]+'\')">'+t[1]+'</button>';}).join('');}
 function setTab(t){cur=t;renderTabs();render();window.scrollTo(0,0);}
