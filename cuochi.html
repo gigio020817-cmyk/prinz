@@ -187,7 +187,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='10/10 09:00';
+const APP_VER='10/10 10:30';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -466,7 +466,7 @@ function _coDoneMe(o,me){return o.done===true || !!(o.acks&&o.acks[me]&&o.acks[m
 function _coCapMe(o,me){return !!(o.acks&&o.acks[me]&&o.acks[me].capito);}
 function chefOrdCard(){
   var me=getCook();if(!me)return '';
-  var mine=(CHEFORD||[]).filter(function(o){return (o.cook===me||o.cook==='Tutti')&&o.deleted!==true;});
+  var mine=(CHEFORD||[]).filter(function(o){return o.cook===me&&o.deleted!==true;});
   if(!mine.length)return '';
   var pend=mine.filter(function(o){return !_coDoneMe(o,me);});
   if(!pend.length)return '<div class="okbar">✅ Ordini dello chef: tutto fatto. Grazie!</div>';
@@ -480,17 +480,22 @@ function chefOrdCard(){
   return '<div class="penalebar" style="background:#8a1f10;box-shadow:0 3px 14px rgba(138,31,16,.5)"><div class="pb-t">🔔 '+esc(me)+' — ORDINI DELLO CHEF: '+pend.length+'</div><div class="pb-s">Prima tocca ✋ Ho capito, poi quando l\'hai fatto tocca ✓ Fatto</div>'+rows+'</div>';
 }
 async function cuocoMarkCO(id){var o=(CHEFORD||[]).find(function(x){return x.id===id;});if(!o)return;o.done=true;o.doneAt=new Date().toISOString();try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefordini',v:{items:CHEFORD}})});toast('Fatto ✓');render();}catch(e){toast('⚠️ Non salvato');o.done=null;render();}}
+function _noteDoneMe(o,me){var a=(o.acks&&o.acks[me])||{};return !!a.fatto;}
 function chefNotesCard(ME){
   if(!ME||ME==='Gigio')return '';
-  var mine=(CHEFNOTES||[]).filter(function(o){return o.cook===ME;});
+  var mine=(CHEFNOTES||[]).filter(function(o){return o.cook===ME||o.cook==='Tutti';});
   if(!mine.length)return '';
-  var rows=mine.slice().reverse().map(function(o){
-    if(o.ack){return '<div style="background:rgba(255,255,255,.14);border-radius:10px;padding:11px 13px;margin:8px 0;color:#fff"><div style="font-size:15px;font-weight:700">'+esc(o.txt)+'</div><div style="font-size:12px;opacity:.9;margin-top:5px">✓ hai confermato · '+tloc(o.ackAt)+'</div></div>';}
-    return '<div style="background:rgba(255,255,255,.18);border-radius:10px;padding:12px 13px;margin:8px 0;color:#fff"><div style="font-size:16px;font-weight:800;line-height:1.35">'+esc(o.txt)+'</div><div style="font-size:11.5px;opacity:.85;margin:4px 0 9px">dallo chef · '+tloc(o.at)+'</div><button onclick="cuocoAckNote('+o.id+')" style="background:#fff;color:#791F1F;border:0;border-radius:9px;padding:12px 16px;font-weight:800;font-size:15px;cursor:pointer;width:100%">✅ Ho capito</button></div>';
+  var pend=mine.filter(function(o){return !_noteDoneMe(o,ME);});
+  if(!pend.length)return '';
+  var rows=pend.slice().reverse().map(function(o){
+    var a=(o.acks&&o.acks[ME])||{};
+    var tag=o.cook==='Tutti'?'<span style="background:#c9a227;color:#231800;border-radius:8px;padding:1px 7px;font-size:10px;font-weight:900;margin-left:6px">TUTTI</span>':'';
+    var action=a.capito?'<button onclick="cuocoAckNote('+o.id+',2)" style="background:#fff;color:#791F1F;border:0;border-radius:9px;padding:12px 16px;font-weight:800;font-size:15px;cursor:pointer;width:100%">✅ Fatto</button>':'<button onclick="cuocoAckNote('+o.id+',1)" style="background:#f7d98a;color:#231800;border:0;border-radius:9px;padding:12px 16px;font-weight:800;font-size:15px;cursor:pointer;width:100%">✋ Ho capito</button>';
+    var capnote=a.capito?'<div style="font-size:11.5px;color:#f7d98a;font-weight:700;margin:6px 0 2px">👍 capito — ora fallo e tocca ✅ Fatto</div>':'';
+    return '<div style="background:rgba(255,255,255,.18);border-radius:10px;padding:12px 13px;margin:8px 0;color:#fff"><div style="font-size:16px;font-weight:800;line-height:1.35">'+esc(o.txt)+tag+'</div><div style="font-size:11.5px;opacity:.85;margin:4px 0 9px">dallo chef · '+tloc(o.at)+'</div>'+capnote+action+'</div>';
   }).join('');
-  var nUn=mine.filter(function(o){return !o.ack;}).length;
-  var head=nUn?('📣 '+esc(ME)+' — LO CHEF TI HA SCRITTO ('+nUn+')'):('📣 '+esc(ME)+' — messaggi dello chef');
-  return '<div class="penalebar" style="background:#791F1F;box-shadow:0 3px 14px rgba(121,31,31,.55)'+(nUn?'':';animation:none')+'"><div class="pb-t">'+head+'</div><div class="pb-s">Leggi e conferma con "Ho capito": lo chef vede la conferma.</div>'+rows+'</div>';
+  var head='📣 '+esc(ME)+' — DALLO CHEF: '+pend.length;
+  return '<div class="penalebar" style="background:#791F1F;box-shadow:0 3px 14px rgba(121,31,31,.55)"><div class="pb-t">'+head+'</div><div class="pb-s">Prima tocca ✋ Ho capito, poi quando l\'hai fatto tocca ✅ Fatto: lo chef vede le conferme.</div>'+rows+'</div>';
 }
 async function cuocoAckCO(id,step){
   var me=getCook();if(!me)return;
@@ -500,7 +505,7 @@ async function cuocoAckCO(id,step){
   else{o.acks[me].capito=o.acks[me].capito||now;o.acks[me].fatto=now;if(o.cook!=='Tutti'){o.done=true;o.doneAt=now;}}
   try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefordini',v:{items:CHEFORD}})});toast(step===1?'Capito 👍':'Fatto ✓');render();}catch(e){toast('⚠️ Non salvato');render();}
 }
-async function cuocoAckNote(id){var o=(CHEFNOTES||[]).find(function(x){return x.id===id;});if(!o)return;if(!confirm('Confermi di aver letto e capito?'))return;o.ack=true;o.ackAt=new Date().toISOString();try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefnotes',v:{items:CHEFNOTES}})});toast('Confermato ✓');render();}catch(e){toast('⚠️ Non salvato');o.ack=false;o.ackAt=null;render();}}
+async function cuocoAckNote(id,step){var me=getCook();if(!me)return;var o=(CHEFNOTES||[]).find(function(x){return x.id===id;});if(!o)return;o.acks=o.acks||{};o.acks[me]=o.acks[me]||{};var now=new Date().toISOString();if(step===2){if(!confirm('Confermi che è stato fatto?'))return;o.acks[me].capito=o.acks[me].capito||now;o.acks[me].fatto=now;}else{o.acks[me].capito=o.acks[me].capito||now;}try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefnotes',v:{items:CHEFNOTES}})});toast(step===2?'Fatto ✓':'Capito 👍');render();}catch(e){toast('⚠️ Non salvato');render();}}
 function dimenOf(v){var L=[];if(!v)return L;if(v.sOutFix)L.push({shift:'sera',what:'uscita'});else if(v.sIn&&!v.sOut)L.push({shift:'sera',what:'uscita'});if(v.sInFix)L.push({shift:'sera',what:'entrata'});else if(v.sOut&&!v.sIn)L.push({shift:'sera',what:'entrata'});if(v.pOutFix)L.push({shift:'pranzo',what:'uscita'});else if(v.pIn&&!v.pOut)L.push({shift:'pranzo',what:'uscita'});if(v.pInFix)L.push({shift:'pranzo',what:'entrata'});else if(v.pOut&&!v.pIn)L.push({shift:'pranzo',what:'entrata'});return L;}
 function computeDimen(cook){var items=[];(TIMBALL||[]).forEach(function(r){var p=(r.k||'').split('|');if(p[2]!==cook)return;dimenOf(r.v||{}).forEach(function(x){items.push({date:p[1],shift:x.shift,what:x.what});});});items.sort(function(a,b){return a.date<b.date?-1:1;});return {count:items.length,items:items};}
 function dimenCard(ME){
@@ -650,7 +655,7 @@ function render(){
   document.getElementById('view').innerHTML=out;
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 10/10 09:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 10/10 10:30</div>
 
 <script>
 var BANU_COL={
