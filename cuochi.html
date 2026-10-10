@@ -187,7 +187,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='17/08 00:25';
+const APP_VER='10/10 09:00';
 (function(){try{var _p=new URLSearchParams(location.search);var _who=_p.get('chi')||_p.get('u');if(_who){var _m=TEAM.filter(function(t){return t[0].toLowerCase()===decodeURIComponent(_who).trim().toLowerCase();})[0];if(_m)localStorage.setItem('pr_cook',_m[0]);}}catch(e){}})();
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_cuochi'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_cuochi','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_cuochi')!=='28/06 13:00'){localStorage.removeItem('pr_kpw');localStorage.setItem('pr_av_cuochi','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_kpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
@@ -462,14 +462,22 @@ function progressFor(cook){
 function _ydayC(){var d=new Date(today+'T00:00:00');d.setDate(d.getDate()-1);return ymd(d);}
 function maybeStreak(cook){try{var k='pr_streak_'+cook;var o=JSON.parse(localStorage.getItem(k)||'{}');if(o.last===today)return;o.n=(o.last===_ydayC())?((o.n||0)+1):1;o.last=today;localStorage.setItem(k,JSON.stringify(o));}catch(e){}}
 function streakHtml(cook){try{var o=JSON.parse(localStorage.getItem('pr_streak_'+cook)||'{}');if(o.last===today&&(o.n||0)>=2)return ' · 🔥 <b>'+o.n+'</b> giorni di fila a 100%';}catch(e){}return '';}
+function _coDoneMe(o,me){return o.done===true || !!(o.acks&&o.acks[me]&&o.acks[me].fatto);}
+function _coCapMe(o,me){return !!(o.acks&&o.acks[me]&&o.acks[me].capito);}
 function chefOrdCard(){
   var me=getCook();if(!me)return '';
-  var mine=(CHEFORD||[]).filter(function(o){return o.cook===me;});
+  var mine=(CHEFORD||[]).filter(function(o){return (o.cook===me||o.cook==='Tutti')&&o.deleted!==true;});
   if(!mine.length)return '';
-  var pend=mine.filter(function(o){return o.done!==true;});
-  if(!pend.length)return '<div class="okbar">✅ Ordini dello chef: tutto fatto ('+mine.length+'). Grazie!</div>';
-  var rows=pend.map(function(o){return '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.14);border-radius:10px;padding:10px 12px;margin:8px 0"><div style="flex:1;font-size:15px;font-weight:800;color:#fff">'+esc(o.txt)+'<div style="font-size:11.5px;opacity:.85;font-weight:600">richiesto dallo chef · '+tloc(o.at)+'</div></div><button onclick="cuocoMarkCO('+o.id+')" style="background:#fff;color:#8a1f10;border:0;border-radius:9px;padding:9px 14px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap">✓ Fatto</button></div>';}).join('');
-  return '<div class="penalebar" style="background:#8a1f10;box-shadow:0 3px 14px rgba(138,31,16,.5)"><div class="pb-t">🔔 '+esc(me)+' — LO CHEF TI HA CHIESTO '+pend.length+' '+(pend.length>1?'COSE':'COSA')+'</div><div class="pb-s">Falle PRIMA di chiudere il servizio, poi tocca ✓ Fatto</div>'+rows+'</div>';
+  var pend=mine.filter(function(o){return !_coDoneMe(o,me);});
+  if(!pend.length)return '<div class="okbar">✅ Ordini dello chef: tutto fatto. Grazie!</div>';
+  var rows=pend.map(function(o){
+    var cap=_coCapMe(o,me);
+    var tag=o.cook==='Tutti'?'<span style="background:#c9a227;color:#231800;border-radius:8px;padding:1px 7px;font-size:10px;font-weight:900;margin-left:6px">TUTTI</span>':'';
+    var action=cap?'<button onclick="cuocoAckCO('+o.id+',2)" style="background:#fff;color:#8a1f10;border:0;border-radius:9px;padding:9px 14px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap">✓ Fatto</button>':'<button onclick="cuocoAckCO('+o.id+',1)" style="background:#f7d98a;color:#231800;border:0;border-radius:9px;padding:9px 14px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap">✋ Ho capito</button>';
+    var capnote=cap?'<div style="font-size:11px;color:#f7d98a;font-weight:700;margin-top:2px">👍 capito — ora fallo e tocca ✓ Fatto</div>':'';
+    return '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.14);border-radius:10px;padding:10px 12px;margin:8px 0"><div style="flex:1;font-size:15px;font-weight:800;color:#fff">'+esc(o.txt)+tag+'<div style="font-size:11.5px;opacity:.85;font-weight:600">richiesto dallo chef · '+tloc(o.at)+'</div>'+capnote+'</div>'+action+'</div>';
+  }).join('');
+  return '<div class="penalebar" style="background:#8a1f10;box-shadow:0 3px 14px rgba(138,31,16,.5)"><div class="pb-t">🔔 '+esc(me)+' — ORDINI DELLO CHEF: '+pend.length+'</div><div class="pb-s">Prima tocca ✋ Ho capito, poi quando l\'hai fatto tocca ✓ Fatto</div>'+rows+'</div>';
 }
 async function cuocoMarkCO(id){var o=(CHEFORD||[]).find(function(x){return x.id===id;});if(!o)return;o.done=true;o.doneAt=new Date().toISOString();try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefordini',v:{items:CHEFORD}})});toast('Fatto ✓');render();}catch(e){toast('⚠️ Non salvato');o.done=null;render();}}
 function chefNotesCard(ME){
@@ -483,6 +491,14 @@ function chefNotesCard(ME){
   var nUn=mine.filter(function(o){return !o.ack;}).length;
   var head=nUn?('📣 '+esc(ME)+' — LO CHEF TI HA SCRITTO ('+nUn+')'):('📣 '+esc(ME)+' — messaggi dello chef');
   return '<div class="penalebar" style="background:#791F1F;box-shadow:0 3px 14px rgba(121,31,31,.55)'+(nUn?'':';animation:none')+'"><div class="pb-t">'+head+'</div><div class="pb-s">Leggi e conferma con "Ho capito": lo chef vede la conferma.</div>'+rows+'</div>';
+}
+async function cuocoAckCO(id,step){
+  var me=getCook();if(!me)return;
+  var o=(CHEFORD||[]).find(function(x){return x.id===id;});if(!o)return;
+  o.acks=o.acks||{};o.acks[me]=o.acks[me]||{};var now=new Date().toISOString();
+  if(step===1){o.acks[me].capito=o.acks[me].capito||now;}
+  else{o.acks[me].capito=o.acks[me].capito||now;o.acks[me].fatto=now;if(o.cook!=='Tutti'){o.done=true;o.doneAt=now;}}
+  try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefordini',v:{items:CHEFORD}})});toast(step===1?'Capito 👍':'Fatto ✓');render();}catch(e){toast('⚠️ Non salvato');render();}
 }
 async function cuocoAckNote(id){var o=(CHEFNOTES||[]).find(function(x){return x.id===id;});if(!o)return;if(!confirm('Confermi di aver letto e capito?'))return;o.ack=true;o.ackAt=new Date().toISOString();try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefnotes',v:{items:CHEFNOTES}})});toast('Confermato ✓');render();}catch(e){toast('⚠️ Non salvato');o.ack=false;o.ackAt=null;render();}}
 function dimenOf(v){var L=[];if(!v)return L;if(v.sOutFix)L.push({shift:'sera',what:'uscita'});else if(v.sIn&&!v.sOut)L.push({shift:'sera',what:'uscita'});if(v.sInFix)L.push({shift:'sera',what:'entrata'});else if(v.sOut&&!v.sIn)L.push({shift:'sera',what:'entrata'});if(v.pOutFix)L.push({shift:'pranzo',what:'uscita'});else if(v.pIn&&!v.pOut)L.push({shift:'pranzo',what:'uscita'});if(v.pInFix)L.push({shift:'pranzo',what:'entrata'});else if(v.pOut&&!v.pIn)L.push({shift:'pranzo',what:'entrata'});return L;}
@@ -621,6 +637,7 @@ function render(){
   if(['Alex','Gianluca'].indexOf(ME)>=0)TILES.push({id:'note',l:'Note (problemi)',e:'🗒️',b:'#F5C4B3',fg:'#4A1B0C',a:'#712B13'});
   TILES.push({id:'menu',l:'Menu del personale',e:'🍽️',b:'#FAC775',fg:'#412402',a:'#633806'});
   TILES.push({id:'info',l:'Info / regole',e:'ℹ️',b:'#9FE1CB',fg:'#04342C',a:'#085041'});
+  TILES=TILES.filter(function(t){return ['consegne','menu','info'].indexOf(t.id)<0;});
   var LBL={};TILES.forEach(function(t){LBL[t.id]=t.l;});
   var top=chefNotesCard(ME)+dimenCard(ME)+penaliTotalCard(ME)+penaleBanner(ME)+chefOrdCard()+sbloccoGianlucaCard(ME)+dessertMartediCard(ME)+penaliPromemoria(ME);
   var out;
@@ -633,7 +650,7 @@ function render(){
   document.getElementById('view').innerHTML=out;
 }
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 17/08 00:25</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 10/10 09:00</div>
 
 <script>
 var BANU_COL={

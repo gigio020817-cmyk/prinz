@@ -189,7 +189,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='19/08 22:35';
+const APP_VER='10/10 09:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -534,14 +534,29 @@ function foldOpen(id){try{return localStorage.getItem('dfold_'+id)==='1';}catch(
 function foldTP(id){try{localStorage.setItem('dfold_'+id,foldOpen(id)?'0':'1');}catch(e){}rerenderDash();}
 function coCard(day){
   var list=window.CHEFORD||[];
-  var opts=TEAM.filter(function(t){return t[0]!=='Gigio';}).map(function(t){return '<option>'+t[0]+'</option>';}).join('');
+  var BRIG=TEAM.filter(function(t){return t[0]!=='Gigio';}).map(function(t){return t[0];});
+  var opts='<option value="Tutti">📣 Tutti (tutta la cucina)</option>'+BRIG.map(function(n){return '<option>'+n+'</option>';}).join('');
   var rows=list.slice().reverse().map(function(o){
-    var st=o.done===true?'ok':(o.done===false?'no':'mid');
-    var stx=o.done===true?'✅ Fatto':(o.done===false?'❌ NON fatto':'⏳ da verificare');
-    return '<div class="row" style="align-items:flex-start;gap:8px"><span style="flex:1"><b>'+esc(o.cook||'?')+'</b> — '+esc(o.txt)+' <span class="muted">'+tloc(o.at)+'</span><div style="margin-top:4px"><span class="pill '+st+'">'+stx+'</span></div></span><span style="display:flex;gap:4px;flex:0 0 auto"><button class="ctrlbtn" style="padding:7px 10px;margin:0;background:#2e7d32" onclick="setCO('+o.id+',true)">✅</button><button class="ctrlbtn" style="padding:7px 10px;margin:0;background:#c0392b" onclick="setCO('+o.id+',false)">✗</button><button class="ctrlbtn" style="padding:7px 10px;margin:0;background:#9a9082" onclick="delCO('+o.id+')">🗑</button></span></div>';
+    var acks=o.acks||{};
+    var cap=Object.keys(acks).filter(function(k){return acks[k]&&acks[k].capito;});
+    var fat=Object.keys(acks).filter(function(k){return acks[k]&&acks[k].fatto;});
+    var statusHtml;
+    if(o.cook==='Tutti'){
+      var N=BRIG.length;
+      var st=fat.length>=N?'ok':(cap.length?'mid':'no');
+      var manca=BRIG.filter(function(n){return cap.indexOf(n)<0;});
+      statusHtml='<span class="pill '+st+'">👍 Capito '+cap.length+'/'+N+' · ✅ Fatto '+fat.length+'/'+N+'</span>'+(manca.length?'<div class="muted" style="font-size:11px;margin-top:3px">non ha confermato: '+manca.join(', ')+'</div>':'<div class="muted" style="font-size:11px;margin-top:3px;color:#2e7d32;font-weight:700">tutti hanno confermato ✓</div>');
+    } else {
+      var done=o.done===true||(acks[o.cook]&&acks[o.cook].fatto);
+      var capd=acks[o.cook]&&acks[o.cook].capito;
+      var st2=done?'ok':(o.done===false?'no':'mid');
+      var stx=done?'✅ Fatto':(o.done===false?'❌ NON fatto':(capd?'👍 Capito (non ancora fatto)':'⏳ da verificare'));
+      statusHtml='<span class="pill '+st2+'">'+stx+'</span>';
+    }
+    return '<div class="row" style="align-items:flex-start;gap:8px"><span style="flex:1"><b>'+esc(o.cook||'?')+'</b> — '+esc(o.txt)+' <span class="muted">'+tloc(o.at)+'</span><div style="margin-top:4px">'+statusHtml+'</div></span><span style="display:flex;gap:4px;flex:0 0 auto"><button class="ctrlbtn" style="padding:7px 10px;margin:0;background:#2e7d32" onclick="setCO('+o.id+',true)">✅</button><button class="ctrlbtn" style="padding:7px 10px;margin:0;background:#c0392b" onclick="setCO('+o.id+',false)">✗</button><button class="ctrlbtn" style="padding:7px 10px;margin:0;background:#9a9082" onclick="delCO('+o.id+')">🗑</button></span></div>';
   }).join('');
   if(!rows)rows='<div class="muted">Nessun ordine segnato oggi. Scrivi sopra cosa hai chiesto e a chi.</div>';
-  return '<div class="card" style="border:2px solid var(--gold)"><div class="card-h"><div class="t">📋 Ordini ai cuochi<div class="sub">segna cosa hai chiesto e a chi · a fine giornata spunta se è stato fatto</div></div></div><div class="card-b"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"><input id="coTxt" placeholder="Es. preparare il fondo bruno" style="flex:1;min-width:150px;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px" onkeydown="if(event.key===\'Enter\')addChefOrd()"><select id="coCook" style="border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px">'+opts+'</select><button class="ctrlbtn" style="margin:0" onclick="addChefOrd()">+ Aggiungi</button></div>'+rows+'</div></div>';
+  return '<div class="card" style="border:2px solid var(--gold)"><div class="card-h"><div class="t">📋 Ordini ai cuochi<div class="sub">scegli una persona o <b>Tutti</b> · ognuno conferma «ho capito» e poi «fatto»</div></div></div><div class="card-b"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"><input id="coTxt" placeholder="Es. preparare il fondo bruno" style="flex:1;min-width:150px;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px" onkeydown="if(event.key===\'Enter\')addChefOrd()"><select id="coCook" style="border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px">'+opts+'</select><button class="ctrlbtn" style="margin:0" onclick="addChefOrd()">+ Aggiungi</button></div>'+rows+'</div></div>';
 }
 async function saveCO(){var day=(window.LAST&&window.LAST.day)||todayStr();try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefordini',v:{items:window.CHEFORD||[]}})});}catch(e){console.error(e);}}
 function addChefOrd(){var t=document.getElementById('coTxt'),c=document.getElementById('coCook');var txt=((t&&t.value)||'').trim();if(!txt){alert('Scrivi cosa hai chiesto.');return;}window.CHEFORD=window.CHEFORD||[];window.CHEFORD.push({id:Date.now(),txt:txt,cook:(c&&c.value)||'',at:new Date().toISOString(),done:null});if(t)t.value='';saveCO();rerenderDash();}
@@ -935,7 +950,7 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/08 22:35</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 10/10 09:00</div>
 
 <script>
 (function(){function mount(){var main=document.querySelector('#app main')||document.querySelector('main');if(!main){return setTimeout(mount,400);}if(document.getElementById('devcard'))return;var card=document.createElement('div');card.className='card';card.id='devcard';card.innerHTML='<div class="card-h"><div class="t">\uD83D\uDD10 Dispositivi</div><div class="sub">approva / revoca</div></div><div class="card-b"><div class="muted" style="white-space:normal;margin-bottom:10px">Approva o revoca i telefoni e tablet che possono aprire le app.</div><button id="devbtn" style="width:100%;padding:11px;border:none;border-radius:10px;background:var(--ink);color:#fff;font-weight:700;font-size:14px">Apri pannello dispositivi</button><div id="devwrap" style="display:none;margin-top:10px"></div></div>';main.insertBefore(card,main.firstChild);var open=false;document.getElementById('devbtn').addEventListener('click',function(){var w=document.getElementById('devwrap');open=!open;if(open){if(!w.dataset.loaded){w.innerHTML='<iframe src="dispositivi.html" style="width:100%;height:520px;border:1px solid var(--line);border-radius:10px" loading="lazy"></iframe>';w.dataset.loaded='1';}w.style.display='block';this.textContent='Chiudi pannello';}else{w.style.display='none';this.textContent='Apri pannello dispositivi';}});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();})();
