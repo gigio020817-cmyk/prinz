@@ -163,7 +163,7 @@ html,body{max-width:100%;overflow-x:hidden;overscroll-behavior:none}*{box-sizing
       <div style="margin-top:8px"><button class="back" onclick="go('s_2027')">← Torna alle ricette</button></div></header>
     <div class="wtabs" id="stabs"><button class="wtab active" onclick="spesaWeek('S1',this)">Settimana 1</button><button class="wtab" onclick="spesaWeek('S2',this)">Settimana 2</button></div>
     <div style="padding:12px 14px">
-      <div class="spnote">Metti i <b>coperti previsti</b> per ogni giorno. Il secondo del giorno prende ~60%, lo special ~40%, il veg lo metti tu. Poi premi Genera: la lista è indicativa "a spanne".</div>
+      <div class="spnote">Metti solo i <b>coperti previsti</b> per ogni giorno. Il sistema calcola da solo: secondo del giorno ~60%, special ~40%, veg ~10%. Poi premi Genera: la lista è indicativa "a spanne".</div>
       <button class="sendbtn" style="background:#7a4a2b;margin-bottom:10px" onclick="openAbbina()">🔗 Abbina prodotti ai fornitori</button>
       <div id="paxrows"></div>
       <button class="sendbtn" onclick="genLista()">🧮 Genera lista della spesa</button>
@@ -344,9 +344,9 @@ function savePax(day,f,v){ if(!PAX[sWeek])PAX[sWeek]={}; if(!PAX[sWeek][day])PAX
 function saveDish(day,di,v){ if(!PAX[sWeek])PAX[sWeek]={}; if(!PAX[sWeek][day])PAX[sWeek][day]={}; if(!PAX[sWeek][day].dp)PAX[sWeek][day].dp={}; PAX[sWeek][day].dp[di]=v; savePaxLS(); schedulePaxCloud(); }
 function suggestDish(day,dayi){ const d=(DATA[sWeek]||[]).find(x=>x.name===day); if(!d)return; const p=(PAX[sWeek]&&PAX[sWeek][day])||{}; const pax=parseInt(p.pax)||0; if(!pax)return; if(!PAX[sWeek][day].dp)PAX[sWeek][day].dp={}; const dp=PAX[sWeek][day].dp; const nonVeg=d.dishes.map((ds,i)=>({ds:ds,i:i})).filter(o=>!o.ds.veg); nonVeg.forEach((o,k)=>{ if(dp[o.i]==null||dp[o.i]===''){ const val=Math.round(pax*(k===0?0.6:0.4)); dp[o.i]=val; const el=document.getElementById('dp_'+dayi+'_'+o.i); if(el)el.value=val; } }); savePaxLS(); schedulePaxCloud(); }
 function renderSpesa(){ const box=document.getElementById('paxrows'); box.innerHTML=''; document.getElementById('spesaOut').innerHTML='';
- (DATA[sWeek]||[]).forEach((d,dayi)=>{ const p=(PAX[sWeek]&&PAX[sWeek][d.name])||{}; const dp=p.dp||{}; const row=document.createElement('div'); row.className='paxrow'; row.style.flexWrap='wrap';
-  let html=`<div class="pd">${d.name}</div><label>Coperti <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="px_${dayi}" value="${p.pax!=null?p.pax:''}" onfocus="this.select()" oninput="savePax('${d.name}','pax',this.value);suggestDish('${d.name}',${dayi})"></label>`;
-  d.dishes.forEach((dish,di)=>{ const lab=(dish.veg?'🌱 ':'')+dish.short.replace(/\s*\(VEG\)/,''); html+=`<label style="max-width:150px">${lab} <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="dp_${dayi}_${di}" value="${dp[di]!=null?dp[di]:''}" onfocus="this.select()" oninput="saveDish('${d.name}',${di},this.value)"></label>`; });
+ (DATA[sWeek]||[]).forEach((d,dayi)=>{ const p=(PAX[sWeek]&&PAX[sWeek][d.name])||{}; const row=document.createElement('div'); row.className='paxrow'; row.style.flexWrap='wrap';
+  const dishList=d.dishes.map(dish=>(dish.veg?'🌱 ':'')+dish.short.replace(/\s*\(VEG\)/,'')).join(' · ');
+  let html=`<div class="pd">${d.name}</div><label>Coperti <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="px_${dayi}" value="${p.pax!=null?p.pax:''}" onfocus="this.select()" oninput="savePax('${d.name}','pax',this.value)"></label><div style="flex-basis:100%;font-size:11px;color:#8a8a8a;margin-top:3px">${dishList}<br><i>60% secondo del giorno · 40% special · ~10% veg — calcolati in automatico dai coperti</i></div>`;
   row.innerHTML=html; box.appendChild(row); }); }
 /* prodotti VERI: [keywords, Nome prodotto, g/porzione, kg/collo, unità] — nomi come li ordini */
 const PRODUCE=[
@@ -387,7 +387,7 @@ function delXtraOrd(i){ EXTRAORD.splice(i,1); saveXtraOrd(); genLista(); }
 function genLista(){
  const days=DATA[sWeek]||[]; const prot={}; const prod={};
  days.forEach(d=>{ const pp=(PAX[sWeek]&&PAX[sWeek][d.name])||{}; const pax=parseInt(pp.pax)||0; const veg=parseInt(pp.veg)||0;
-  d.dishes.forEach((dish,di)=>{ let porz=0; const dpv=(pp.dp&&pp.dp[di]!=null&&pp.dp[di]!=='')?parseInt(pp.dp[di]):null; if(dpv!=null) porz=dpv; else if(dish.veg) porz=veg; else if(di===0) porz=Math.round(pax*0.6*1.15); else porz=Math.round(pax*0.4*1.15);
+  d.dishes.forEach((dish,di)=>{ let porz=0; if(dish.veg) porz=Math.round(pax*0.10*1.15); else if(di===0) porz=Math.round(pax*0.6*1.15); else porz=Math.round(pax*0.4*1.15);
    if(porz<=0) return; const key=dish.short.replace(/\s*\(VEG\)/,''); prot[key]=(prot[key]||0)+porz;
    let txt=dish.short+' '+dish.comps.map(c=>c.name+' '+(c.ings||[]).join(' ')).join(' ');
    detectProduce(txt).forEach(idx=>{ prod[idx]=(prod[idx]||0)+porz; }); }); });
