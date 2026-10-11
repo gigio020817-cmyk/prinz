@@ -413,12 +413,12 @@ function genLista(){
 function cycleU(b){var L=['kg','pz','cart','cassa','g','L'];var i=L.indexOf((b.textContent||'').trim());b.textContent=L[(i+1)%L.length];}
 function updGia(i,fab){ const g=parseInt(document.getElementById('gia_'+i).value)||0; const ord=Math.max(0,fab-g); var oe=document.getElementById('ord_'+i); if(oe) oe.value=ord; }
 async function sendToOrdini(){ const items=[];
- (window._lastProt||[]).forEach(p=>{ var oe=document.getElementById('ord_'+p.i); var q=oe?(parseInt(oe.value)||0):Math.max(0,p.fab-(parseInt((document.getElementById('gia_'+p.i)||{}).value)||0)); if(q>0) items.push({n:p.disp,q:''+q,u:((document.getElementById('u_'+p.i)||{}).textContent||'pz')}); });
- (window._lastProd||[]).forEach((r,vi)=>{ var oe=document.getElementById('ordv_'+vi); var q=oe?(parseFloat((''+oe.value).replace(',','.'))||0):r.q; if(q>0) items.push({n:r.name,q:''+q,u:((document.getElementById('uv_'+vi)||{}).textContent||r.unit)}); });
+ (window._lastProt||[]).forEach(p=>{ var oe=document.getElementById('ord_'+p.i); var q=oe?(parseInt(oe.value)||0):Math.max(0,p.fab-(parseInt((document.getElementById('gia_'+p.i)||{}).value)||0)); if(q>0){ var _m=PRODMAP[p.name]||{}; items.push({n:p.disp,q:''+q,u:((document.getElementById('u_'+p.i)||{}).textContent||'pz'),forn:_m.forn||''}); } });
+ (window._lastProd||[]).forEach((r,vi)=>{ var oe=document.getElementById('ordv_'+vi); var q=oe?(parseFloat((''+oe.value).replace(',','.'))||0):r.q; if(q>0){ var _mv=PRODMAP[r.name]||{}; items.push({n:(_mv.prod||r.name),q:''+q,u:((document.getElementById('uv_'+vi)||{}).textContent||r.unit),forn:_mv.forn||''}); } });
  const t=document.getElementById('toast');
  EXTRAORD.forEach(function(x){ if(x&&x.n) items.push({n:x.n,q:'1',u:'pz'}); }); if(!items.length){ t.innerHTML='<b>Niente da inviare</b>Genera prima la lista.'; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),4000); return; }
  try{ let cur=await sb('kitchen_meta?k=eq.pastreq&select=v'); let arr=(cur&&cur[0]&&cur[0].v&&cur[0].v.items)?cur[0].v.items:[];
-  const tag='Secondi '+sWeek; arr=arr.concat(items.map(it=>({n:it.n,q:it.q,u:it.u,src:tag})));
+  const tag='Secondi '+sWeek; arr=arr.concat(items.map(it=>({n:it.n,q:it.q,u:it.u,src:tag,forn:it.forn||''})));
   await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pastreq',v:{items:arr}})});
   var nowIso=new Date().toISOString(); if(!ORDSENT[sWeek])ORDSENT[sWeek]={}; items.forEach(function(it){ ORDSENT[sWeek][it.n]={q:it.q,u:it.u,at:nowIso}; }); saveOrdSent(); genLista();
   t.innerHTML='<b>Inviato a Ordini ✓ ('+items.length+' voci)</b>Quello inviato ora resta segnato "già ordinato": rigenera e ordini solo il resto.'; }
