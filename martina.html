@@ -206,9 +206,9 @@
 
 <div id="lightbox" onclick="this.style.display='none'"><button id="lbclose" onclick="event.stopPropagation();document.getElementById('lightbox').style.display='none'">&times;</button><img id="lbimg" alt=""></div>
 
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 09/10 21:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 18/10 12:10</div>
 <script>
-var APP_VER='09/10 21:00';
+var APP_VER='18/10 12:10';
 var PW_MARTINA='martina2026';
 var PW_CAPO='Capo2026';
 var SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -465,13 +465,15 @@ function renderRes(){
   if(!arr.length){el.innerHTML='<div class="empty">Nessuna richiesta ancora.</div>';updateNotif();return;}
   var h='';arr.forEach(function(r){
     var stato=r.risposta?' \u00b7 risposta pronta':(r.done?' \u00b7 evaso':' \u00b7 in attesa');
-    h+='<div class="rq'+((r.risposta||r.done)?' done':'')+'"><div class="t">'+esc(r.text)+'</div><div class="d">'+new Date(r.ts).toLocaleString('it-IT')+stato+'</div>';
-    if(r.risposta)h+='<div class="risp"><b>Risposta:</b>\n'+esc(r.risposta)+'</div>';
-    if(ROLE==='capo'&&!r.risposta)h+='<div class="acts"><button class="mod" onclick="toggleRes('+r.ts+')">'+(r.done?'Riapri':'Segna evaso')+'</button></div>';
+    h+='<div class="rq'+((r.risposta||r.done)?' done':'')+'"><div class="t"'+(r.risposta?' onclick="toggleResOpen('+r.ts+')" style="cursor:pointer"':'')+'>'+(r.risposta?'<span id="rchev_'+r.ts+'">▸</span> ':'')+esc(r.text)+'</div><div class="d">'+new Date(r.ts).toLocaleString('it-IT')+stato+'</div>';
+    if(r.risposta)h+='<div class="risp" id="risp_'+r.ts+'" style="display:none"><b>Risposta:</b>\n'+esc(r.risposta)+'</div>';
+    var _a='';if(ROLE==='capo'&&!r.risposta)_a+='<button class="mod" onclick="toggleRes('+r.ts+')">'+(r.done?'Riapri':'Segna evaso')+'</button>';if(ROLE==='capo')_a+='<button class="del" onclick="delRes('+r.ts+')">Elimina</button>';if(_a)h+='<div class="acts">'+_a+'</div>';
     h+='</div>';
   });
   el.innerHTML=h;updateNotif();
 }
+function toggleResOpen(ts){var d=document.getElementById('risp_'+ts);if(!d)return;var open=(d.style.display==='none');d.style.display=open?'block':'none';var c=document.getElementById('rchev_'+ts);if(c)c.textContent=open?'▾':'▸';}
+async function delRes(ts){var r=(META.resoconti||[]).filter(function(x){return x.ts===ts;})[0];if(!r)return;if(!confirm('Eliminare questa richiesta di resoconto?'))return;META.resoconti=(META.resoconti||[]).filter(function(x){return x.ts!==ts;});try{await saveMeta();}catch(e){alert('Non eliminato, controlla internet');return;}renderRes();}
 async function addResoconto(){
   var t=document.getElementById('resText').value.trim();if(!t){return;}
   META.resoconti.push({ts:Date.now(),text:t,done:false,risposta:'',seenM:true});
