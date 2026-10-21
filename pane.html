@@ -223,7 +223,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(document.getElementById('pw').value,false);
 document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')unlock(e.target.value,false)});
-const APP_VER='19/10 19:20';
+const APP_VER='21/10 20:10';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_pane'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_pane','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_pane')!=='28/06 12:00'){localStorage.removeItem('pr_panepw');localStorage.setItem('pr_av_pane','28/06 12:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_panepw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>document.getElementById('pw').focus(),300);})();
 
@@ -238,11 +238,14 @@ async function loadAll(){
 }
 function toggleRec(id){const c=document.getElementById('c_'+id);if(!c)return;c.classList.toggle('open');if(c.classList.contains('open'))OPEN.add(id);else OPEN.delete(id);}
 function splitRic(ric){
+  var intro='';
+  var mi=ric.match(/^\s*(PROVA[^.]*\.)\s+(.*)$/i);
+  if(mi){intro=mi[1].trim();ric=mi[2];}
   var parts=ric.split(/\s\+\s/);
   var last=parts[parts.length-1],proc='';
   var m=last.search(/\.\s+[A-ZÀ]/);
   if(m>-1){proc=last.slice(m+1).trim();parts[parts.length-1]=last.slice(0,m+1).trim();}
-  return {ingr:parts,proc:proc};
+  return {ingr:parts,proc:proc,intro:intro};
 }
 const TILES=[
  {id:'colazioni',l:'Pane colazioni',e:'🥐',b:'#FAC775',fg:'#412402',a:'#633806'},
@@ -260,14 +263,15 @@ function paneScale(id,f){ var c=document.getElementById('c_'+id); if(!c)return; 
 function paneScaleInput(id){ var el=document.getElementById('df_'+id); if(!el)return; var raw=(el.value||'').trim().replace(',','.'); var f=parseFloat(raw); if(!f||f<=0){ alert('Scrivi un numero, es. 1,5 (moltiplica) o 0,5 (dimezza).'); el.focus(); return; } paneScale(id,f); var db=document.getElementById('db_'+id); if(db){ var bs=db.querySelectorAll('button'); for(var j=0;j<bs.length;j++){ bs[j].classList.toggle('on', bs[j].getAttribute('data-f')==='custom'); } } }
 function recipeCard(p){
   if(p.wip && !CHEF && !doneOf(p.id)){ return '<div class="card wip" id="c_'+p.id+'"><div class="card-h" onclick="wipMsg()"><div class="info"><div class="nm">'+esc(p.nm)+'</div><div class="pz">🚧 In elaborazione — non ancora pronta</div></div><span class="chev"></span></div></div>'; }
-  var ov=RIC_OVR[p.id];var ingArr,procTxt;
-  if(ov){ingArr=ov.ing;procTxt=ov.proc;}else{var R=splitRic(p.ric);ingArr=R.ingr;procTxt=R.proc;}
+  var ov=RIC_OVR[p.id];var ingArr,procTxt,introTxt='';
+  if(ov){ingArr=ov.ing;procTxt=ov.proc;}else{var R=splitRic(p.ric);ingArr=R.ingr;procTxt=R.proc;introTxt=R.intro;}
+  var introH=introTxt?'<div class="v" style="margin:2px 0 8px;color:var(--muted);font-style:italic">🧪 '+esc(introTxt)+'</div>':'';
   const ingr=ingArr.map(x=>'<div class="ing" data-orig="'+esc(x)+'">'+esc(x)+'</div>').join('');
   const procH=procTxt?'<div class="k">Procedimento</div><div class="v">'+esc(procTxt)+'</div>':'';
   var db='<div class="dbar" id="db_'+p.id+'"><span class="dblbl">Dosi ×</span>'+[['½',0.5],['1',1],['2',2],['3',3]].map(function(o){return '<button data-f="'+o[1]+'" class="'+(o[1]===1?'on':'')+'" onclick="paneScale(\''+p.id+'\','+o[1]+')">'+o[0]+'</button>';}).join('')+'<span class="dblbl" style="margin-left:6px">oppure</span><input id="df_'+p.id+'" type="number" inputmode="decimal" step="any" min="0" placeholder="es. 1,5" style="width:74px;padding:6px 8px;border:1px solid #ccc;border-radius:8px;font-size:14px;margin:0 4px" onkeydown="if(event.key===\'Enter\'){event.preventDefault();paneScaleInput(\''+p.id+'\');}"><button data-f="custom" onclick="paneScaleInput(\''+p.id+'\')">Applica</button></div>';
   return '<div class="card'+(OPEN.has(p.id)?' open':'')+'" id="c_'+p.id+'">'
    +'<div class="card-h" onclick="toggleRec(\''+p.id+'\')"><div class="info"><div class="nm">'+esc(p.nm)+'</div><div class="pz">'+esc(p.pz)+(doneOf(p.id)?' <span style="color:#1b7a3a;font-weight:800">\u00b7 \u2713 Pronta</span>':'')+'</div></div><span class="chev">▸</span></div>'
-   +'<div class="rec">'+(p.wip?'<div class="wipbanner">🚧 In elaborazione — visibile solo a te (chef). Segna i problemi nel pannello modifiche qui sotto.</div>':'')+'<div class="k">📖 Ingredienti</div>'+'<div class="ingbox">'+ingr+'</div>'+db+procH+(p.video?'<div class="k">🎥 Video</div><div class="v"><a href="'+p.video+'" target="_blank" rel="noopener" style="color:#0C447C;font-weight:800;text-decoration:underline">Guarda su YouTube ↗</a></div>':'')+'<div class="k">Anticipo / cottura</div><div class="v">'+esc(p.cott)+'</div><div class="k">📦 Dove stoccare</div><div class="v">'+esc(p.stocc||'— da completare —')+'</div><div class="k">🔥 Come rigenerare</div><div class="v">'+esc(p.rigen||'— da completare —')+'</div>'+corrBox(p.id)+proveBox(p)+'</div>'
+   +'<div class="rec">'+(p.wip?'<div class="wipbanner">🚧 In elaborazione — visibile solo a te (chef). Segna i problemi nel pannello modifiche qui sotto.</div>':'')+'<div class="k">📖 Ingredienti</div>'+introH+'<div class="ingbox">'+ingr+'</div>'+db+procH+(p.video?'<div class="k">🎥 Video</div><div class="v"><a href="'+p.video+'" target="_blank" rel="noopener" style="color:#0C447C;font-weight:800;text-decoration:underline">Guarda su YouTube ↗</a></div>':'')+'<div class="k">Anticipo / cottura</div><div class="v">'+esc(p.cott)+'</div><div class="k">📦 Dove stoccare</div><div class="v">'+esc(p.stocc||'— da completare —')+'</div><div class="k">🔥 Come rigenerare</div><div class="v">'+esc(p.rigen||'— da completare —')+'</div>'+corrBox(p.id)+proveBox(p)+'</div>'
    +'</div>';
 }
 function setPTile(id){CTILE=id;OPEN.clear();try{window.scrollTo(0,0);}catch(e){}render();}
@@ -296,7 +300,7 @@ function exportCorr(){var out='MODIFICHE PANE — Prinz Rudolf\n\n';var any=fals
 function copyCorr(){var t=document.getElementById('corrModal').querySelector('textarea');t.select();t.setSelectionRange(0,99999);try{navigator.clipboard.writeText(t.value);}catch(e){try{document.execCommand('copy')}catch(_){}}var b=event&&event.target;if(b){var x=b.textContent;b.textContent='✓ Copiato';setTimeout(function(){b.textContent=x;},1500);}}
 </script>
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Modifiche da inviare</h3><p>Copia questo testo e mandalo a Gigio (o incollalo a Claude in chat).</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 19/10 19:20</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 21/10 20:10</div>
 <script>(function(){function _wmWho(){try{return localStorage.getItem('pr_who')||localStorage.getItem('pr_cook')||((document.getElementById('who')||{}).value)||'';}catch(e){return '';}}function _wmStamp(){try{var d=new Date();var dd=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);var txt=(_wmWho()||'—')+' \u00b7 '+dd+' \u00b7 Ricette di Gigio — riservate, non diffondere';var ov=document.getElementById('__wm');if(!ov){ov=document.createElement('div');ov.id='__wm';ov.setAttribute('style','position:fixed;inset:-20%;z-index:5;pointer-events:none;overflow:hidden;opacity:.11;display:flex;flex-wrap:wrap;align-content:flex-start;gap:0;transform:rotate(-28deg);transform-origin:center');document.body.appendChild(ov);}var cell='<span style="color:#8a6d00;font-size:12px;font-weight:800;white-space:nowrap;padding:24px 26px">'+txt.replace(/</g,'&lt;')+'</span>';ov.innerHTML=cell.repeat(160);}catch(e){}}if(document.body)_wmStamp();else window.addEventListener('DOMContentLoaded',_wmStamp);setInterval(_wmStamp,4000);})();</script>
 </body>
 </html>
