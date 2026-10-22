@@ -220,7 +220,7 @@ async function tryUnlock(password,fromStore){
 }
 document.getElementById('enter').onclick=()=>tryUnlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(pw.value,false)});
-const APP_VER='18/10 13:00';
+const APP_VER='22/10 21:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_ordini'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_ordini','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){if(!window.crypto||!crypto.subtle){err.textContent="Apri l'app dal sito (https).";return;}
   try{if(localStorage.getItem('pr_av_ordini')!=='28/06 22:15'){localStorage.removeItem('ord_pw');localStorage.setItem('pr_av_ordini','28/06 22:15');}}catch(_e){}let s=null;try{s=localStorage.getItem('ord_pw')}catch(e){}
@@ -267,6 +267,9 @@ async function sharedRemove(forn,pn){try{REMOVED[norm2(forn)+'|'+norm2(pn)]=1;va
 async function sharedRestore(forn,pn){try{delete REMOVED[norm2(forn)+'|'+norm2(pn)];var rr=await sb('kitchen_meta?k=eq.ordremoved&select=v');var list=(rr&&rr[0]&&rr[0].v&&rr[0].v.list)||[];list=list.filter(function(x){return !(norm2(x.forn)===norm2(forn)&&norm2(x.prod)===norm2(pn));});await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'ordremoved',v:{list:list}})});}catch(e){}}
 function clearPastItem(i){PASTREQ.splice(i,1);savePastReq();renderPastReq();}
 function clearPastAll(){if(!confirm('Pulire tutte le richieste?'))return;PASTREQ=[];savePastReq();renderPastReq();}
+function unmatchedGroups(){var dr=getDraft();var names={};allSuppliers().forEach(function(s){names[s.name]=1;});var out=[];Object.keys(dr).forEach(function(g){if(names[g])return;var items=(dr[g]&&dr[g].items)||{};var its=[];Object.keys(items).forEach(function(n){var d=items[n];if(d&&d.q&&parseFloat(d.q)!==0)its.push({n:n,q:d.q,u:d.u||''});});if(its.length)out.push({grp:g,items:its});});return out;}
+function unmatchedBanner(um){var cnt=um.reduce(function(a,b){return a+b.items.length;},0);var rows=um.map(function(u){return u.items.map(function(x){return '• '+esc(x.n)+' — '+esc(x.q)+(x.u?' '+esc(x.u):'');}).join('<br>');}).join('<br>');return '<div style="background:#c0392b;color:#fff;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.5">'+'<div style="font-weight:800;margin-bottom:6px">⚠️ '+cnt+' prodott'+(cnt>1?'i':'o')+' NON abbinat'+(cnt>1?'i':'o')+' — non verranno ordinati</div>'+'<div style="background:rgba(255,255,255,.15);border-radius:8px;padding:8px;margin-bottom:8px">'+rows+'</div>'+'<div style="font-size:12px;margin-bottom:8px">Riaggiungili col nome giusto (ora sono in catalogo) oppure svuotali.</div>'+'<button onclick="clearUnmatched()" style="background:#fff;color:#c0392b;border:0;border-radius:8px;padding:8px 12px;font-weight:800;cursor:pointer">🗑 Svuota non abbinati</button>'+'</div>';}
+function clearUnmatched(){var um=unmatchedGroups();if(!um.length)return;if(!confirm('Svuotare i prodotti non abbinati? Non erano in ordine comunque — poi li riaggiungi col nome giusto.'))return;var dr=getDraft();um.forEach(function(u){delete dr[u.grp];});saveDraft(dr);var qe=document.getElementById('q');renderList(qe?qe.value:'');}
 function renderList(filter){
   filter=filter||"";const list=document.getElementById('list'),detail=document.getElementById('detail');
   detail.style.display='none';list.style.display='block';document.getElementById('searchwrap').style.display='block';var _pb=document.getElementById('pastinbox');if(_pb)_pb.style.display='';
@@ -281,6 +284,7 @@ function renderList(filter){
   if(!f){ html='<button class="addbtn" style="background:linear-gradient(135deg,#2f6b1f,#245016);color:#fff;border:0" onclick="caricaBaseSett()">&#128197; Carica base settimanale</button>'+html; }
   html+='<button class="addbtn" onclick="addSupplier()">&#65291; Aggiungi fornitore</button>';
   html+='<button class="exportbtn" onclick="exportAdds()">&#128228; Esporta le mie aggiunte</button>';
+  var __um=unmatchedGroups();if(__um.length){html=unmatchedBanner(__um)+html;}
   list.innerHTML=html;
 }
 let curSupplier=null;
@@ -365,6 +369,7 @@ function addProduct(enc){const name=decodeURIComponent(enc);const pn=prompt("Nom
   let u=prompt("Unità (lascia vuoto per sceglierla all'ordine):","")||'';const all=customProd();(all[name]=all[name]||[]).push({n:pn.trim(),unit:u.trim()});localStorage.setItem('ord_prod',JSON.stringify(all));sharedRestore(name,pn.trim());saveCurrentDraft();openSup(enc);}
 function inviaOrdine(enc){const name=decodeURIComponent(enc);const s=allSuppliers().find(x=>x.name===name);
   saveCurrentDraft();
+  var __um=unmatchedGroups();if(__um.length){var __c=__um.reduce(function(a,b){return a+b.items.length;},0);if(!confirm('⚠️ Ci sono '+__c+' prodotti NON abbinati a nessun fornitore: NON verranno ordinati. Procedo lo stesso con l\'invio di '+name+'?'))return;}
   const dr=getDraft()[name]||{items:{},altro:''};
   let lines=[];Object.keys(dr.items).forEach(n=>{const d=dr.items[n];if(d.q&&parseFloat(d.q)!==0)lines.push('- '+n+': '+d.q+(d.u?' '+d.u:''));});
   if(dr.altro&&dr.altro.trim())lines.push('Altro: '+dr.altro.trim());
@@ -388,7 +393,7 @@ function exportAdds(){const t=buildExport();if(!t){alert("Non hai aggiunte da es
 function copyExp(){const ta=document.getElementById('exptxt');ta.select();ta.setSelectionRange(0,99999);try{navigator.clipboard.writeText(ta.value);}catch(e){try{document.execCommand('copy');}catch(_){}}alert("Copiato! Ora incollalo a Claude in chat.");}
 document.getElementById('q').addEventListener('input',function(){renderList(this.value)});
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/10 13:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 22/10 21:30</div>
 <div id="bollamodal"></div>
 </body>
 </html>
