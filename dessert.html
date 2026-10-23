@@ -152,7 +152,7 @@ async function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='18/10 15:00';
+const APP_VER='23/10 13:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dessert'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dessert','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dessert')!=='28/06 21:20'){localStorage.removeItem('pr_dspw');localStorage.setItem('pr_av_dessert','28/06 21:20');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dspw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function buildTabs(){document.getElementById('tabs').innerHTML=TABS.map(t=>'<button class="'+(t[0]===curTab?'on':'')+'" onclick="setTab(\''+t[0]+'\')">'+t[1]+'</button>').join('');}
@@ -271,7 +271,7 @@ function copyCorr(){var t=document.getElementById('corrModal').querySelector('te
 </script>
 <div id="lightbox" onclick="this.style.display='none'"><img alt=""></div>
 <div id="corrModal" class="corrmodal"><div class="corrmbox"><h3>📤 Modifiche da inviare</h3><p>Copia questo testo e mandalo a Gigio (o incollalo a Claude in chat).</p><textarea readonly></textarea><div class="corrmrow"><button class="corrbtn exp" onclick="copyCorr()">Copia</button><button class="corrbtn" onclick="document.getElementById('corrModal').style.display='none'">Chiudi</button></div></div></div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/10 15:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 23/10 13:00</div>
 <script id="mult-feature">(function MULT(){
  'use strict';
  try{
@@ -317,8 +317,8 @@ function prodRowC(k,c,o){
  var st=o.st;var sub='';
  if(st==='f')sub='<div style="padding:4px 2px 2px"><input value="'+(o.val||'').replace(/"/g,'&quot;')+'" oninput="pVal(\''+k+'\',this.value)" placeholder="dose fatta (es. 2 kg)" style="width:100%;border:1px solid #e7ddca;border-radius:8px;padding:8px;font:inherit;box-sizing:border-box"></div>';
  if(st==='s')sub='<div style="padding:4px 2px 2px"><input value="'+(o.val||'').replace(/"/g,'&quot;')+'" oninput="pVal(\''+k+'\',this.value)" placeholder="giacenza (es. 8 pz)" style="width:100%;border:1px solid #e7ddca;border-radius:8px;padding:8px;font:inherit;box-sizing:border-box"></div>';
- function b(v,lab,col){return '<button onclick="pSet(\''+k+'\',\''+v+'\')" style="border:1px solid '+(st===v?col:'#e7ddca')+';background:'+(st===v?col:'#fff')+';color:'+(st===v?'#fff':'#6b1f2a')+';border-radius:8px;width:40px;height:36px;font-size:16px;flex:0 0 auto">'+lab+'</button>';}
- return '<div style="padding:9px 2px;border-bottom:1px solid #eee4cf'+(o.sent?';opacity:.6':'')+'"><div style="display:flex;align-items:center;gap:6px"><span style="flex:1;font-size:14.5px;font-weight:700;color:#4b1528'+(o.sent?';text-decoration:line-through':'')+'">'+esc(c.n)+(o.sent?' <span style="color:#1e7a46;font-weight:800;font-size:12px">✓ inviato</span>':'')+'</span>'+b('f','✅','#1e7a46')+b('s','📦','#a06b00')+b('t','⬜','#999')+'</div>'+sub+'</div>';
+ function b(v,lab,col){return '<button onclick="pSet(\''+k+'\',\''+v+'\')" style="border:1px solid '+(st===v?col:'#e7ddca')+';background:'+(st===v?col:'#fff')+';color:'+(st===v?'#fff':'#6b1f2a')+';border-radius:8px;width:34px;height:30px;font-size:14px;flex:0 0 auto">'+lab+'</button>';}
+ return '<div style="padding:4px 2px;border-bottom:1px solid #eee4cf'+(o.sent?';opacity:.6':'')+'"><div style="display:flex;align-items:center;gap:6px"><span style="flex:1;font-size:12px;font-weight:700;color:#4b1528'+(o.sent?';text-decoration:line-through':'')+'">'+esc(c.n)+(o.sent?' <span style="color:#1e7a46;font-weight:800;font-size:12px">✓ inviato</span>':'')+'</span>'+b('f','✅','#1e7a46')+b('s','📦','#a06b00')+b('t','⬜','#999')+'</div>'+sub+'</div>';
 }
 function prodRow(k,name,o){
  var st=o.st;var sub='';
@@ -349,7 +349,7 @@ function renderProd(v){
    }
  }
  h+='<div style="font-weight:800;font-size:16px;color:#6b1f2a;margin:18px 0 4px">🍰 Altre preparazioni (vetrina, torte, basi…)</div>';
- if(PROD.free.length){PROD.free.forEach(function(fr){h+='<div style="display:flex;align-items:center;gap:6px;padding:9px 2px;border-bottom:1px solid #eee4cf'+(fr.sent?';opacity:.55':'')+'"><span style="flex:1;font-size:14.5px'+(fr.sent?';text-decoration:line-through':'')+'">'+esc(fr.n)+(fr.sent?' <span style="color:#1e7a46;font-weight:800;font-size:12px">✓ inviato</span>':'')+'</span><input value="'+(fr.q||'').replace(/"/g,'&quot;')+'" oninput="freeQ(\''+fr.id+'\',this.value)" placeholder="dose/qt" style="width:92px;border:1px solid #e7ddca;border-radius:8px;padding:7px;font:inherit;box-sizing:border-box"><button onclick="delFree(\''+fr.id+'\')" style="border:1px solid #e7ddca;background:#fff;border-radius:8px;width:34px;height:34px;color:#6b1f2a;font-size:16px">🗑</button></div>';});}else{h+='<div style="color:#999;font-size:13px;padding:4px 2px">Niente ancora. Aggiungi qui sotto cosa hai preparato.</div>';}
+ if(PROD.free.length){PROD.free.forEach(function(fr){h+='<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;border-bottom:1px solid #eee4cf'+(fr.sent?';opacity:.55':'')+'"><span style="flex:1;font-size:14.5px'+(fr.sent?';text-decoration:line-through':'')+'">'+esc(fr.n)+(fr.sent?' <span style="color:#1e7a46;font-weight:800;font-size:12px">✓ inviato</span>':'')+'</span><input value="'+(fr.q||'').replace(/"/g,'&quot;')+'" oninput="freeQ(\''+fr.id+'\',this.value)" placeholder="dose/qt" style="width:92px;border:1px solid #e7ddca;border-radius:8px;padding:7px;font:inherit;box-sizing:border-box"><button onclick="delFree(\''+fr.id+'\')" style="border:1px solid #e7ddca;background:#fff;border-radius:8px;width:34px;height:34px;color:#6b1f2a;font-size:16px">🗑</button></div>';});}else{h+='<div style="color:#999;font-size:13px;padding:4px 2px">Niente ancora. Aggiungi qui sotto cosa hai preparato.</div>';}
  h+='<div style="display:flex;gap:6px;margin-top:10px"><input id="pfnew" placeholder="Es. Bignè, pan di spagna, frolla…" onkeydown="if(event.key===\'Enter\')addFree()" style="flex:1;border:1px solid #e7ddca;border-radius:9px;padding:10px;font:inherit;box-sizing:border-box;min-width:0"><button onclick="addFree()" style="border:0;background:#6b1f2a;color:#fff;border-radius:9px;padding:0 16px;font-weight:800;white-space:nowrap">+ Aggiungi</button></div>';
  var sugg=[];['vetrina','torte','gelati'].forEach(function(s){(DATA[s]||[]).forEach(function(x){if(x.nm)sugg.push(x.nm);});});
  if(sugg.length){h+='<div style="margin-top:10px;font-size:12px;color:#888">Aggiunta rapida:</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:5px">'+sugg.map(function(n){return '<button onclick="addFreeName('+JSON.stringify(n).replace(/"/g,'&quot;')+')" style="border:1px solid #e7ddca;background:#faf6ee;border-radius:16px;padding:6px 11px;font-size:12.5px;color:#6b1f2a">'+esc(n)+'</button>';}).join('')+'</div>';}
