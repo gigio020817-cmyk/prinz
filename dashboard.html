@@ -189,7 +189,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='23/10 12:30';
+const APP_VER='23/10 15:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -561,6 +561,20 @@ async function saveCO(){var day=(window.LAST&&window.LAST.day)||todayStr();try{a
 function addChefOrd(){var t=document.getElementById('coTxt'),c=document.getElementById('coCook');var txt=((t&&t.value)||'').trim();if(!txt){alert('Scrivi cosa hai chiesto.');return;}window.CHEFORD=window.CHEFORD||[];window.CHEFORD.push({id:Date.now(),txt:txt,cook:(c&&c.value)||'',at:new Date().toISOString(),done:null});if(t)t.value='';saveCO();rerenderDash();}
 function setCO(id,val){window.CHEFORD=(window.CHEFORD||[]).map(function(o){if(o.id===id){o.done=val;o.doneAt=new Date().toISOString();}return o;});saveCO();rerenderDash();}
 function delCO(id){if(!confirm('Togliere questo ordine dalla lista?'))return;window.CHEFORD=(window.CHEFORD||[]).filter(function(o){return o.id!==id;});saveCO();rerenderDash();}
+async function loadDiario(){try{var r=await sb('kitchen_meta?k=eq.chefdiario&select=v');window.DIARIO=(r&&r[0]&&r[0].v&&r[0].v.items)?r[0].v.items:[];}catch(e){window.DIARIO=[];}rerenderDash();}
+async function saveDiario(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'chefdiario',v:{items:window.DIARIO||[]}})});}catch(e){alert('Non salvato, controlla internet');}}
+function addAppunto(){var t=document.getElementById('appTxt');var v=(t&&t.value||'').trim();if(!v){alert('Scrivi qualcosa prima.');return;}window.DIARIO=window.DIARIO||[];window.DIARIO.push({id:Date.now()+''+Math.floor(Math.random()*1000),at:new Date().toISOString(),txt:v});saveDiario();rerenderDash();}
+function delAppunto(id){if(!confirm('Eliminare questo appunto?'))return;window.DIARIO=(window.DIARIO||[]).filter(function(x){return x.id!==id;});saveDiario();rerenderDash();}
+function copyAppunti(){var L=(window.DIARIO||[]).slice().sort(function(a,b){return (a.at<b.at?-1:1);});var out=L.map(function(x){return '['+tloc(x.at)+'] '+x.txt;}).join('\n\n');if(!out){alert('Niente da copiare.');return;}try{navigator.clipboard.writeText(out);}catch(e){}var ta=document.createElement('textarea');ta.value=out;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);alert('Copiato! Ora puoi incollarlo a Claude o mandarlo a chi serve.');}
+function appuntiCard(){
+  if(typeof window.DIARIO==='undefined'){if(!window._diarioLoading){window._diarioLoading=true;loadDiario();}return '<div class="card"><div class="card-h"><div class="t">📝 I miei appunti</div></div><div class="card-b"><div class="muted">Carico…</div></div></div>';}
+  var L=(window.DIARIO||[]).slice().sort(function(a,b){return (a.at<b.at?1:-1);});
+  var rows=L.length?L.map(function(x){return '<div class="row" style="align-items:flex-start;gap:8px"><span style="flex:1;white-space:pre-wrap">'+esc(x.txt)+'<div class="muted" style="margin-top:2px">'+tloc(x.at)+'</div></span><span onclick="delAppunto(\''+x.id+'\')" style="color:#c0392b;font-weight:800;cursor:pointer;padding:0 2px">✕</span></div>';}).join(''):'<div class="muted">Ancora niente. Scrivi sopra cosa non va o cosa ti ha fatto innervosire.</div>';
+  return '<div class="card" style="border:2px solid var(--gold)"><div class="card-h"><div class="t">📝 I miei appunti<div class="sub">privato · solo tu · sfoghi e cose da ragionare poi</div></div></div><div class="card-b">'
+    +'<textarea id="appTxt" placeholder="Scrivi liberamente… cosa non va, cosa ti ha fatto innervosire, da ragionare dopo" style="width:100%;box-sizing:border-box;min-height:90px;border:1px solid #ddd;border-radius:10px;padding:10px;font:inherit"></textarea>'
+    +'<div style="display:flex;gap:8px;margin:8px 0 12px"><button onclick="addAppunto()" style="background:var(--wine);color:#fff;border:0;border-radius:10px;padding:9px 14px;font-weight:800;cursor:pointer">Aggiungi</button><button onclick="copyAppunti()" style="background:#444;color:#fff;border:0;border-radius:10px;padding:9px 14px;font-weight:700;cursor:pointer">📋 Copia tutto</button></div>'
+    +rows+'</div></div>';
+}
 function noteCard(){
   var list=window.CHEFNOTES||[];
   var BRIG=TEAM.filter(function(t){return t[0]!=='Gigio';}).map(function(t){return t[0];});
@@ -804,6 +818,7 @@ function render(day,ck,ckw,ent,meta,presa){
     acquisti: martinaCard(),
     compiti: chefCard(ck,day),
     report: reportCard()+oreReportCard(),
+    appunti: appuntiCard(),
     rif: recModsCard()+cookNotesCard()+respCardH+presaCardH+menuCard()
   };
   var _T=window.TIMB||{};
@@ -829,6 +844,7 @@ function render(day,ck,ckw,ent,meta,presa){
     {id:'acquisti',l:'Acquisti / Martina',e:'💶',b:'#F7D8A8',fg:'#4a2f02',a:'#7a4e06',s:'spesa fornitori · bolle',n:''},
     {id:'compiti',l:'I miei compiti',e:'✅',b:'#FAC775',fg:'#412402',a:'#633806',n:''},
     {id:'report',l:'Report ore',e:'📊',b:'#B5D4F4',fg:'#042C53',a:'#0C447C',n:''},
+    {id:'appunti',l:'I miei appunti',e:'📝',b:'#E2D4F4',fg:'#2C1553',a:'#3C3489',s:'sfoghi · solo tu',n:((window.DIARIO&&window.DIARIO.length)?(''+window.DIARIO.length):'')},
     {id:'rif',l:'Riferimento',e:'📚',b:'#D3D1C7',fg:'#2C2C2A',a:'#444441',n:''}
   ];
   if(typeof PENALI_ON!=='undefined' && !PENALI_ON){TILES=TILES.filter(function(t){return t.id!=='penali';});}
@@ -964,7 +980,7 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 23/10 12:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 23/10 15:00</div>
 
 <script>
 (function(){function mount(){var main=document.querySelector('#app main')||document.querySelector('main');if(!main){return setTimeout(mount,400);}if(document.getElementById('devcard'))return;var card=document.createElement('div');card.className='card';card.id='devcard';card.innerHTML='<div class="card-h"><div class="t">\uD83D\uDD10 Dispositivi</div><div class="sub">approva / revoca</div></div><div class="card-b"><div class="muted" style="white-space:normal;margin-bottom:10px">Approva o revoca i telefoni e tablet che possono aprire le app.</div><button id="devbtn" style="width:100%;padding:11px;border:none;border-radius:10px;background:var(--ink);color:#fff;font-weight:700;font-size:14px">Apri pannello dispositivi</button><div id="devwrap" style="display:none;margin-top:10px"></div></div>';main.insertBefore(card,main.firstChild);var open=false;document.getElementById('devbtn').addEventListener('click',function(){var w=document.getElementById('devwrap');open=!open;if(open){if(!w.dataset.loaded){w.innerHTML='<iframe src="dispositivi.html" style="width:100%;height:520px;border:1px solid var(--line);border-radius:10px" loading="lazy"></iframe>';w.dataset.loaded='1';}w.style.display='block';this.textContent='Chiudi pannello';}else{w.style.display='none';this.textContent='Apri pannello dispositivi';}});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();})();
