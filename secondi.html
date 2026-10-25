@@ -310,8 +310,8 @@ async function inviaOrdineChef(){if(ordBlocked()){alert('⛔ Ordini chiusi dopo 
  var notes=[];Object.keys(WKNOTE).forEach(function(wk){var t=(WKNOTE[wk]||'').trim();if(t)notes.push({n:'\ud83d\udcdd Nota '+_SRC+' '+(WK[wk]||'')+': '+t,q:'',u:'',src:_SRC,wk:WK[wk]});});
  if(!add.length&&!notes.length){alert('Segna prima le quantit\u00e0 con le freccette.');return;}
  if(!confirm('Inviare l\'ordine allo chef? ('+add.length+' prodotti)'))return;
- try{var r=await sb('kitchen_meta?k=eq.pastreq&select=v');var cur=(r&&r[0]&&r[0].v&&r[0].v.items)?r[0].v.items:[];var at=new Date().toISOString();add.concat(notes).forEach(function(x){x.at=at;cur.push(x);});
- await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pastreq',v:{items:cur}})});
+ try{var r=await sb('kitchen_meta?k=eq.pastreq__secondi&select=v');var cur=(r&&r[0]&&r[0].v&&r[0].v.items)?r[0].v.items:[];var at=new Date().toISOString();add.concat(notes).forEach(function(x){x.at=at;cur.push(x);});
+ await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pastreq__secondi',v:{items:cur}})});
  ORD={};WKNOTE={};ordSave();alert('Ordine inviato allo chef \u2713');renderOrd();}catch(e){alert('Errore invio, riprova.');}}
 </script>
 

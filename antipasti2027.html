@@ -413,9 +413,9 @@ function updGia(i,q){ const g=parseInt((document.getElementById('gia_'+i)||{}).v
 async function sendToOrdini(){ const items=[]; (window._lastRows||[]).forEach(r=>{ var oe=document.getElementById('ord_'+r.i); var q=oe?(parseFloat((''+oe.value).replace(',','.'))||0):r.q; if(q>0) items.push({n:r.name,q:''+q,u:((document.getElementById('u_'+r.i)||{}).textContent||r.unit)}); });
  const t=document.getElementById('toast');
  EXTRAORD.forEach(function(x){ if(x&&x.n) items.push({n:x.n,q:'1',u:'pz'}); }); if(!items.length){ t.innerHTML='<b>Niente da inviare</b>Genera prima la lista.'; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),4000); return; }
- try{ let cur=await sb('kitchen_meta?k=eq.pastreq&select=v'); let arr=(cur&&cur[0]&&cur[0].v&&cur[0].v.items)?cur[0].v.items:[];
+ try{ let cur=await sb('kitchen_meta?k=eq.pastreq__antipasti2027&select=v'); let arr=(cur&&cur[0]&&cur[0].v&&cur[0].v.items)?cur[0].v.items:[];
   arr=arr.concat(items.map(it=>({n:it.n,q:it.q,u:it.u,src:'Antipasti'})));
-  await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pastreq',v:{items:arr}})});
+  await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'pastreq__antipasti2027',v:{items:arr}})});
   var nowIso=new Date().toISOString(); items.forEach(function(it){ ORDSENT[it.n]={q:it.q,u:it.u,at:nowIso}; }); saveOrdSent(); genLista();
   t.innerHTML='<b>Inviato a Ordini ✓ ('+items.length+' voci)</b>Quello inviato resta "già ordinato": rigenera e ordini solo il resto.'; }
  catch(e){ t.style.background='#c0392b'; t.innerHTML='<b>⚠️ Errore invio</b>('+e.message+')'; }
