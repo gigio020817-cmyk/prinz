@@ -131,7 +131,7 @@
 
 <div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 05/08 12:00</div>
 <script>
-var APP_VER='05/08 12:00';
+var APP_VER='26/10 09:00';
 var PW_SALA='sala2026';
 var PW_DIR='direzione2026';
 var SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -172,6 +172,9 @@ async function loadCantina(){
 async function saveCloud(){
   await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'cantina',v:{vini:VINI}})});
 }
+async function changeGiac(id,delta){try{var r=await sb("kitchen_meta?k=eq.cantina&select=v");var vini=(r&&r[0]&&r[0].v&&r[0].v.vini)||VINI;var w=vini.filter(function(x){return x.id===id;})[0];if(!w)return;var n=parseInt(w.giac||'0',10);if(isNaN(n))n=0;n=n+delta;if(n<0)n=0;w.giac=''+n;VINI=vini;await saveCloud();render();}catch(e){alert('Non salvato, controlla internet');}}
+function toggleFav(id){if(ROLE!=='dir')return;var w=VINI.filter(function(x){return x.id===id;})[0];if(!w)return;w.fav=!w.fav;saveCloud();render();}
+
 var TIPI=['Tutti','Rosso','Bianco','Bollicine','Rosato','Dolce'];
 function renderChips(){
   var h='';for(var i=0;i<TIPI.length;i++){var t=TIPI[i];h+='<button class="chip'+(t===FILT?' on':'')+'" onclick="setFilt(\''+t+'\')">'+t+'</button>';}
@@ -191,18 +194,14 @@ function render(){
   arr.sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'');});
   var h='';
   arr.forEach(function(w){
-    h+='<div class="wine"><div class="top"><div class="nome">'+esc(w.nome||'(senza nome)')+'<div><span class="tipo '+tcls(w.tipo)+'">'+esc(w.tipo||'')+'</span></div></div>';
+    h+='<div class="wine"><div class="top"><div class="nome">'+(w.fav?'★ ':'')+esc(w.nome||'(senza nome)')+'<div><span class="tipo '+tcls(w.tipo)+'">'+esc(w.tipo||'')+'</span></div></div>';
     if(w.prezzo)h+='<div class="prezzo">'+esc(w.prezzo)+' &euro;</div>';
     h+='</div>';
     var sub=[];if(w.prod)sub.push(esc(w.prod));if(w.annata)sub.push(esc(w.annata));if(w.zona)sub.push(esc(w.zona));
     if(sub.length)h+='<div class="sub">'+sub.join(' &middot; ')+'</div>';
     if(w.abb)h+='<div class="abb"><b>Abbinamento:</b> '+esc(w.abb)+'</div>';
     if(w.note)h+='<div class="note">'+esc(w.note)+'</div>';
-    if(ROLE==='dir'){
-      var mag=[];if(w.giac!==''&&w.giac!=null)mag.push('Giacenza: '+esc(w.giac)+' bott.');if(w.pos)mag.push('Posizione: '+esc(w.pos));
-      if(mag.length)h+='<div class="mag">'+mag.join(' &nbsp;&middot;&nbsp; ')+'</div>';
-      h+='<div class="acts"><button class="mod" onclick="openForm(\''+w.id+'\')">Modifica</button><button class="del" onclick="delWine(\''+w.id+'\')">Elimina</button></div>';
-    }
+    var _gv=(w.giac!==''&&w.giac!=null)?w.giac:'0';h+='<div class="mag">Giacenza: <b>'+esc(_gv)+'</b> bott. <button onclick="changeGiac(\''+w.id+'\',-1)" style="margin-left:6px;padding:4px 10px;border:1px solid #c0392b;border-radius:7px;background:#fdecea;color:#c0392b;font-size:14px">Preso −1</button> <button onclick="changeGiac(\''+w.id+'\',1)" style="margin-left:6px;padding:4px 10px;border:1px solid #ccc;border-radius:7px;background:#f5f5f5;font-size:14px">+1</button>';if(w.pos && ROLE==='dir')h+='<div class="mag">Posizione: '+esc(w.pos)+'</div>';if(ROLE==='dir'){h+='<div class="acts"><button class="mod" onclick="toggleFav(\''+w.id+'\')">'+(w.fav?'★':'☆')+' Preferito</button><button class="mod" onclick="openForm(\''+w.id+'\')">Modifica</button><button class="del" onclick="delWine(\''+w.id+'\')">Elimina</button></div>';}
     h+='</div>';
   });
   el.innerHTML=h;
@@ -231,7 +230,7 @@ async function saveWine(){
   var nome=document.getElementById('f_nome').value.trim();
   if(!nome){alert('Metti almeno il nome del vino.');return;}
   var obj={
-    id:EDIT_ID||('v'+Date.now()),
+    id:EDIT_ID||('v'+Date.now()),fav:((VINI.filter(function(x){return x.id===EDIT_ID;})[0]||{}).fav||false),
     nome:nome,
     tipo:document.getElementById('f_tipo').value,
     annata:document.getElementById('f_annata').value.trim(),
