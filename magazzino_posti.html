@@ -1,0 +1,144 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Prinz Rudolf · Costruzione Magazzino</title>
+<style>
+:root{--wine:#7a1f2b;--wd:#5c121c;--ink:#222;--muted:#777;--line:#e5e0dc;--bg:#f6f3f1;--teal:#1f6f3f}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(160deg,var(--wine),var(--wd));color:#fff;padding:16px 14px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:18px;font-weight:800}header p{margin:4px 0 0;font-size:12px;opacity:.85}
+.wrap{max-width:900px;margin:0 auto;padding:12px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.btn{border:none;border-radius:10px;padding:9px 13px;font-size:14px;font-weight:700;cursor:pointer}
+.btn.p{background:var(--wine);color:#fff}.btn.s{background:#fff;border:1px solid var(--line)}
+.tot{margin-left:auto;background:#eef5f1;border:1px solid #cfe3d6;border-radius:10px;padding:8px 12px;font-size:14px;font-weight:800;color:var(--teal)}
+.zone{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden}
+.zhead{background:#faf7f5;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+.zhead .zn{font-weight:800;font-size:15px;border:none;background:transparent;color:var(--wine);width:62%}
+.zhead .za{display:flex;gap:6px}
+.icon{border:none;background:#eee;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer}
+.rip{padding:9px 12px;border-bottom:1px dashed var(--line)}.rip:last-child{border-bottom:none}
+.riplabel{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:#eef5f1;border:1px solid #cfe3d6;border-radius:12px;padding:5px 9px;font-size:13px;display:flex;align-items:center;gap:7px;cursor:pointer}
+.chip .nm{font-weight:700}.chip .qp{color:var(--muted);font-size:12px}
+.chip .x{color:#c0392b;font-weight:900;cursor:pointer;font-size:15px}
+.add{background:#fff;border:1px dashed var(--wine);color:var(--wine);border-radius:12px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer}
+.addrip{margin:8px 12px 12px;background:#fff;border:1px dashed var(--line);color:var(--muted);border-radius:10px;padding:7px;width:calc(100% - 24px);font-size:13px;cursor:pointer}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:flex-end;justify-content:center}
+.modal.on{display:flex}
+.sheet{background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;max-height:85vh;display:flex;flex-direction:column}
+.sheet h3{margin:0;padding:14px;border-bottom:1px solid var(--line);font-size:15px}
+.s2{padding:10px 14px;display:flex;gap:8px}
+.s2 input{flex:1;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:15px}
+.plist{overflow:auto;padding:4px 8px 10px;flex:1}
+.pitem{padding:10px;border-bottom:1px solid #f0ece9;font-size:14px;cursor:pointer}.pitem:active{background:#faf7f5}
+.selbar{display:none;border-top:1px solid var(--line);padding:12px 14px;background:#faf7f5}
+.selbar.on{display:block}
+.selbar .snm{font-weight:800;margin-bottom:8px}
+.selrow{display:flex;gap:8px;align-items:center}
+.selrow label{font-size:12px;color:var(--muted)}
+.selrow input{width:90px;padding:9px;border:1px solid var(--line);border-radius:10px;font-size:15px}
+.closebar{padding:10px 14px;border-top:1px solid var(--line);display:flex;gap:8px}
+.muted{color:var(--muted);font-size:12px}
+.searchbox{margin-bottom:12px}
+.searchbox input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:16px}
+#findres{margin-top:6px}
+#findres.on{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.fr{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid #f0ece9;font-size:14px}
+.fr:last-child{border-bottom:none}
+.frn{font-weight:700}
+.frl{color:var(--teal);font-weight:800;white-space:nowrap}
+.fr0{padding:12px;color:var(--muted);font-size:13px}
+</style></head><body>
+<header><h1>🗄️ Costruzione Magazzino</h1><p>Tocca <b>+ prodotto</b>, scegli il prodotto, metti <b>quanti pezzi</b> e il <b>prezzo al pezzo</b>. Tutto a pezzo singolo.</p></header>
+<div class="wrap">
+  <div class="bar">
+    <button class="btn p" onclick="addZone()">+ Nuovo scaffale / cella</button>
+    <button class="btn s" onclick="win.print()">🖨️ Stampa</button>
+    <span class="tot" id="tot">Valore: € 0</span>
+    <span class="muted" id="status"></span>
+  </div>
+  <div class="searchbox">
+    <input id="find" placeholder="🔍 Dove si trova un prodotto? (es. capperi)" oninput="findWhere()">
+    <div id="findres"></div>
+  </div>
+  <div id="zones"></div>
+</div>
+<div class="modal" id="pick"><div class="sheet">
+  <h3>Aggiungi prodotto</h3>
+  <div class="s2"><input id="q" placeholder="Cerca o scrivi a mano…" oninput="flt()"></div>
+  <div class="plist" id="plist"></div>
+  <div class="selbar" id="selbar">
+    <div class="snm" id="snm"></div>
+    <div class="selrow">
+      <label>Pezzi</label><input id="qpz" inputmode="numeric" placeholder="es. 6">
+      <label>Prezzo/pz €</label><input id="peur" inputmode="decimal" placeholder="es. 8,50">
+      <button class="btn p" style="margin-left:auto" onclick="commit()">Aggiungi</button>
+    </div>
+  </div>
+  <div class="closebar"><button class="btn s" onclick="useCustom()">Usa il nome scritto</button><button class="btn s" style="margin-left:auto" onclick="closePick()">Chiudi</button></div>
+</div></div>
+<script>
+const win=window;
+const PRODUCTS=["Accensori ecologici per brace", "Aceto balsamico 250ml al pz", "Aceto di mele 1l", "Aceto di riso", "Aceto di vino bianco 1l", "Acido per forno", "Agar Agar", "Aglio in polvere wieberg 8oogr", "Ali di pollo", "Amaranto", "Amarene", "Anacardi salati 1kg", "Bastoncini di pesce", "Borlotti precotti latta", "Bretzel grandi colazione", "Briosche 5 cereali", "Briosche Jolly", "Briosche scudo nocciola", "Briosche vegano", "Broccoli", "Burro di cacao", "Bustine ketchup", "Bustine majonese", "Bustine senape", "Cacao amaro", "Caffe in polvere", "Calamari U10 thai", "Cannella in polvere", "Cannella Stecche intere", "Cannellin preocotti latta", "Capperi", "Carbone per brace", "Carbone vegetale 500gr", "Carciofi pizzeria 2,2kg", "Cariche sifoni ISY 50 pz al pz 0,54", "Carta alluminio", "Carta da forno", "Cartoni pizzzeria", "Castagne intere 1kg congelate", "Cavolfiori", "Ceci precotti latta", "Cetrioli sottoaceto vetro", "Champignon pizzeria 1,4kg", "Chicken nuggets", "Chili tritato Aromica 434", "Chimicurry Aromica", "Chips di banana", "Cioccolata Opalys", "Cioccolato al latte", "Cioccolato bianco", "Cioccolato caramelia", "Cioccolato fondente", "Cioccolato fondente 60%", "Cipolla croccante Wieberg", "Cocco raspato", "Colorante idrosolubile Sosa arancione", "Colorante idrosolubile Sosa giallo", "Colorante idrosolubile Sosa nero", "Colorante idrosolubile Sosa rosso", "Colorante idrosolubile Sosa verde", "Colorante liposolubile Sosa arancione", "Colorante liposolubile Sosa giallo", "Colorante liposolubile Sosa nero", "Colorante liposolubile Sosa rosso", "Colorante liposolubile Sosa verde", "Concentrato di pomodoro", "Cous cous", "Cramberry secco 11,46kg", "Destrosio 1kg", "Detersivo pavimenti 10 litri", "Detersivo piatti 10 litri", "Detersivo spruzzino blu 12 pz", "Erba cipollina 150gr Aromica", "Erba cipollina pacco grande", "Fagioli rossi precotti latta", "Fagiolini", "Farina 0 do gusto", "Farina di mandorle", "Farina di nocciole", "Farina di riso 1kg", "Farina di segale 1kg", "Farina frolla do gusto 5kg", "Farina Integrale rieper 1kg", "Farina Kamut 5kg al kg", "Farina Manitoba 1kg", "Farina rieper blu 5kg al kg", "Farina rieper gialla 5kg al kg", "Farina Semola de cecco 1kg", "Filetti di acciughe", "Filetto di lucioperca 1kg", "Filetto di orata 140gr", "Filetto di Salmone FRESCO", "Filetto di salmone pulito", "Gallette di riso intregale", "Gamberi argentini puliti", "Gamberi C1", "Gamberi puliti grossi", "Garum di pesce", "Gelatina Silver", "Gelatina spray 800gr Fabbri", "Gherigli noci B California 10kg", "Gianduia al latte", "Glucosio 1 kg", "Granella di nocciole 1kg", "Granella di pistacchio", "Guanti neri L", "Guanti neri S", "Guanti neri XL", "Kertchup 5kg Heinz", "Lampone intero secco", "Latte condensato 340gr", "Latte in polvere", "Lecitina di soia", "Lemongrass purea 450gr BRESC", "Lenticchie di montagna 500gr", "Lenticchie precotte latta", "Lievito instantaneo cameo", "Magia di arancia Aromica", "Magia di limone Aromica", "Mais", "Majonese gourmet 5kg", "Maltodestrina per polveri", "Maltosec", "Mandorle a bastoncini 1kg", "Mandorle a fette 1kg", "Mandorle con buccia intere 1kg", "Mandorle intere pelate 1kg", "Miele 1 kg acacia", "Milanesi di maiale 18pz", "Milanesi di pollo 18pz 180gr", "Mini krapfen cioccolato", "Mini strudel di mela", "Mini wafel", "Miscela ORO BRIOSCHE S.GLUTINE", "Miscela ORO FROLLA S.GLUTINE", "Miscela ORO PAN FRIBRA S.GLUTINE", "Miscela ORO PAN S.GLUTINE", "Miscela ORO PASTA FRESCA S.GLUTINE", "Miso", "Misto funghi", "Nocciole con buccia intere", "Nocciole pelate intere", "Olio 250ml extravergine al pz", "Olio di sesamo", "Olio evo 5 litri al litro", "Olio friggitrice Alto Oleico", "Olio piccante 250ml al pz", "Olio semi 5 litri al litro", "Olive nere denocciolate 2.6kg", "Olive taggiasche", "Origano 500gr", "Pancake", "Pane da toast americano 825gr", "Pane da tramezzino", "Pane hamburger personale", "Pane per canederlo", "Pangrattato normale", "Pangrattato Schuttelbrot", "Panko", "Paprika affumciata wieberg", "Passata di pomodoro Mutti 700ml", "Pasta personale 5kg al kg", "Patate a spicchio speziate", "Patate Bravas", "Patatine fritte", "Patatine fritte AWIKO", "Pectina NH", "Pelati S.Marzano 2.5kg", "Pellicola", "Pepe nero macinato 1kg", "Peperoni lombardi 660ml", "Pinoli 1kg", "Piselli", "Pistacchi interi", "Polenta di Storo", "Polenta Istantanea", "Polipo congelato grosso", "Pollo straccetti 1kg per 4 pz a cartone", "Polvere di pomodoro", "Polvere di spinaci", "Polvere Rosmarino 1kg", "Pomodori secchi", "Pomodoro pizzeria do gusto 10kg", "Purea di castagne", "Puree instantaneo", "Quinoa tricolore 2,5kg", "Riso Basmati 5kg", "Riso carnaroli 5kg", "Riso Parboiled 5kg", "Rosmarino secco Aromica 170gr", "Rosti di patate", "Sac a pochè arancione", "Sacchi neri grossi", "Sachi neri piccoli Grazia", "Sale fino 1kg", "Sale grosso 1kg", "Salsa agropiccante", "Salsa BBQ wieberg", "Salsa di soia verde 1 litro", "Salsa Tamari piccoli", "Salsa worchester 150ml", "Sciroppo d'acero 0,25 colazioni", "Sciroppo d'agave 350ml", "Sciroppo di lampone", "Sciroppo di sambuco", "Semi di chia 5kg", "Semi di cumino interi", "Semi di cumino macinati 600gr", "Semi di finocchio 1kg", "Senape dolce wurstel bianchi", "Senape normale", "Spinaci foglia bella", "Spray staccante", "Stampi tortino alluminio 100 pz", "Succo di ananas 1l", "Succo di Arancia 2l", "Succo di barbabietola 700ml", "Succo mela biologico 5l", "Succo melograno 1l", "Tabasco affumicato", "Timo secco Aromica 90gr", "Tonno in scatola 400gr", "Trigonella 500gr", "Umami pomodoro", "Uvetta 1kg", "Vaniglia in polvere 250gr", "Verdure leggerezza", "Verdure mediterranea", "Vino bianco", "Vino rosso", "Xantano", "Zucchero a velo 1kg", "Zucchero di canna 500gr", "Zucchero semolato 10kg", "Zucchero vannillinato cameo"];
+const SB="https://hxjxbpifboufolhwawkc.supabase.co",KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
+function sb(path,opt){opt=opt||{};var h=Object.assign({apikey:KEY,'Content-Type':'application/json'},opt.headers||{});return fetch(SB+'/rest/v1/'+path,Object.assign({},opt,{headers:h}));}
+function r(n){var a=[];for(var i=1;i<=n;i++)a.push({label:"Ripiano "+i,items:[]});return a;}
+function defZones(){return [{name:"Scaffale 1",rip:r(4)},{name:"Scaffale 2",rip:r(4)},{name:"Scaffale 3",rip:r(4)},{name:"Scaffale 4",rip:r(4)},{name:"Cella 1",rip:r(4)},{name:"Cella 2",rip:r(4)},{name:"Congelatore",rip:r(4)},{name:"Banco frigo partita",rip:r(3)}];}
+var Z=null,tgt=null,SEL=null,_t=null;
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function num(x){var v=parseFloat((''+(x==null?'':x)).replace(',','.'));return isNaN(v)?0:v;}
+function itN(it){return (typeof it==='string')?{n:it,q:'',p:''}:it;}
+async function load(){
+  try{var r0=await sb("kitchen_meta?k=eq.magposti&select=v").then(x=>x.json());if(r0&&r0[0]&&r0[0].v&&r0[0].v.zones){Z=r0[0].v.zones;render();return;}}catch(e){}
+  try{var l=JSON.parse(localStorage.getItem('magposti'));if(l&&l.length){Z=l;render();return;}}catch(e){}
+  Z=defZones();render();
+}
+function save(){
+  try{localStorage.setItem('magposti',JSON.stringify(Z));}catch(e){}
+  document.getElementById('status').textContent='salvato…';
+  clearTimeout(_t);_t=setTimeout(function(){sb("kitchen_meta?on_conflict=k",{method:"POST",headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'magposti',v:{zones:Z,at:new Date().toISOString()}})}).then(function(){document.getElementById('status').textContent='✓ cloud';}).catch(function(){document.getElementById('status').textContent='sul telefono';});},700);
+}
+function grandTotal(){var t=0;Z.forEach(function(z){z.rip.forEach(function(rp){rp.items.forEach(function(it){it=itN(it);t+=num(it.q)*num(it.p);});});});return t;}
+function fmt(n){return n.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function render(){
+  var h='';
+  Z.forEach(function(z,zi){
+    h+='<div class="zone"><div class="zhead"><input class="zn" value="'+esc(z.name)+'" onchange="renZone('+zi+',this.value)"><div class="za"><button class="icon" onclick="addRip('+zi+')">+ ripiano</button><button class="icon" onclick="delZone('+zi+')">🗑</button></div></div>';
+    z.rip.forEach(function(rp,ri){
+      h+='<div class="rip"><div class="riplabel"><span>'+esc(rp.label)+'</span><span style="cursor:pointer;color:#bbb" onclick="delRip('+zi+','+ri+')">rimuovi ripiano</span></div><div class="chips">';
+      rp.items.forEach(function(it0,ii){var it=itN(it0);var qp=[];if(it.q!=='')qp.push(esc(it.q)+' pz');if(it.p!=='')qp.push('€ '+esc(it.p));
+        h+='<span class="chip" onclick="editItem('+zi+','+ri+','+ii+')"><span class="nm">'+esc(it.n)+'</span>'+(qp.length?'<span class="qp">'+qp.join(' · ')+'</span>':'')+'<span class="x" onclick="event.stopPropagation();rm('+zi+','+ri+','+ii+')">×</span></span>';});
+      h+='<span class="add" onclick="openPick('+zi+','+ri+')">+ prodotto</span></div></div>';
+    });
+    h+='<button class="addrip" onclick="addRip('+zi+')">+ aggiungi ripiano</button></div>';
+  });
+  document.getElementById('zones').innerHTML=h;
+  document.getElementById('tot').textContent='Valore: € '+fmt(grandTotal());
+}
+function renZone(zi,v){Z[zi].name=v;save();}
+function addZone(){Z.push({name:"Nuovo scaffale",rip:r(3)});save();render();}
+function delZone(zi){if(!confirm('Eliminare "'+Z[zi].name+'"?'))return;Z.splice(zi,1);save();render();}
+function addRip(zi){Z[zi].rip.push({label:"Ripiano "+(Z[zi].rip.length+1),items:[]});save();render();}
+function delRip(zi,ri){if(!confirm('Rimuovere questo ripiano?'))return;Z[zi].rip.splice(ri,1);save();render();}
+function rm(zi,ri,ii){Z[zi].rip[ri].items.splice(ii,1);save();render();}
+function editItem(zi,ri,ii){var it=itN(Z[zi].rip[ri].items[ii]);var q=prompt('Quanti pezzi di "'+it.n+'"?',it.q||'');if(q===null)return;var p=prompt('Prezzo al pezzo (€) di "'+it.n+'"?',it.p||'');if(p===null)return;Z[zi].rip[ri].items[ii]={n:it.n,q:q.trim(),p:p.trim()};save();render();}
+function openPick(zi,ri){tgt=[zi,ri];SEL=null;document.getElementById('q').value='';document.getElementById('selbar').classList.remove('on');flt();document.getElementById('pick').classList.add('on');}
+function closePick(){document.getElementById('pick').classList.remove('on');}
+function flt(){var q=(document.getElementById('q').value||'').toLowerCase().trim();var arr=PRODUCTS.filter(function(p){return !q||p.toLowerCase().indexOf(q)>=0;}).slice(0,60);
+  document.getElementById('plist').innerHTML=arr.map(function(p){return '<div class="pitem" onclick="choose('+JSON.stringify(p).replace(/"/g,'&quot;')+')">'+esc(p)+'</div>';}).join('')||'<div class="muted" style="padding:12px">Nessuno in lista — usa "Usa il nome scritto".</div>';}
+function choose(name){SEL=name;document.getElementById('snm').textContent=name;document.getElementById('qpz').value='';document.getElementById('peur').value='';document.getElementById('selbar').classList.add('on');document.getElementById('qpz').focus();}
+function useCustom(){var v=document.getElementById('q').value.trim();if(!v)return;choose(v);}
+function commit(){if(!SEL||!tgt)return;var q=document.getElementById('qpz').value.trim();var p=document.getElementById('peur').value.trim();Z[tgt[0]].rip[tgt[1]].items.push({n:SEL,q:q,p:p});save();render();closePick();}
+function findWhere(){
+  var q=(document.getElementById('find').value||'').toLowerCase().trim();
+  var box=document.getElementById('findres');
+  if(!q){box.innerHTML='';box.classList.remove('on');return;}
+  var out=[];
+  Z.forEach(function(z){z.rip.forEach(function(rp){rp.items.forEach(function(it0){var it=itN(it0);if(it.n.toLowerCase().indexOf(q)>=0){out.push({n:it.n,loc:z.name+' · Ripiano '+rp.label});}});});});
+  if(!out.length){box.innerHTML='<div class="fr0">Nessun prodotto trovato per "'+esc(q)+'".</div>';box.classList.add('on');return;}
+  box.innerHTML=out.slice(0,50).map(function(o){return '<div class="fr"><span class="frn">'+esc(o.n)+'</span><span class="frl">'+esc(o.loc)+'</span></div>';}).join('');
+  box.classList.add('on');
+}
+load();
+</script></body></html>
