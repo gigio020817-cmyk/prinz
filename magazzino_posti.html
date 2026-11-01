@@ -19,8 +19,9 @@ header h1{margin:0;font-size:18px;font-weight:800}header p{margin:4px 0 0;font-s
 .rip{padding:9px 12px;border-bottom:1px dashed var(--line)}.rip:last-child{border-bottom:none}
 .riplabel{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{background:#eef5f1;border:1px solid #cfe3d6;border-radius:12px;padding:5px 9px;font-size:13px;display:flex;align-items:center;gap:7px;cursor:pointer}
+.chip{background:#eef5f1;border:1px solid #cfe3d6;border-radius:12px;padding:5px 9px;font-size:13px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 7px;cursor:pointer}
 .chip .nm{font-weight:700}.chip .qp{color:var(--muted);font-size:12px}
+.chip .src{flex-basis:100%;color:#8a6d3b;font-size:11px}
 .chip .x{color:#c0392b;font-weight:900;cursor:pointer;font-size:15px}
 .add{background:#fff;border:1px dashed var(--wine);color:var(--wine);border-radius:12px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer}
 .addrip{margin:8px 12px 12px;background:#fff;border:1px dashed var(--line);color:var(--muted);border-radius:10px;padding:7px;width:calc(100% - 24px);font-size:13px;cursor:pointer}
@@ -108,7 +109,7 @@ function render(){
     z.rip.forEach(function(rp,ri){
       h+='<div class="rip"><div class="riplabel"><span>'+esc(rp.label)+'</span><span style="cursor:pointer;color:#bbb" onclick="delRip('+zi+','+ri+')">rimuovi ripiano</span></div><div class="chips">';
       rp.items.forEach(function(it0,ii){var it=itN(it0);var qp=[];if(it.q!=='')qp.push(esc(it.q)+' pz');if(it.p!=='')qp.push('€ '+esc(it.p));
-        h+='<span class="chip" onclick="editItem('+zi+','+ri+','+ii+')"><span class="nm">'+esc(it.n)+'</span>'+(qp.length?'<span class="qp">'+qp.join(' · ')+'</span>':'')+'<span class="x" onclick="event.stopPropagation();rm('+zi+','+ri+','+ii+')">×</span></span>';});
+        h+='<span class="chip" onclick="editItem('+zi+','+ri+','+ii+')"><span class="nm">'+esc(it.n)+'</span>'+(qp.length?'<span class="qp">'+qp.join(' · ')+'</span>':'')+'<span class="x" onclick="event.stopPropagation();rm('+zi+','+ri+','+ii+')">×</span>'+(it.ps?'<span class="src">💡 '+esc(it.ps)+'</span>':'')+'</span>';});
       h+='<span class="add" onclick="openPick('+zi+','+ri+')">+ prodotto</span></div></div>';
     });
     h+='<button class="addrip" onclick="addRip('+zi+')">+ aggiungi ripiano</button></div>';
@@ -122,7 +123,7 @@ function delZone(zi){if(!confirm('Eliminare "'+Z[zi].name+'"?'))return;Z.splice(
 function addRip(zi){Z[zi].rip.push({label:"Ripiano "+(Z[zi].rip.length+1),items:[]});save();render();}
 function delRip(zi,ri){if(!confirm('Rimuovere questo ripiano?'))return;Z[zi].rip.splice(ri,1);save();render();}
 function rm(zi,ri,ii){Z[zi].rip[ri].items.splice(ii,1);save();render();}
-function editItem(zi,ri,ii){var it=itN(Z[zi].rip[ri].items[ii]);var q=prompt('Quanti pezzi di "'+it.n+'"?',it.q||'');if(q===null)return;var p=prompt('Prezzo al pezzo (€) di "'+it.n+'"?',it.p||'');if(p===null)return;Z[zi].rip[ri].items[ii]={n:it.n,q:q.trim(),p:p.trim()};save();render();}
+function editItem(zi,ri,ii){var it=itN(Z[zi].rip[ri].items[ii]);var q=prompt('Quanti pezzi di "'+it.n+'"?',it.q||'');if(q===null)return;var p=prompt('Prezzo al pezzo (€) di "'+it.n+'"?',it.p||'');if(p===null)return;Z[zi].rip[ri].items[ii]={n:it.n,q:q.trim(),p:p.trim(),ps:it.ps};save();render();}
 function openPick(zi,ri){tgt=[zi,ri];SEL=null;document.getElementById('q').value='';document.getElementById('selbar').classList.remove('on');flt();document.getElementById('pick').classList.add('on');}
 function closePick(){document.getElementById('pick').classList.remove('on');}
 function flt(){var q=(document.getElementById('q').value||'').toLowerCase().trim();var arr=PRODUCTS.filter(function(p){return !q||p.toLowerCase().indexOf(q)>=0;}).slice(0,60);
