@@ -30,6 +30,9 @@ header h1{margin:0;font-size:19px;font-weight:800}header p{margin:4px 0 0;font-s
 .menu{background:#fbf7f2;border:1px solid #eadfce;border-radius:10px;padding:10px 12px;margin-top:3px}
 .menu .mi{padding:3px 0;border-bottom:1px dotted #e6dcc9;font-size:14px}
 .menu .mi:last-child{border-bottom:none}
+.mhead{font-size:11px;font-weight:800;letter-spacing:.07em;color:var(--wine);text-transform:uppercase;margin:11px 0 1px}
+.mhead:first-child{margin-top:0}
+.mline{font-size:14.5px;color:#2b2b2b;margin:0 0 2px;line-height:1.35}
 .allerg{background:#fff4f2;border:1px solid #f1c9c0;border-radius:10px;padding:8px 11px;color:#9a3b2b;font-size:14px}
 .eact{display:flex;gap:8px;margin-top:10px}
 .eact button{font-size:13px;border-radius:9px;padding:7px 11px;border:1px solid var(--line);background:#fff;cursor:pointer}
@@ -70,9 +73,9 @@ header h1{margin:0;font-size:19px;font-weight:800}header p{margin:4px 0 0;font-s
   </div>
   <div class="foot"><button class="btn s" onclick="closeForm()">Annulla</button><button class="btn p" style="margin-left:auto" onclick="saveForm()">Salva</button></div>
 </div></div>
-<div class="badge">v 02/11 12:00</div>
+<div class="badge">v 02/11 14:00</div>
 <script>
-const APP_VER='02/11 12:00';
+const APP_VER='02/11 14:00';
 const SB="https://hxjxbpifboufolhwawkc.supabase.co",KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const EDITPW="chefprinz";
 function sb(path,opt){opt=opt||{};var h=Object.assign({apikey:KEY,'Content-Type':'application/json'},opt.headers||{});return fetch(SB+'/rest/v1/'+path,Object.assign({},opt,{headers:h}));}
@@ -129,7 +132,7 @@ function card(c,past){
   if(c.pax)h+='<div class="row"><div class="lbl">Coperti</div><div class="val">'+esc(c.pax)+'</div></div>';
   if(c.note)h+='<div class="row"><div class="lbl">Intolleranze / note</div><div class="allerg">'+esc(c.note)+'</div></div>';
   h+='<div class="row"><div class="lbl">Menu</div>';
-  if(c.menu&&c.menu.trim()){h+='<div class="menu">'+c.menu.split('\n').filter(function(l){return l.trim();}).map(function(l){return '<div class="mi">'+esc(l)+'</div>';}).join('')+'</div>';}
+  if(c.menu&&c.menu.trim()){h+='<div class="menu">'+c.menu.split('\n').map(function(l){l=l.trim();if(!l)return '';var head=/[A-ZÀ-Þ]/.test(l)&&!/[a-zà-ÿ]/.test(l);return head?'<div class="mhead">'+esc(l)+'</div>':'<div class="mline">'+esc(l)+'</div>';}).join('')+'</div>';}
   else{h+='<div class="val muted">Menu non ancora inserito.</div>';}
   h+='</div>';
   if(EDIT)h+='<div class="eact"><button onclick="openForm(\''+c.id+'\')">✏️ Modifica</button><button onclick="delCena(\''+c.id+'\')" style="color:#c0392b">🗑 Elimina</button></div>';

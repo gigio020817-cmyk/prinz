@@ -119,7 +119,7 @@
     <button onclick="exportReport()">📄 Report</button><button onclick="exportWeekReport()">📅 Settimana</button>
   </div>
 </header>
-<main><div id="status">Caricamento…</div><div id="noteBox"></div><div id="view"></div></main>
+<main><div id="status">Caricamento…</div><div id="priceAlert"></div><div id="noteBox"></div><div id="view"></div></main>
 <footer>Prinz Rudolf · Dashboard Chef · si aggiorna da sola ogni 30s</footer>
 </div>
 <div id="rep"><div class="repbox"><h3>Report del giorno</h3><p>Copialo e conservalo o mandalo alla direzione.</p><textarea id="reptxt" readonly></textarea><div class="reprow"><button class="copy" onclick="copyRep()">Copia</button><button class="close" onclick="document.getElementById('rep').style.display='none'">Chiudi</button></div></div></div>
@@ -189,7 +189,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='23/10 15:20';
+const APP_VER='02/11 20:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -980,10 +980,31 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 23/10 15:20</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 02/11 20:00</div>
 
 <script>
 (function(){function mount(){var main=document.querySelector('#app main')||document.querySelector('main');if(!main){return setTimeout(mount,400);}if(document.getElementById('devcard'))return;var card=document.createElement('div');card.className='card';card.id='devcard';card.innerHTML='<div class="card-h"><div class="t">\uD83D\uDD10 Dispositivi</div><div class="sub">approva / revoca</div></div><div class="card-b"><div class="muted" style="white-space:normal;margin-bottom:10px">Approva o revoca i telefoni e tablet che possono aprire le app.</div><button id="devbtn" style="width:100%;padding:11px;border:none;border-radius:10px;background:var(--ink);color:#fff;font-weight:700;font-size:14px">Apri pannello dispositivi</button><div id="devwrap" style="display:none;margin-top:10px"></div></div>';main.insertBefore(card,main.firstChild);var open=false;document.getElementById('devbtn').addEventListener('click',function(){var w=document.getElementById('devwrap');open=!open;if(open){if(!w.dataset.loaded){w.innerHTML='<iframe src="dispositivi.html" style="width:100%;height:520px;border:1px solid var(--line);border-radius:10px" loading="lazy"></iframe>';w.dataset.loaded='1';}w.style.display='block';this.textContent='Chiudi pannello';}else{w.style.display='none';this.textContent='Apri pannello dispositivi';}});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();})();
+</script>
+<script>
+(async function priceAlert(){
+  try{
+    var SB="https://hxjxbpifboufolhwawkc.supabase.co",K="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
+    var rows=await fetch(SB+"/rest/v1/kitchen_meta?k=like.listino*&select=k,v",{headers:{apikey:K}}).then(function(r){return r.json();});
+    if(!Array.isArray(rows))return;
+    var al=0,top=[];
+    rows.forEach(function(r){var v=r.v||{};var forn=v.forn||r.k.split('|')[1]||'';var soglia=/gastro/i.test(forn)?30:8;var it=v.items||{};
+      for(var c in it){var o=it[c];var h=(o.hist||[]).filter(function(x){return x&&x.p!=null;});if(h.length<2)continue;
+        h.sort(function(a,b){return (a.at||'')<(b.at||'')?-1:1;});var last=h[h.length-1],prev=null;
+        for(var i=h.length-2;i>=0;i--){if(h[i].p!==last.p){prev=h[i];break;}}
+        if(!prev)continue;var chg=(last.p-prev.p)/prev.p*100;
+        if(chg>=soglia){al++;top.push({d:o.d||c,forn:forn,chg:chg});}}
+    });
+    var el=document.getElementById('priceAlert');if(!el)return;
+    if(al>0){top.sort(function(a,b){return b.chg-a.chg;});
+      var ex=top.slice(0,3).map(function(t){return (t.d||'').slice(0,22)+' +'+t.chg.toFixed(0)+'%';}).join(' · ');
+      el.innerHTML='<a href="andamento_prezzi.html" style="display:block;text-decoration:none;background:#fff4f2;border:1px solid #f1c4bb;border-left:5px solid #c0392b;border-radius:12px;padding:12px 14px;margin:10px 0 0;color:#9a2b1e"><div style="font-weight:800">⚠️ '+al+' prezzi da controllare <span style="float:right;font-weight:700">apri ›</span></div><div style="font-size:12px;color:#b5635a;margin-top:3px">'+ex+'</div></a>';}
+  }catch(e){}
+})();
 </script>
 </body>
 </html>

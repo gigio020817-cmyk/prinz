@@ -28,6 +28,8 @@ a.app .emoji{font-size:24px;width:30px;text-align:center;flex:none}
 a.app .arrow{margin-left:auto;color:var(--gold);font-weight:800}
 a.app small{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:2px}
 .chefhdr{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);text-align:center;margin:4px 0 2px;cursor:pointer}
+.ghdr{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);opacity:.8;font-weight:700;margin:12px 4px 0}
+.ghdr:first-child{margin-top:0}
 footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:center}
 </style>
 <script src="devicegate.js"></script>
@@ -37,15 +39,18 @@ footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:cen
 <h1>Prinz Rudolf</h1>
 <div class="sub" id="prsub">App Cucina</div>
 <div class="grid" id="kitchen">
+<div class="ghdr">Team &amp; servizio</div>
 <a class="app" href="cuochi.html"><span class="emoji">&#128104;&#8205;&#127859;</span><span>Dashboard Cuochi Prinz<small>check-list, pulizie, consegne</small></span><span class="arrow">&rsaquo;</span></a>
+<a class="app" href="pizzeria.html"><span class="emoji">&#127829;</span><span>Pizzeria<small>men&ugrave;, frighi, pizze, ordini</small></span><span class="arrow">&rsaquo;</span></a>
+<a class="app" href="bistro3d.html"><span class="emoji">&#127860;</span><span>Bistro 3D<small>plastico del nuovo bistro</small></span><span class="arrow">&rsaquo;</span></a>
+<div class="ghdr">Ricette per partita</div>
 <a class="app" href="antipasti.html"><span class="emoji">&#129367;</span><span>Antipasti<small>ricette + produzioni</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="primi.html"><span class="emoji">&#127837;</span><span>Primi<small>ricette, 2 settimane</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="secondi.html"><span class="emoji">&#129385;</span><span>Secondi<small>ricette + controllo carne</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="dessert.html"><span class="emoji">&#127856;</span><span>Pasticceria<small>mezza pensione, vetrina, gelati, torte</small></span><span class="arrow">&rsaquo;</span></a>
+<div class="ghdr">Pane &amp; colazioni</div>
 <a class="app" href="pane.html"><span class="emoji">&#129366;</span><span>App Pane<small>panificazione e scorte</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="pane.html"><span class="emoji">&#9749;</span><span>Colazioni<small>buffet e pani del mattino</small></span><span class="arrow">&rsaquo;</span></a>
-<a class="app" href="pizzeria.html"><span class="emoji">&#127829;</span><span>Pizzeria<small>men&ugrave;, frighi, pizze, ordini</small></span><span class="arrow">&rsaquo;</span></a>
-<a class="app" href="bistro3d.html"><span class="emoji">&#127860;</span><span>Bistro 3D<small>plastico del nuovo bistro</small></span><span class="arrow">&rsaquo;</span></a>
 </div>
 <div class="grid" id="salaapps" style="display:none">
 <div class="chefhdr" id="salahdr">&#129534; Acquisti &middot; tocca per uscire</div>
@@ -53,18 +58,21 @@ footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:cen
 </div>
 <div class="grid" id="chefapps" style="display:none;margin-top:16px">
 <div class="chefhdr" id="chefhdr">&#128274; Riservato chef &middot; tocca per nascondere</div>
-<a class="app" href="dashboard.html"><span class="emoji">&#128203;</span><span>Dashboard Chef<small>solo per lo chef</small></span><span class="arrow">&rsaquo;</span></a>
+<div class="ghdr">Spesa, magazzino &amp; fornitori</div>
 <a class="app" href="ordini.html"><span class="emoji">&#128230;</span><span>Ordini Fornitori<small>ordini e WhatsApp</small></span><span class="arrow">&rsaquo;</span></a>
+<a class="app" href="andamento_prezzi.html"><span class="emoji">&#128200;</span><span>Andamento Prezzi<small>storico, rincari e top spesa</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="magazzino.html"><span class="emoji">&#128452;&#65039;</span><span>Magazzino<small>giacenze e scorte minime</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="magazzino_posti.html"><span class="emoji">&#128230;</span><span>Magazzino &middot; Scaffali<small>mappa scaffali, prezzi e valore</small></span><span class="arrow">&rsaquo;</span></a>
-<a class="app" href="manutenzione.html"><span class="emoji">&#128736;&#65039;</span><span>Manutenzione Cucina<small>guasti, interventi, bolle e fatture</small></span><span class="arrow">&rsaquo;</span></a>
-<a class="app" href="serate-gourmet.html"><span class="emoji">&#127869;</span><span>Serate Gourmet<small>menu, ricette e foto (solo chef)</small></span><span class="arrow">&rsaquo;</span></a>
+<div class="ghdr">Direzione &amp; eventi</div>
+<a class="app" href="dashboard.html"><span class="emoji">&#128203;</span><span>Dashboard Chef<small>solo per lo chef</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="cene.html"><span class="emoji">&#129346;</span><span>Cene &amp; Eventi<small>chi sono, coperti e men&ugrave;</small></span><span class="arrow">&rsaquo;</span></a>
+<a class="app" href="serate-gourmet.html"><span class="emoji">&#127869;</span><span>Serate Gourmet<small>menu, ricette e foto</small></span><span class="arrow">&rsaquo;</span></a>
+<a class="app" href="manutenzione.html"><span class="emoji">&#128736;&#65039;</span><span>Manutenzione Cucina<small>guasti, interventi, bolle e fatture</small></span><span class="arrow">&rsaquo;</span></a>
 </div>
 <footer>Prinz Rudolf &middot; Merano</footer>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 02/11 10:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 02/11 20:40</div>
 <script>
-var APP_VER='02/11 10:30';
+var APP_VER='02/11 20:40';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_index'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_index','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 var CHEF_CODE="Capo2026";
 var SALA_CODES=["martina2026","capo2026"];
