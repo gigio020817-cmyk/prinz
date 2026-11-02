@@ -39,6 +39,7 @@ header h1{margin:0;font-size:18px;font-weight:800}header p{margin:4px 0 0;font-s
 .agrp:first-of-type{border-top:none;margin-top:4px}
 .agh{font-weight:800;color:var(--up);font-size:13px;margin-bottom:2px}
 .agh span{display:inline-block;background:#f6d9d2;color:#9a2f22;border-radius:10px;font-size:11px;padding:0 7px;margin-left:5px}
+a.blk{display:inline-block;font-size:11px;font-weight:700;color:var(--wine);text-decoration:none;background:#faf0ee;border:1px solid #eccfca;border-radius:8px;padding:1px 6px;white-space:nowrap;margin-left:4px}
 </style></head><body>
 <header><h1>📈 Andamento Prezzi</h1><p>Storico prezzi dei fornitori dalle bolle · verde = sceso, rosso = aumentato</p></header>
 <div class="wrap">
@@ -50,9 +51,9 @@ header h1{margin:0;font-size:18px;font-weight:800}header p{margin:4px 0 0;font-s
   </div>
   <div id="list"></div>
 </div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 02/11 22:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 02/11 23:10</div>
 <script>
-var APP_VER='02/11 22:30';
+var APP_VER='02/11 23:10';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_ap'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_ap','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 const SB="https://hxjxbpifboufolhwawkc.supabase.co",KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 function sb(p){return fetch(SB+'/rest/v1/'+p,{headers:{apikey:KEY}}).then(r=>r.json());}
@@ -80,7 +81,7 @@ async function load(){
       var last=h[h.length-1], prev=null;
       for(var i=h.length-2;i>=0;i--){ if(h[i].p!==last.p){prev=h[i];break;} }
       var chg=prev?((last.p-prev.p)/prev.p*100):null;
-      items.push({d, u:o.u||'', p:last.p, at:last.at, prevP:prev?prev.p:null, prevAt:prev?prev.at:null, chg, n:h.length});
+      items.push({d, u:o.u||'', p:last.p, at:last.at, src:last.src||null, prevP:prev?prev.p:null, prevAt:prev?prev.at:null, chg, n:h.length});
     }
     items.sort((a,b)=>a.d.toLowerCase()<b.d.toLowerCase()?-1:1);
     if(items.length)DATA.push({forn, items});
@@ -118,7 +119,7 @@ function alertsHtml(){
   DATA.forEach(function(f){
     f.items.forEach(function(x){ if(x.chg===null)return;
       var orto=isOrto(x.d); var soglia=orto?30:8;
-      if(x.chg>=soglia){ (groups[f.forn]=groups[f.forn]||[]).push({d:x.d,from:x.prevP,to:x.p,chg:x.chg,orto:orto}); tot++; }
+      if(x.chg>=soglia){ (groups[f.forn]=groups[f.forn]||[]).push({d:x.d,from:x.prevP,to:x.p,chg:x.chg,orto:orto,src:x.src}); tot++; }
     });
   });
   if(!tot)return '<div class="alert" style="background:#eef7f0;border-color:#bfe0cc;border-left-color:var(--down)"><div class="ahead" style="color:var(--down)">✓ Nessun prezzo anomalo</div><div class="anote">Nessun rincaro sopra soglia nelle ultime bolle.</div></div>';
@@ -128,7 +129,7 @@ function alertsHtml(){
   fornOrd.forEach(function(fn){
     var arr=groups[fn].sort(function(a,b){return b.chg-a.chg;});
     h+='<div class="agrp"><div class="agh">'+esc(fn)+' <span>'+arr.length+'</span></div>'+
-      arr.map(function(a){return '<div class="arow"><span class="an">'+(a.orto?'🥬 ':'')+esc(a.d)+'</span><span class="av">€'+fmt(a.from)+' → €'+fmt(a.to)+' <b>+'+a.chg.toFixed(0)+'%</b></span></div>';}).join('')+
+      arr.map(function(a){var lk=a.src?' <a class="blk" href="bolla.html?id='+encodeURIComponent(a.src)+'" title="Apri la bolla">🔗 bolla</a>':'';return '<div class="arow"><span class="an">'+(a.orto?'🥬 ':'')+esc(a.d)+lk+'</span><span class="av">€'+fmt(a.from)+' → €'+fmt(a.to)+' <b>+'+a.chg.toFixed(0)+'%</b></span></div>';}).join('')+
       '</div>';
   });
   h+='<div class="anote">Soglia: +8% su secco e carne · +30% sull\'ortofrutta (oscilla con la stagione). Controlla sempre che non sia un errore di lettura o una fine-offerta.</div></div>';
@@ -152,7 +153,8 @@ function render(){
       var ch='<span class="ch flat">—</span>';
       if(x.chg!==null){var cls=x.chg>0.4?'up':(x.chg<-0.4?'down':'flat');var sign=x.chg>0?'+':'';ch='<span class="ch '+cls+'">'+sign+x.chg.toFixed(0)+'%</span>';}
       var sub=x.prevP!=null?('prec. € '+fmt(x.prevP)+(x.prevAt?' ('+x.prevAt+')':'')):('solo 1 prezzo');
-      h+='<div class="it"><div class="nm">'+esc(x.d)+' <span class="u">'+esc(x.u)+'</span><div class="hist">ultimo '+(x.at||'')+' · '+sub+'</div></div><div class="pr">€ '+fmt(x.p)+'</div>'+ch+'</div>';
+      var lk=x.src?' <a class="blk" href="bolla.html?id='+encodeURIComponent(x.src)+'">🔗 bolla</a>':'';
+      h+='<div class="it"><div class="nm">'+esc(x.d)+' <span class="u">'+esc(x.u)+'</span><div class="hist">ultimo '+(x.at||'')+' · '+sub+lk+'</div></div><div class="pr">€ '+fmt(x.p)+'</div>'+ch+'</div>';
     });
     h+='</div></div>';
   });

@@ -1,0 +1,60 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Prinz Rudolf · Bolla</title>
+<style>
+:root{--wine:#7a1f2b;--wd:#5c121c;--ink:#222;--muted:#777;--line:#e5e0dc;--bg:#f6f3f1}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;min-height:100vh}
+header{background:linear-gradient(160deg,var(--wine),var(--wd));color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
+header a.back{color:#fff;text-decoration:none;font-size:22px;font-weight:800;line-height:1}
+header .ti{flex:1;min-width:0}
+header h1{margin:0;font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .sub{font-size:12px;opacity:.85;margin-top:1px}
+.wrap{flex:1;display:flex;flex-direction:column;padding:10px;gap:10px}
+.doc{flex:1;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;min-height:60vh}
+.doc iframe,.doc embed,.doc img{width:100%;height:100%;border:0;display:block;object-fit:contain}
+.doc img{height:auto}
+.msg{padding:28px 16px;text-align:center;color:var(--muted)}
+.act{display:flex;gap:8px;flex-wrap:wrap}
+.act a{flex:1;min-width:120px;text-align:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px;font-size:14px;font-weight:700;text-decoration:none;color:var(--wine)}
+.imp{display:inline-block;background:#faf7f5;border:1px solid var(--line);border-radius:10px;padding:3px 10px;font-weight:800;color:var(--wine);font-size:13px}
+</style></head><body>
+<header>
+  <a class="back" href="andamento_prezzi.html" id="back" title="Indietro">‹</a>
+  <div class="ti"><h1 id="forn">Bolla</h1><div class="sub" id="sub">—</div></div>
+</header>
+<div class="wrap">
+  <div id="imp"></div>
+  <div class="doc" id="doc"><div class="msg">Carico la bolla…</div></div>
+  <div class="act" id="act"></div>
+</div>
+<script>
+const SB="https://hxjxbpifboufolhwawkc.supabase.co",KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
+function q(n){return new URLSearchParams(location.search).get(n);}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function fmtD(s){if(!s)return '';var p=String(s).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:s;}
+function fmt(n){n=parseFloat(n);return isNaN(n)?'':n.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});}
+// torna all'app giusta se arrivo da martina
+var ref=q('from');if(ref==='martina')document.getElementById('back').href='martina.html';
+async function load(){
+  var id=q('id');
+  if(!id){document.getElementById('doc').innerHTML='<div class="msg">Nessuna bolla indicata.</div>';return;}
+  try{
+    var r=await fetch(SB+'/rest/v1/kitchen_meta?k=eq.'+encodeURIComponent(id)+'&select=v',{headers:{apikey:KEY}});
+    var j=await r.json();var v=j&&j[0]&&j[0].v;
+    if(!v){document.getElementById('doc').innerHTML='<div class="msg">Bolla non trovata.</div>';return;}
+    document.getElementById('forn').textContent=v.forn||'Bolla';
+    document.getElementById('sub').textContent=(v.data?fmtD(v.data):'')+(v.note?' · '+v.note:'');
+    if(v.importo)document.getElementById('imp').innerHTML='<span class="imp">Totale bolla: € '+fmt(v.importo)+'</span>';
+    var du=v.img||v.data||'';
+    var isPdf=/pdf/i.test(v.imgtype||'')||/^data:application\/pdf/i.test(du);
+    var box=document.getElementById('doc');
+    if(!du){box.innerHTML='<div class="msg">Documento non disponibile.</div>';}
+    else if(isPdf){box.innerHTML='<iframe src="'+du+'#view=FitH"></iframe>';}
+    else{box.innerHTML='<img src="'+du+'" alt="bolla">';}
+    var act=document.getElementById('act');
+    if(du){act.innerHTML='<a href="'+du+'" target="_blank" rel="noopener">Apri a schermo intero</a>';}
+  }catch(e){document.getElementById('doc').innerHTML='<div class="msg">Errore nel caricare la bolla.</div>';}
+}
+load();
+</script></body></html>
