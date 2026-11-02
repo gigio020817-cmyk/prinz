@@ -1,0 +1,158 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Prinz Rudolf · Cene & Eventi</title>
+<style>
+:root{--wine:#7a1f2b;--wd:#5c121c;--ink:#222;--muted:#777;--line:#e5e0dc;--bg:#f6f3f1;--gold:#b5892f}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(160deg,var(--wine),var(--wd));color:#fff;padding:16px 14px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:19px;font-weight:800}header p{margin:4px 0 0;font-size:12px;opacity:.85}
+.wrap{max-width:780px;margin:0 auto;padding:12px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.btn{border:none;border-radius:10px;padding:9px 13px;font-size:14px;font-weight:700;cursor:pointer}
+.btn.p{background:var(--wine);color:#fff}.btn.s{background:#fff;border:1px solid var(--line)}
+.muted{color:var(--muted);font-size:12px}
+.sect{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:14px 2px 6px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.card.past{opacity:.55}
+.chd{padding:12px 13px;display:flex;gap:10px;align-items:center;cursor:pointer}
+.datebox{flex:0 0 auto;width:52px;text-align:center;background:#f3e9e9;border:1px solid #e7d3d6;border-radius:10px;padding:6px 2px}
+.datebox .d{font-size:20px;font-weight:800;color:var(--wine);line-height:1}
+.datebox .m{font-size:10px;font-weight:700;color:var(--wine);text-transform:uppercase}
+.chd .mid{flex:1;min-width:0}
+.chd .nm{font-weight:800;font-size:15px}
+.chd .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.chev{color:#bbb;font-size:20px;flex:0 0 auto}
+.body{display:none;padding:0 13px 13px;border-top:1px dashed var(--line)}
+.body.on{display:block}
+.row{margin:9px 0}
+.lbl{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.val{font-size:14px;margin-top:2px;white-space:pre-wrap}
+.menu{background:#fbf7f2;border:1px solid #eadfce;border-radius:10px;padding:10px 12px;margin-top:3px}
+.menu .mi{padding:3px 0;border-bottom:1px dotted #e6dcc9;font-size:14px}
+.menu .mi:last-child{border-bottom:none}
+.allerg{background:#fff4f2;border:1px solid #f1c9c0;border-radius:10px;padding:8px 11px;color:#9a3b2b;font-size:14px}
+.eact{display:flex;gap:8px;margin-top:10px}
+.eact button{font-size:13px;border-radius:9px;padding:7px 11px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:flex-end;justify-content:center}
+.modal.on{display:flex}
+.sheet{background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;max-height:90vh;display:flex;flex-direction:column}
+.sheet h3{margin:0;padding:14px;border-bottom:1px solid var(--line);font-size:16px}
+.form{overflow:auto;padding:12px 14px}
+.form label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:10px 0 4px}
+.form input,.form textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:15px;font-family:inherit}
+.form textarea{min-height:90px;resize:vertical}
+.two{display:flex;gap:8px}.two>div{flex:1}
+.foot{padding:12px 14px;border-top:1px solid var(--line);display:flex;gap:8px}
+.badge{position:fixed;bottom:6px;right:8px;font-size:10px;color:#bbb}
+#status{font-size:12px}
+</style></head><body>
+<header><h1>🍽️ Cene & Eventi</h1><p>Le cene in arrivo: chi sono, quanti, il menu. Aggiornato dallo chef.</p></header>
+<div class="wrap">
+  <div class="bar">
+    <button class="btn s" id="editbtn" onclick="toggleEdit()">🔒 Modifica</button>
+    <button class="btn p" id="addbtn" style="display:none" onclick="openForm()">+ Nuova cena</button>
+    <span class="muted" id="status"></span>
+  </div>
+  <div id="list"></div>
+</div>
+<div class="modal" id="modal"><div class="sheet">
+  <h3 id="ftitle">Nuova cena</h3>
+  <div class="form">
+    <div class="two">
+      <div><label>Data</label><input type="date" id="f_date"></div>
+      <div><label>Orario</label><input type="time" id="f_time"></div>
+    </div>
+    <label>Nome / festa / cliente</label><input id="f_name" placeholder="es. Compleanno Rossi">
+    <label>N° coperti</label><input id="f_pax" inputmode="numeric" placeholder="es. 25">
+    <label>Intolleranze / note (per la cucina)</label><textarea id="f_note" placeholder="es. 2 celiaci, 1 senza lattosio, tavolo unico…"></textarea>
+    <label>Menu — una portata per riga</label><textarea id="f_menu" placeholder="Antipasto…&#10;Primo…&#10;Secondo…&#10;Dessert…"></textarea>
+  </div>
+  <div class="foot"><button class="btn s" onclick="closeForm()">Annulla</button><button class="btn p" style="margin-left:auto" onclick="saveForm()">Salva</button></div>
+</div></div>
+<div class="badge">v 02/11 10:00</div>
+<script>
+const APP_VER='02/11 10:00';
+const SB="https://hxjxbpifboufolhwawkc.supabase.co",KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
+const EDITPW="chefprinz";
+function sb(path,opt){opt=opt||{};var h=Object.assign({apikey:KEY,'Content-Type':'application/json'},opt.headers||{});return fetch(SB+'/rest/v1/'+path,Object.assign({},opt,{headers:h}));}
+var C=[],EDIT=false,_t=null,EDITING=null,OPEN=null;
+const MESI=['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
+const GIORNI=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function uid(){return 'c'+Date.now()+Math.floor(Math.random()*999);}
+function todayStr(){var d=new Date();return d.toISOString().slice(0,10);}
+async function load(){
+  try{var r=await sb("kitchen_meta?k=eq.cene&select=v").then(x=>x.json());if(r&&r[0]&&Array.isArray(r[0].v.list))C=r[0].v.list;}catch(e){}
+  render();
+}
+function save(){
+  document.getElementById('status').textContent='salvato…';
+  clearTimeout(_t);_t=setTimeout(function(){
+    sb("kitchen_meta?on_conflict=k",{method:"POST",headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'cene',v:{list:C,at:new Date().toISOString()}})})
+    .then(function(){document.getElementById('status').textContent='✓ salvato';})
+    .catch(function(){document.getElementById('status').textContent='errore salvataggio';});
+  },500);
+}
+function fmtDate(ds){if(!ds)return{d:'–',m:'',full:''};var p=ds.split('-');var dt=new Date(+p[0],+p[1]-1,+p[2]);return{d:p[2],m:MESI[+p[1]-1],full:GIORNI[dt.getDay()]+' '+(+p[2])+' '+MESI[+p[1]-1].toLowerCase()+' '+p[0]};}
+function toggleEdit(){
+  if(!EDIT){var pw=prompt('Password chef per modificare:');if(pw===null)return;if(pw!==EDITPW){alert('Password errata');return;}EDIT=true;}
+  else{EDIT=false;}
+  document.getElementById('editbtn').textContent=EDIT?'🔓 Modifica attiva':'🔒 Modifica';
+  document.getElementById('addbtn').style.display=EDIT?'':'none';
+  render();
+}
+function render(){
+  var now=todayStr();
+  var arr=C.slice().sort(function(a,b){return (a.date+(a.time||''))<(b.date+(b.time||''))?-1:1;});
+  var fut=arr.filter(function(c){return c.date>=now;});
+  var pas=arr.filter(function(c){return c.date<now;}).reverse();
+  var h='';
+  if(!arr.length){h='<p class="muted" style="padding:20px;text-align:center">Nessuna cena segnata.'+(EDIT?' Tocca “+ Nuova cena”.':'')+'</p>';}
+  if(fut.length){h+='<div class="sect">In arrivo</div>'+fut.map(card).join('');}
+  if(pas.length){h+='<div class="sect">Passate</div>'+pas.map(function(c){return card(c,true);}).join('');}
+  document.getElementById('list').innerHTML=h;
+}
+function card(c,past){
+  var f=fmtDate(c.date);
+  var sub=[];if(c.time)sub.push('🕗 '+esc(c.time));if(c.pax)sub.push('👥 '+esc(c.pax)+' coperti');
+  var open=OPEN===c.id;
+  var h='<div class="card'+(past?' past':'')+'">';
+  h+='<div class="chd" onclick="tog(\''+c.id+'\')"><div class="datebox"><div class="d">'+esc(f.d)+'</div><div class="m">'+esc(f.m)+'</div></div>';
+  h+='<div class="mid"><div class="nm">'+esc(c.name||'(senza nome)')+'</div><div class="sub">'+sub.join(' · ')+'</div></div>';
+  h+='<div class="chev">'+(open?'▴':'▾')+'</div></div>';
+  h+='<div class="body'+(open?' on':'')+'">';
+  h+='<div class="row"><div class="lbl">Quando</div><div class="val">'+esc(f.full)+(c.time?' · '+esc(c.time):'')+'</div></div>';
+  if(c.pax)h+='<div class="row"><div class="lbl">Coperti</div><div class="val">'+esc(c.pax)+'</div></div>';
+  if(c.note)h+='<div class="row"><div class="lbl">Intolleranze / note</div><div class="allerg">'+esc(c.note)+'</div></div>';
+  h+='<div class="row"><div class="lbl">Menu</div>';
+  if(c.menu&&c.menu.trim()){h+='<div class="menu">'+c.menu.split('\n').filter(function(l){return l.trim();}).map(function(l){return '<div class="mi">'+esc(l)+'</div>';}).join('')+'</div>';}
+  else{h+='<div class="val muted">Menu non ancora inserito.</div>';}
+  h+='</div>';
+  if(EDIT)h+='<div class="eact"><button onclick="openForm(\''+c.id+'\')">✏️ Modifica</button><button onclick="delCena(\''+c.id+'\')" style="color:#c0392b">🗑 Elimina</button></div>';
+  h+='</div></div>';
+  return h;
+}
+function tog(id){OPEN=OPEN===id?null:id;render();}
+function openForm(id){
+  EDITING=id||null;
+  var c=id?C.find(function(x){return x.id===id;}):{date:'',time:'',name:'',pax:'',note:'',menu:''};
+  document.getElementById('ftitle').textContent=id?'Modifica cena':'Nuova cena';
+  document.getElementById('f_date').value=c.date||'';
+  document.getElementById('f_time').value=c.time||'';
+  document.getElementById('f_name').value=c.name||'';
+  document.getElementById('f_pax').value=c.pax||'';
+  document.getElementById('f_note').value=c.note||'';
+  document.getElementById('f_menu').value=c.menu||'';
+  document.getElementById('modal').classList.add('on');
+}
+function closeForm(){document.getElementById('modal').classList.remove('on');}
+function saveForm(){
+  var o={date:document.getElementById('f_date').value,time:document.getElementById('f_time').value.trim(),name:document.getElementById('f_name').value.trim(),pax:document.getElementById('f_pax').value.trim(),note:document.getElementById('f_note').value.trim(),menu:document.getElementById('f_menu').value};
+  if(!o.date){alert('Metti almeno la data.');return;}
+  if(EDITING){var c=C.find(function(x){return x.id===EDITING;});Object.assign(c,o);}
+  else{o.id=uid();C.push(o);OPEN=o.id;}
+  save();render();closeForm();
+}
+function delCena(id){var c=C.find(function(x){return x.id===id;});if(!confirm('Eliminare la cena "'+(c&&c.name||'')+'"?'))return;C=C.filter(function(x){return x.id!==id;});save();render();}
+load();
+</script></body></html>

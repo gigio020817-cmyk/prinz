@@ -43,6 +43,7 @@ footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:cen
 <a class="app" href="secondi.html"><span class="emoji">&#129385;</span><span>Secondi<small>ricette + controllo carne</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="dessert.html"><span class="emoji">&#127856;</span><span>Pasticceria<small>mezza pensione, vetrina, gelati, torte</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="pane.html"><span class="emoji">&#129366;</span><span>App Pane<small>panificazione e scorte</small></span><span class="arrow">&rsaquo;</span></a>
+<a class="app" href="pane.html"><span class="emoji">&#9749;</span><span>Colazioni<small>buffet e pani del mattino</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="pizzeria.html"><span class="emoji">&#127829;</span><span>Pizzeria<small>men&ugrave;, frighi, pizze, ordini</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="bistro3d.html"><span class="emoji">&#127860;</span><span>Bistro 3D<small>plastico del nuovo bistro</small></span><span class="arrow">&rsaquo;</span></a>
 </div>
@@ -57,11 +58,12 @@ footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:cen
 <a class="app" href="magazzino.html"><span class="emoji">&#128452;&#65039;</span><span>Magazzino<small>giacenze e scorte minime</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="manutenzione.html"><span class="emoji">&#128736;&#65039;</span><span>Manutenzione Cucina<small>guasti, interventi, bolle e fatture</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="serate-gourmet.html"><span class="emoji">&#127869;</span><span>Serate Gourmet<small>menu, ricette e foto (solo chef)</small></span><span class="arrow">&rsaquo;</span></a>
+<a class="app" href="cene.html"><span class="emoji">&#129346;</span><span>Cene &amp; Eventi<small>chi sono, coperti e men&ugrave;</small></span><span class="arrow">&rsaquo;</span></a>
 </div>
 <footer>Prinz Rudolf &middot; Merano</footer>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 18/09 10:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 02/11 10:00</div>
 <script>
-var APP_VER='18/09 10:00';
+var APP_VER='02/11 10:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_index'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_index','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 var CHEF_CODE="Capo2026";
 var SALA_CODES=["martina2026","capo2026"];
