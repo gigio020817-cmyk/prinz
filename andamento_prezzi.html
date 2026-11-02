@@ -31,6 +31,14 @@ header h1{margin:0;font-size:18px;font-weight:800}header p{margin:4px 0 0;font-s
 .arow .an{flex:1}.arow .an small{color:var(--muted);font-weight:700}
 .arow .av{white-space:nowrap;color:#444}.arow .av b{color:var(--up)}
 .anote{font-size:11px;color:var(--muted);margin-top:6px}
+.meta{background:#fff;border:1px solid var(--line);border-left:5px solid var(--wine);border-radius:12px;padding:11px 13px;margin-bottom:12px}
+.meta .mh{font-weight:800;color:var(--wine);font-size:14px;margin-bottom:5px}
+.meta .mr{font-size:13px;color:#444;margin:2px 0}
+.meta .mnote{font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.45}
+.agrp{border-top:1px solid #f0cfc8;margin-top:8px;padding-top:6px}
+.agrp:first-of-type{border-top:none;margin-top:4px}
+.agh{font-weight:800;color:var(--up);font-size:13px;margin-bottom:2px}
+.agh span{display:inline-block;background:#f6d9d2;color:#9a2f22;border-radius:10px;font-size:11px;padding:0 7px;margin-left:5px}
 </style></head><body>
 <header><h1>📈 Andamento Prezzi</h1><p>Storico prezzi dei fornitori dalle bolle · verde = sceso, rosso = aumentato</p></header>
 <div class="wrap">
@@ -42,12 +50,19 @@ header h1{margin:0;font-size:18px;font-weight:800}header p{margin:4px 0 0;font-s
   </div>
   <div id="list"></div>
 </div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 02/11 22:30</div>
 <script>
+var APP_VER='02/11 22:30';
+(async function selfUpdate(){try{if(sessionStorage.getItem('upd_ap'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_ap','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 const SB="https://hxjxbpifboufolhwawkc.supabase.co",KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 function sb(p){return fetch(SB+'/rest/v1/'+p,{headers:{apikey:KEY}}).then(r=>r.json());}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 var DATA=[],OPEN={},ONLYCH=false,TOPS=null,MODE='prezzi';
+var META={prod:0,punti:0,minD:'9999',maxD:'0'};
 function fmt(n){return n.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtD(s){if(!s)return '';var p=String(s).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:s;}
+var ORTO=/pomodor|datterin|cherry|ramat|insalat|iceberg|lattug|rucola|misticanz|zucchin|zucca|melanzan|peperon|friggitell|cipoll|carot|sedano|finocchi|porri|cavol|broccol|bimi|spinac|spinacin|patate|topinambur|uva|fragol|\bmore\b|lampon|mirtill|pesche|melon|kiwi|aranc|limon|pompelm|frutto della passione|funghi|cardoncell|erengi|prezzemol|basilic|\berbe\b|banan|\bmele\b|\bpere\b|ananas|mango|cilieg|albicocch|susin|fichi|rapa|ravanell|asparag|fagiolin|cetriol|radicch/i;
+function isOrto(d){return ORTO.test(d||'');}
 async function load(){
   document.getElementById('st').textContent='carico…';
   var ks=await sb("kitchen_meta?k=like.listino*&select=k");
@@ -59,6 +74,9 @@ async function load(){
       var o=it[c], d=(o.d||'').trim(); if(!d)continue;
       var h=(o.hist||[]).slice().filter(x=>x&&x.p!=null); if(!h.length)continue;
       h.sort((a,b)=>(a.at||'')<(b.at||'')?-1:1);
+      META.prod++; META.punti+=h.length;
+      if(h[0].at&&h[0].at<META.minD)META.minD=h[0].at;
+      if(h[h.length-1].at&&h[h.length-1].at>META.maxD)META.maxD=h[h.length-1].at;
       var last=h[h.length-1], prev=null;
       for(var i=h.length-2;i>=0;i--){ if(h[i].p!==last.p){prev=h[i];break;} }
       var chg=prev?((last.p-prev.p)/prev.p*100):null;
@@ -84,21 +102,43 @@ function renderSpesa(){
   document.getElementById('list').innerHTML=h;
 }
 function toggleF(){ONLYCH=!ONLYCH;document.getElementById('fb').classList.toggle('on',ONLYCH);render();}
+function metaHtml(){
+  var per=(META.minD!=='9999'&&META.maxD!=='0')?('dal <b>'+fmtD(META.minD)+'</b> al <b>'+fmtD(META.maxD)+'</b>'):'—';
+  return '<div class="meta"><div class="mh">📊 Cosa è stato analizzato</div>'+
+    '<div class="mr"><b>'+META.prod+'</b> prodotti · <b>'+META.punti+'</b> rilevazioni di prezzo · <b>'+DATA.length+'</b> fornitori</div>'+
+    '<div class="mr">Periodo delle bolle: '+per+'</div>'+
+    '<div class="mnote">Il confronto è sempre <b>ultimo prezzo vs prezzo precedente</b> della stessa bolla/fornitore. '+
+    'Oltre al fornitore, i prezzi si muovono anche per fattori esterni: <b>stagionalità</b> (frutta e verdura oscillano molto), '+
+    '<b>costi di energia e trasporto/carburante</b>, cambio e disponibilità. Due mesi fa alcuni di questi costi non pesavano come adesso. '+
+    'Su <b>secco e carne</b> un rincaro va chiesto al fornitore; sull\'<b>ortofrutta</b> 🥬 è spesso stagionale.</div></div>';
+}
 function alertsHtml(){
-  var al=[];
-  DATA.forEach(function(f){var soglia=/gastro/i.test(f.forn)?30:8;
-    f.items.forEach(function(x){ if(x.chg!==null && x.chg>=soglia){ al.push({forn:f.forn,d:x.d,from:x.prevP,to:x.p,chg:x.chg}); } });});
-  if(!al.length)return '<div class="alert" style="background:#eef7f0;border-color:#bfe0cc;border-left-color:var(--down)"><div class="ahead" style="color:var(--down)">✓ Nessun prezzo anomalo</div><div class="anote">Nessun rincaro sopra soglia nelle ultime bolle.</div></div>';
-  al.sort(function(a,b){return b.chg-a.chg;});
-  return '<div class="alert"><div class="ahead">⚠️ Prezzi da controllare ('+al.length+')</div>'+
-    al.slice(0,40).map(function(a){return '<div class="arow"><span class="an">'+esc(a.d)+' <small>'+esc(a.forn)+'</small></span><span class="av">€'+fmt(a.from)+' → €'+fmt(a.to)+' <b>+'+a.chg.toFixed(0)+'%</b></span></div>';}).join('')+
-    '<div class="anote">Soglia: +8% (ortofrutta fresca +30%, perché oscilla con la stagione). Controlla che non sia un errore o una fine-offerta.</div></div>';
+  // raggruppa per fornitore; soglia: secco/carne +8%, ortofrutta +30%
+  var groups={},tot=0;
+  DATA.forEach(function(f){
+    f.items.forEach(function(x){ if(x.chg===null)return;
+      var orto=isOrto(x.d); var soglia=orto?30:8;
+      if(x.chg>=soglia){ (groups[f.forn]=groups[f.forn]||[]).push({d:x.d,from:x.prevP,to:x.p,chg:x.chg,orto:orto}); tot++; }
+    });
+  });
+  if(!tot)return '<div class="alert" style="background:#eef7f0;border-color:#bfe0cc;border-left-color:var(--down)"><div class="ahead" style="color:var(--down)">✓ Nessun prezzo anomalo</div><div class="anote">Nessun rincaro sopra soglia nelle ultime bolle.</div></div>';
+  var fornOrd=Object.keys(groups).sort(function(a,b){return groups[b].length-groups[a].length;});
+  var h='<div class="alert"><div class="ahead">⚠️ Rincari da chiedere ai fornitori ('+tot+')</div>'+
+    '<div class="anote" style="margin:0 0 8px">Divisi per fornitore: fai uno screenshot del blocco e invialo al fornitore per chiedere spiegazioni. 🥬 = ortofrutta (di solito stagionale).</div>';
+  fornOrd.forEach(function(fn){
+    var arr=groups[fn].sort(function(a,b){return b.chg-a.chg;});
+    h+='<div class="agrp"><div class="agh">'+esc(fn)+' <span>'+arr.length+'</span></div>'+
+      arr.map(function(a){return '<div class="arow"><span class="an">'+(a.orto?'🥬 ':'')+esc(a.d)+'</span><span class="av">€'+fmt(a.from)+' → €'+fmt(a.to)+' <b>+'+a.chg.toFixed(0)+'%</b></span></div>';}).join('')+
+      '</div>';
+  });
+  h+='<div class="anote">Soglia: +8% su secco e carne · +30% sull\'ortofrutta (oscilla con la stagione). Controlla sempre che non sia un errore di lettura o una fine-offerta.</div></div>';
+  return h;
 }
 function render(){
   if(MODE==='spesa'){renderSpesa();return;}
   var q=(document.getElementById('q').value||'').toLowerCase().trim();
   var h='';
-  if(!q)h+=alertsHtml();
+  if(!q){h+=metaHtml();h+=alertsHtml();}
   DATA.forEach(function(f,fi){
     var items=f.items.filter(function(x){
       if(q&&x.d.toLowerCase().indexOf(q)<0)return false;
