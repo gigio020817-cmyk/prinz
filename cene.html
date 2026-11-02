@@ -51,6 +51,7 @@ header h1{margin:0;font-size:19px;font-weight:800}header p{margin:4px 0 0;font-s
   <div class="bar">
     <button class="btn s" id="editbtn" onclick="toggleEdit()">🔒 Modifica</button>
     <button class="btn p" id="addbtn" style="display:none" onclick="openForm()">+ Nuova cena</button>
+    <button class="btn s" id="avvbtn" style="display:none" onclick="editAvviso()">📣 Avviso</button>
     <span class="muted" id="status"></span>
   </div>
   <div id="list"></div>
@@ -69,26 +70,26 @@ header h1{margin:0;font-size:19px;font-weight:800}header p{margin:4px 0 0;font-s
   </div>
   <div class="foot"><button class="btn s" onclick="closeForm()">Annulla</button><button class="btn p" style="margin-left:auto" onclick="saveForm()">Salva</button></div>
 </div></div>
-<div class="badge">v 02/11 10:00</div>
+<div class="badge">v 02/11 12:00</div>
 <script>
-const APP_VER='02/11 10:00';
+const APP_VER='02/11 12:00';
 const SB="https://hxjxbpifboufolhwawkc.supabase.co",KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const EDITPW="chefprinz";
 function sb(path,opt){opt=opt||{};var h=Object.assign({apikey:KEY,'Content-Type':'application/json'},opt.headers||{});return fetch(SB+'/rest/v1/'+path,Object.assign({},opt,{headers:h}));}
-var C=[],EDIT=false,_t=null,EDITING=null,OPEN=null;
+var C=[],AVVISO='',EDIT=false,_t=null,EDITING=null,OPEN=null;
 const MESI=['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
 const GIORNI=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function uid(){return 'c'+Date.now()+Math.floor(Math.random()*999);}
 function todayStr(){var d=new Date();return d.toISOString().slice(0,10);}
 async function load(){
-  try{var r=await sb("kitchen_meta?k=eq.cene&select=v").then(x=>x.json());if(r&&r[0]&&Array.isArray(r[0].v.list))C=r[0].v.list;}catch(e){}
+  try{var r=await sb("kitchen_meta?k=eq.cene&select=v").then(x=>x.json());if(r&&r[0]&&r[0].v){if(Array.isArray(r[0].v.list))C=r[0].v.list;AVVISO=r[0].v.avviso||'';}}catch(e){}
   render();
 }
 function save(){
   document.getElementById('status').textContent='salvato…';
   clearTimeout(_t);_t=setTimeout(function(){
-    sb("kitchen_meta?on_conflict=k",{method:"POST",headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'cene',v:{list:C,at:new Date().toISOString()}})})
+    sb("kitchen_meta?on_conflict=k",{method:"POST",headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'cene',v:{list:C,avviso:AVVISO,at:new Date().toISOString()}})})
     .then(function(){document.getElementById('status').textContent='✓ salvato';})
     .catch(function(){document.getElementById('status').textContent='errore salvataggio';});
   },500);
@@ -99,15 +100,18 @@ function toggleEdit(){
   else{EDIT=false;}
   document.getElementById('editbtn').textContent=EDIT?'🔓 Modifica attiva':'🔒 Modifica';
   document.getElementById('addbtn').style.display=EDIT?'':'none';
+  document.getElementById('avvbtn').style.display=EDIT?'':'none';
   render();
 }
+function editAvviso(){var t=prompt('Avviso generale in cima (lascia vuoto per toglierlo):',AVVISO);if(t===null)return;AVVISO=t.trim();save();render();}
 function render(){
   var now=todayStr();
   var arr=C.slice().sort(function(a,b){return (a.date+(a.time||''))<(b.date+(b.time||''))?-1:1;});
   var fut=arr.filter(function(c){return c.date>=now;});
   var pas=arr.filter(function(c){return c.date<now;}).reverse();
   var h='';
-  if(!arr.length){h='<p class="muted" style="padding:20px;text-align:center">Nessuna cena segnata.'+(EDIT?' Tocca “+ Nuova cena”.':'')+'</p>';}
+  if(AVVISO){h+='<div style="background:#fff4e0;border:1px solid #e3b865;border-radius:12px;padding:12px 14px;margin-bottom:12px;color:#7a5200;font-weight:700;white-space:pre-wrap">📣 '+esc(AVVISO)+'</div>';}
+  if(!arr.length){h+='<p class="muted" style="padding:20px;text-align:center">Nessuna cena segnata.'+(EDIT?' Tocca “+ Nuova cena”.':'')+'</p>';}
   if(fut.length){h+='<div class="sect">In arrivo</div>'+fut.map(card).join('');}
   if(pas.length){h+='<div class="sect">Passate</div>'+pas.map(function(c){return card(c,true);}).join('');}
   document.getElementById('list').innerHTML=h;
