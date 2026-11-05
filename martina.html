@@ -157,7 +157,12 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
         <input id="q" type="search" placeholder="Cerca fornitore&hellip;" autocomplete="off">
       </div>
-      <button class="addbtn" onclick="openForm()">+ Aggiungi</button>
+      <button class="addbtn" id="addBtn" onclick="addNew()">+ Aggiungi</button>
+    </div>
+    <div class="chips" id="dtabs" style="padding-bottom:4px">
+      <button class="chip on" id="dt_Tutti" onclick="setDocType('Tutti')">Tutti</button>
+      <button class="chip" id="dt_Bolle" onclick="setDocType('Bolle')">&#128196; Bolle</button>
+      <button class="chip" id="dt_Fatture" onclick="setDocType('Fatture')">&#129534; Fatture</button>
     </div>
     <div class="chips" id="chips"></div>
     <div id="list"><div class="loading">Carico gli acquisti&hellip;</div></div>
@@ -206,9 +211,9 @@
 
 <div id="lightbox" onclick="this.style.display='none'"><button id="lbclose" onclick="event.stopPropagation();document.getElementById('lightbox').style.display='none'">&times;</button><img id="lbimg" alt=""></div>
 
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 23/10 12:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 05/11 10:30</div>
 <script>
-var APP_VER='23/10 12:00';
+var APP_VER='05/11 10:30';
 var PW_MARTINA='martina2026';
 var PW_CAPO='Capo2026';
 var SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -217,6 +222,7 @@ var ROLE='';
 var ACQ=[];         // {key, id, forn, cat, sett, importo, data, note, img, imgtype}
 var META={coperti:{},resoconti:[]};
 var FILT='Tutti';
+var DOCTYPE='Tutti';   // Tutti | Bolle | Fatture
 var CURFILE=null;   // {data, type}
 var EDIT_KEY=null;
 
@@ -297,6 +303,8 @@ function renderList(){
   var q=(document.getElementById('q').value||'').toLowerCase().trim();
   var arr=ACQ.filter(function(a){
     if(FILT!=='Tutti' && (a.forn||'')!==FILT)return false;
+    if(DOCTYPE==='Fatture' && (a.cat||'')!=='Fattura')return false;
+    if(DOCTYPE==='Bolle' && (a.cat||'')==='Fattura')return false;
     if(q){var hay=((a.forn||'')+' '+(a.sett||'')+' '+(a.note||'')).toLowerCase();if(hay.indexOf(q)<0)return false;}
     return true;
   });
@@ -339,14 +347,22 @@ function openDoc(key){
 }
 
 /* ---- FORM / UPLOAD ---- */
-function openForm(key){
+function addNew(){openForm(null, DOCTYPE==='Fatture'?'Fattura':'Bolla');}
+function setDocType(t){
+  DOCTYPE=t;
+  ['Tutti','Bolle','Fatture'].forEach(function(x){var b=document.getElementById('dt_'+x);if(b)b.className='chip'+(x===t?' on':'');});
+  var ab=document.getElementById('addBtn');if(ab)ab.textContent=(t==='Fatture'?'+ Carica fattura':(t==='Bolle'?'+ Aggiungi bolla':'+ Aggiungi'));
+  renderList();
+}
+function openForm(key,preset){
   EDIT_KEY=key||null;CURFILE=null;
   var a=key?ACQ.filter(function(x){return x.key===key;})[0]:null;
-  document.getElementById('mTitle').textContent=a?'Modifica documento':'Nuova bolla / fattura';
+  var isFat=(a?(a.cat==='Fattura'):(preset==='Fattura'));
+  document.getElementById('mTitle').textContent=a?'Modifica documento':(preset==='Fattura'?'Nuova fattura':'Nuova bolla');
   document.getElementById('f_forn').value=a?(a.forn||''):'';
   document.getElementById('f_imp').value=a?(a.importo||''):'';
   document.getElementById('f_data').value=a?(a.data||''):(new Date().toISOString().slice(0,10));
-  document.getElementById('f_cat').value=a?(a.cat||'Bolla'):'Bolla';
+  document.getElementById('f_cat').value=a?(a.cat||'Bolla'):(preset||'Bolla');
   document.getElementById('f_sett').value=a?(a.sett||''):'';
   document.getElementById('f_note').value=a?(a.note||''):'';
   var pv=document.getElementById('f_preview');var box=document.getElementById('upBox');
