@@ -1,0 +1,124 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Prinz Rudolf · Fatture e Controllo</title>
+<style>
+:root{--wine:#7a1f2b;--wd:#5c121c;--ink:#222;--muted:#777;--line:#e5e0dc;--bg:#f6f3f1;--ok:#1e7a46;--okbg:#eef7f0;--warn:#c0392b;--warnbg:#fcefec;--wait:#b8893b;--waitbg:#fbf4e7}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(160deg,var(--wine),var(--wd));color:#fff;padding:16px 14px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:18px;font-weight:800}header p{margin:4px 0 0;font-size:12px;opacity:.85}
+.wrap{max-width:780px;margin:0 auto;padding:12px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.sel{padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px;font-weight:700;background:#fff;color:var(--ink)}
+.muted{color:var(--muted);font-size:12px}
+.sum{background:#fff;border:1px solid var(--line);border-left:5px solid var(--wine);border-radius:12px;padding:10px 13px;margin-bottom:12px;font-size:13px}
+.sum b{color:var(--wine)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:11px;overflow:hidden}
+.ch{padding:11px 13px;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer}
+.ch .fn{font-weight:800;font-size:15px}
+.ch .fn small{display:block;font-weight:600;color:var(--muted);font-size:12px;margin-top:1px}
+.badge{font-size:12px;font-weight:800;white-space:nowrap;border-radius:999px;padding:4px 10px}
+.b-ok{color:var(--ok);background:var(--okbg);border:1px solid #bfe0cc}
+.b-warn{color:var(--warn);background:var(--warnbg);border:1px solid #f1c4bb}
+.b-wait{color:var(--wait);background:var(--waitbg);border:1px solid #ecd9ad}
+.b-info{color:#555;background:#eef0f2;border:1px solid #d9dde1}
+.det{display:none;border-top:1px solid #f0ece9;padding:4px 13px 12px}
+.det.on{display:block}
+.recon{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}
+.recon div{flex:1;min-width:120px;background:#faf7f5;border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:12px}
+.recon b{display:block;font-size:16px;margin-top:2px}
+.dl{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:800;margin:10px 0 3px}
+.doc{display:flex;gap:9px;align-items:baseline;padding:5px 0;border-top:1px solid #f4efec;font-size:13px}
+.doc:first-of-type{border-top:none}
+.doc .dd{flex:1}
+.doc .dn{font-size:11px;color:var(--muted)}
+.doc .de{font-weight:800;white-space:nowrap}
+a.blk{display:inline-block;font-size:11px;font-weight:700;color:var(--wine);text-decoration:none;background:#faf0ee;border:1px solid #eccfca;border-radius:8px;padding:1px 6px;white-space:nowrap;margin-left:4px}
+.empty{padding:22px;text-align:center;color:var(--muted)}
+.hint{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+</style></head><body>
+<header><h1>🧾 Fatture e Controllo</h1><p>Confronto fatture ↔ bolle · che sia tutto in regola</p></header>
+<div class="wrap">
+  <div class="bar">
+    <select class="sel" id="mese" onchange="render()"></select>
+    <span class="muted" id="st"></span>
+  </div>
+  <div id="list"></div>
+  <div class="hint">Le fatture si caricano dall'app <b>Acquisti · Martina</b> scegliendo «Tipo → Fattura» e scrivendo l'imponibile. Qui vengono confrontate in automatico con le bolle (DDT) dello stesso fornitore. 🔗 apre il documento.</div>
+</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 05/11 10:00</div>
+<script>
+var APP_VER='05/11 10:00';
+(async function selfUpdate(){try{if(sessionStorage.getItem('upd_fat'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_fat','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
+const SB="https://hxjxbpifboufolhwawkc.supabase.co",KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function fmt(n){return (n||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtD(s){if(!s)return '';var p=String(s).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:s;}
+var MESE2={ '01':'Gennaio','02':'Febbraio','03':'Marzo','04':'Aprile','05':'Maggio','06':'Giugno','07':'Luglio','08':'Agosto','09':'Settembre','10':'Ottobre','11':'Novembre','12':'Dicembre'};
+function meseLbl(m){var p=m.split('-');return (MESE2[p[1]]||p[1])+' '+p[0];}
+var DOCS=[],OPEN={},MESI=[];
+function kind(cat){cat=(cat||'').toLowerCase();if(cat.indexOf('fattura')>=0)return 'fattura';if(cat.indexOf('accredito')>=0)return 'nota';if(cat.indexOf('scontrino')>=0||cat.indexOf('altro')>=0)return 'altro';return 'bolla';}
+async function load(){
+  document.getElementById('st').textContent='carico…';
+  var rows=await fetch(SB+'/rest/v1/kitchen_meta?k=like.maracq*&select=k,forn:v->>forn,data:v->>data,cat:v->>cat,imp:v->>importo,note:v->>note,del:v->>deleted',{headers:{apikey:KEY}}).then(r=>r.json());
+  DOCS=rows.filter(function(r){return r.del!=='true'&&r.del!==true&&r.data;}).map(function(r){return {k:r.k,forn:r.forn||'—',data:r.data,mese:(r.data||'').slice(0,7),cat:r.cat||'',kind:kind(r.cat),imp:parseFloat(r.imp)||0,note:r.note||''};});
+  var mset={};DOCS.forEach(function(d){if(d.mese)mset[d.mese]=1;});
+  MESI=Object.keys(mset).sort().reverse();
+  var sel=document.getElementById('mese');
+  sel.innerHTML=MESI.map(function(m){return '<option value="'+m+'">'+meseLbl(m)+'</option>';}).join('');
+  document.getElementById('st').textContent='';
+  render();
+}
+function docRow(d){
+  var lk=' <a class="blk" href="bolla.html?id='+encodeURIComponent(d.k)+'">🔗 apri</a>';
+  return '<div class="doc"><div class="dd">'+esc(d.cat)+' · '+fmtD(d.data)+(d.note?'<div class="dn">'+esc(d.note)+'</div>':'')+lk+'</div><div class="de">€ '+fmt(d.imp)+'</div></div>';
+}
+function render(){
+  var mese=document.getElementById('mese').value;
+  var inM=DOCS.filter(function(d){return d.mese===mese;});
+  var forn={};
+  inM.forEach(function(d){(forn[d.forn]=forn[d.forn]||[]).push(d);});
+  var names=Object.keys(forn).sort();
+  if(!names.length){document.getElementById('list').innerHTML='<div class="empty">Nessun documento per questo mese.</div>';return;}
+  var totBolle=0,totFatt=0,nOk=0,nWarn=0,nWait=0;
+  var h='';
+  names.forEach(function(fn,idx){
+    var ds=forn[fn];
+    var bolle=ds.filter(function(d){return d.kind==='bolla';});
+    var fatt=ds.filter(function(d){return d.kind==='fattura';});
+    var note=ds.filter(function(d){return d.kind==='nota';});
+    var altro=ds.filter(function(d){return d.kind==='altro';});
+    var sBolle=bolle.reduce(function(a,d){return a+d.imp;},0);
+    var sFatt=fatt.reduce(function(a,d){return a+d.imp;},0);
+    var sNota=note.reduce(function(a,d){return a+d.imp;},0); // già negative
+    totBolle+=sBolle;totFatt+=sFatt;
+    var atteso=sBolle+sNota; // quello che la fattura dovrebbe totalizzare
+    var badge,cls,reconHtml='';
+    if(fatt.length&&bolle.length){
+      var diff=sFatt-atteso;
+      if(Math.abs(diff)<=Math.max(1,atteso*0.005)){badge='✓ Quadra';cls='b-ok';nOk++;}
+      else{badge='⚠️ Differenza € '+fmt(Math.abs(diff));cls='b-warn';nWarn++;}
+      reconHtml='<div class="recon"><div>Bolle (DDT)<b>€ '+fmt(sBolle)+'</b></div>'+(sNota?'<div>Note accredito<b>€ '+fmt(sNota)+'</b></div>':'')+'<div>Fattura/e<b>€ '+fmt(sFatt)+'</b></div><div>Differenza<b style="color:'+(cls==='b-ok'?'var(--ok)':'var(--warn)')+'">€ '+fmt(sFatt-atteso)+'</b></div></div>';
+    } else if(!fatt.length&&bolle.length){
+      badge='⏳ Fattura in attesa';cls='b-wait';nWait++;
+      reconHtml='<div class="recon"><div>Bolle (DDT)<b>€ '+fmt(sBolle)+'</b></div>'+(sNota?'<div>Note accredito<b>€ '+fmt(sNota)+'</b></div>':'')+'<div>Atteso in fattura<b>€ '+fmt(atteso)+'</b></div></div>';
+    } else if(fatt.length&&!bolle.length){
+      badge='📄 Solo fattura';cls='b-info';
+      reconHtml='<div class="recon"><div>Fattura/e<b>€ '+fmt(sFatt)+'</b></div>'+(sNota?'<div>Note accredito<b>€ '+fmt(sNota)+'</b></div>':'')+'</div><div class="hint" style="margin:2px 0 0">Nessuna bolla separata caricata: il DDT è incluso nella fattura (niente da confrontare).</div>';
+    } else {badge='—';cls='b-info';}
+    var open=OPEN[fn]||false;
+    h+='<div class="card"><div class="ch" onclick="tog('+idx+')"><div class="fn">'+esc(fn)+'<small>'+bolle.length+' bolle · '+fatt.length+' fatture'+(note.length?' · '+note.length+' nota':'')+'</small></div><span class="badge '+cls+'">'+badge+'</span></div>'+
+      '<div class="det'+(open?' on':'')+'" id="det'+idx+'">'+reconHtml+
+      (fatt.length?'<div class="dl">Fatture</div>'+fatt.map(docRow).join(''):'')+
+      (note.length?'<div class="dl">Note di accredito</div>'+note.map(docRow).join(''):'')+
+      (bolle.length?'<div class="dl">Bolle / DDT</div>'+bolle.sort(function(a,b){return a.data<b.data?-1:1;}).map(docRow).join(''):'')+
+      (altro.length?'<div class="dl">Altro</div>'+altro.map(docRow).join(''):'')+
+      '</div></div>';
+    window['_fn'+idx]=fn;
+  });
+  var head='<div class="sum">Mese <b>'+meseLbl(mese)+'</b> · '+names.length+' fornitori · bolle € '+fmt(totBolle)+' · fatture € '+fmt(totFatt)+'<br>'+
+    '<span style="color:var(--ok)">✓ '+nOk+' quadrano</span> · <span style="color:var(--warn)">⚠️ '+nWarn+' da verificare</span> · <span style="color:var(--wait)">⏳ '+nWait+' in attesa fattura</span></div>';
+  document.getElementById('list').innerHTML=head+h;
+}
+function tog(i){var fn=window['_fn'+i];OPEN[fn]=!OPEN[fn];var el=document.getElementById('det'+i);if(el)el.classList.toggle('on',OPEN[fn]);}
+load();
+</script></body></html>
