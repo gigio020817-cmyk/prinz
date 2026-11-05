@@ -35,7 +35,9 @@ header h1{margin:0;font-size:18px;font-weight:800}header p{margin:4px 0 0;font-s
 a.blk{display:inline-block;font-size:11px;font-weight:700;color:var(--wine);text-decoration:none;background:#faf0ee;border:1px solid #eccfca;border-radius:8px;padding:1px 6px;white-space:nowrap;margin-left:4px}
 .empty{padding:22px;text-align:center;color:var(--muted)}
 .hint{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+html.emb header{display:none}
 </style></head><body>
+<script>if(location.search.indexOf('embed')>-1)document.documentElement.classList.add('emb');</script>
 <header><h1>🧾 Fatture e Controllo</h1><p>Confronto fatture ↔ bolle · che sia tutto in regola</p></header>
 <div class="wrap">
   <div class="bar">
@@ -45,9 +47,9 @@ a.blk{display:inline-block;font-size:11px;font-weight:700;color:var(--wine);text
   <div id="list"></div>
   <div class="hint">Le fatture si caricano dall'app <b>Acquisti · Martina</b> scegliendo «Tipo → Fattura» e scrivendo l'imponibile. Qui vengono confrontate in automatico con le bolle (DDT) dello stesso fornitore. 🔗 apre il documento.</div>
 </div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 05/11 10:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 05/11 11:30</div>
 <script>
-var APP_VER='05/11 10:00';
+var APP_VER='05/11 11:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_fat'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_fat','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 const SB="https://hxjxbpifboufolhwawkc.supabase.co",KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}

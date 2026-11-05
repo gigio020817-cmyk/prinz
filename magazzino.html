@@ -88,7 +88,7 @@
   <div class="who" id="whoBar"></div>
   <div class="tabs" id="tabs"></div>
 </header>
-<main><div id="status">Caricamento…</div><div id="view"></div></main>
+<main><a href="magazzino_posti.html" style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e5e0dc;border-left:4px solid #c9a227;border-radius:12px;padding:12px 14px;text-decoration:none;color:#1a1a1a;font-weight:800;margin-bottom:12px">📦 <span style="flex:1">Magazzino · Scaffali<small style="display:block;font-weight:500;color:#8a8378;font-size:12px">mappa scaffali, dove si trova, prezzi e valore</small></span><span style="color:#c9a227;font-weight:800">›</span></a><div id="status">Caricamento…</div><div id="view"></div></main>
 <footer>Prinz Rudolf · Magazzino · si aggiorna dal cloud</footer>
 </div>
 <div id="toast"></div>
@@ -118,7 +118,7 @@ function unlock(p,fromStore){
 }
 document.getElementById('enter').onclick=()=>unlock(document.getElementById('pw').value,false);
 document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')unlock(e.target.value,false)});
-const APP_VER='26/10 10:00';
+const APP_VER='05/11 11:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_mag'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_mag','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_mag')!=='19/06 11:31'){localStorage.removeItem('mag_pw');localStorage.setItem('pr_av_mag','19/06 11:31');}}catch(_e){}let s=null;try{s=localStorage.getItem('mag_pw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>document.getElementById('pw').focus(),300);})();
 
@@ -219,6 +219,6 @@ function buildOrd(f){var list=PROD.filter(p=>low(p)&&(p.forn||'—')===f);var ou
 function copyOrd(fenc){var f=decodeURIComponent(fenc);var out=buildOrd(f);var ta=document.createElement('textarea');ta.value=out;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,99999);try{navigator.clipboard.writeText(out);}catch(e){}try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);toast('Ordine copiato ✓');}
 function waOrd(fenc){var f=decodeURIComponent(fenc);var tel=FORN_TEL[f];var out=buildOrd(f);if(tel){window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(out),'_blank');}else{copyOrd(fenc);toast('Numero mancante — ordine copiato');}}
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 26/10 10:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 05/11 11:30</div>
 </body>
 </html>

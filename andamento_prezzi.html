@@ -40,7 +40,9 @@ header h1{margin:0;font-size:18px;font-weight:800}header p{margin:4px 0 0;font-s
 .agh{font-weight:800;color:var(--up);font-size:13px;margin-bottom:2px}
 .agh span{display:inline-block;background:#f6d9d2;color:#9a2f22;border-radius:10px;font-size:11px;padding:0 7px;margin-left:5px}
 a.blk{display:inline-block;font-size:11px;font-weight:700;color:var(--wine);text-decoration:none;background:#faf0ee;border:1px solid #eccfca;border-radius:8px;padding:1px 6px;white-space:nowrap;margin-left:4px}
+html.emb header{display:none}
 </style></head><body>
+<script>if(location.search.indexOf('embed')>-1)document.documentElement.classList.add('emb');</script>
 <header><h1>📈 Andamento Prezzi</h1><p>Storico prezzi dei fornitori dalle bolle · verde = sceso, rosso = aumentato</p></header>
 <div class="wrap">
   <div class="bar">
@@ -51,9 +53,9 @@ a.blk{display:inline-block;font-size:11px;font-weight:700;color:var(--wine);text
   </div>
   <div id="list"></div>
 </div>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 02/11 23:10</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 05/11 11:30</div>
 <script>
-var APP_VER='02/11 23:10';
+var APP_VER='05/11 11:30';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_ap'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_ap','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 const SB="https://hxjxbpifboufolhwawkc.supabase.co",KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 function sb(p){return fetch(SB+'/rest/v1/'+p,{headers:{apikey:KEY}}).then(r=>r.json());}

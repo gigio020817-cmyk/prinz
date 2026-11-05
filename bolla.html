@@ -1,60 +1,76 @@
 <!doctype html><html lang="it"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Prinz Rudolf · Bolla</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Prinz Rudolf · Documento</title>
 <style>
-:root{--wine:#7a1f2b;--wd:#5c121c;--ink:#222;--muted:#777;--line:#e5e0dc;--bg:#f6f3f1}
-*{box-sizing:border-box}html,body{margin:0;height:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;min-height:100vh}
-header{background:linear-gradient(160deg,var(--wine),var(--wd));color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
-header a.back{color:#fff;text-decoration:none;font-size:22px;font-weight:800;line-height:1}
+:root{--wine:#7a1f2b;--wd:#5c121c;--ink:#222;--muted:#777;--line:#e5e0dc;--bg:#f3f1ef}
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);display:flex;flex-direction:column}
+header{background:linear-gradient(160deg,var(--wine),var(--wd));color:#fff;padding:calc(env(safe-area-inset-top) + 10px) 12px 10px;display:flex;align-items:center;gap:10px;flex:none}
+header a.back{color:#fff;text-decoration:none;font-size:24px;font-weight:800;line-height:1;flex:none}
 header .ti{flex:1;min-width:0}
-header h1{margin:0;font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-header .sub{font-size:12px;opacity:.85;margin-top:1px}
-.wrap{flex:1;display:flex;flex-direction:column;padding:10px;gap:10px}
-.doc{flex:1;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;min-height:60vh}
-.doc iframe,.doc embed,.doc img{width:100%;height:100%;border:0;display:block;object-fit:contain}
-.doc img{height:auto}
-.msg{padding:28px 16px;text-align:center;color:var(--muted)}
-.act{display:flex;gap:8px;flex-wrap:wrap}
-.act a{flex:1;min-width:120px;text-align:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px;font-size:14px;font-weight:700;text-decoration:none;color:var(--wine)}
-.imp{display:inline-block;background:#faf7f5;border:1px solid var(--line);border-radius:10px;padding:3px 10px;font-weight:800;color:var(--wine);font-size:13px}
+header h1{margin:0;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .sub{font-size:12px;opacity:.88;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.imp{flex:none;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:10px;padding:3px 9px;font-weight:800;font-size:12.5px;white-space:nowrap}
+#scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;width:100%;padding:10px 0 calc(14px + env(safe-area-inset-bottom))}
+#scroll canvas,#scroll img{display:block;width:calc(100% - 16px);height:auto;margin:0 auto 10px;border-radius:6px;box-shadow:0 1px 6px rgba(0,0,0,.18);background:#fff}
+.msg{padding:30px 18px;text-align:center;color:var(--muted)}
 </style></head><body>
 <header>
-  <a class="back" href="andamento_prezzi.html" id="back" title="Indietro">‹</a>
-  <div class="ti"><h1 id="forn">Bolla</h1><div class="sub" id="sub">—</div></div>
+  <a class="back" href="#" id="back" title="Indietro">‹</a>
+  <div class="ti"><h1 id="forn">Documento</h1><div class="sub" id="sub">—</div></div>
+  <div class="imp" id="imp" style="display:none"></div>
 </header>
-<div class="wrap">
-  <div id="imp"></div>
-  <div class="doc" id="doc"><div class="msg">Carico la bolla…</div></div>
-  <div class="act" id="act"></div>
-</div>
+<div id="scroll"><div class="msg">Carico il documento…</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 const SB="https://hxjxbpifboufolhwawkc.supabase.co",KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 function q(n){return new URLSearchParams(location.search).get(n);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function fmtD(s){if(!s)return '';var p=String(s).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:s;}
 function fmt(n){n=parseFloat(n);return isNaN(n)?'':n.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});}
-// torna all'app giusta se arrivo da martina
-var ref=q('from');if(ref==='martina')document.getElementById('back').href='martina.html';
-async function load(){
-  var id=q('id');
-  if(!id){document.getElementById('doc').innerHTML='<div class="msg">Nessuna bolla indicata.</div>';return;}
+// torna indietro: usa la cronologia, o un fallback. Se incorporato (embed) nascondo la freccia.
+(function(){var b=document.getElementById('back');if(q('embed')){b.style.display='none';return;}b.addEventListener('click',function(e){e.preventDefault();if(history.length>1)history.back();else location.href=(q('from')==='martina'?'martina.html':'andamento_prezzi.html');});})();
+function dataUrlToBytes(du){var b=atob(du.split(',')[1]);var a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
+async function renderPdf(du){
+  var box=document.getElementById('scroll');box.innerHTML='';
   try{
-    var r=await fetch(SB+'/rest/v1/kitchen_meta?k=eq.'+encodeURIComponent(id)+'&select=v',{headers:{apikey:KEY}});
-    var j=await r.json();var v=j&&j[0]&&j[0].v;
-    if(!v){document.getElementById('doc').innerHTML='<div class="msg">Bolla non trovata.</div>';return;}
-    document.getElementById('forn').textContent=v.forn||'Bolla';
-    document.getElementById('sub').textContent=(v.data?fmtD(v.data):'')+(v.note?' · '+v.note:'');
-    if(v.importo)document.getElementById('imp').innerHTML='<span class="imp">Totale bolla: € '+fmt(v.importo)+'</span>';
+    if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';}
+    var pdf=await pdfjsLib.getDocument({data:dataUrlToBytes(du)}).promise;
+    var cw=box.clientWidth-16; // larghezza utile
+    var dpr=Math.min(window.devicePixelRatio||1,2);
+    for(var p=1;p<=pdf.numPages;p++){
+      var page=await pdf.getPage(p);
+      var vp0=page.getViewport({scale:1});
+      var scale=cw/vp0.width;
+      var vp=page.getViewport({scale:scale*dpr});
+      var canvas=document.createElement('canvas');canvas.width=vp.width;canvas.height=vp.height;
+      canvas.style.width=cw+'px';
+      box.appendChild(canvas);
+      await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+    }
+  }catch(e){
+    // fallback: iframe
+    box.innerHTML='<iframe src="'+du+'" style="width:100%;height:100%;border:0;background:#fff"></iframe>';
+    var ifr=box.querySelector('iframe');if(ifr){ifr.style.minHeight='80vh';}
+  }
+}
+async function load(){
+  var id=q('id');var box=document.getElementById('scroll');
+  if(!id){box.innerHTML='<div class="msg">Nessun documento indicato.</div>';return;}
+  try{
+    var j=await fetch(SB+'/rest/v1/kitchen_meta?k=eq.'+encodeURIComponent(id)+'&select=v',{headers:{apikey:KEY}}).then(r=>r.json());
+    var v=j&&j[0]&&j[0].v;
+    if(!v){box.innerHTML='<div class="msg">Documento non trovato.</div>';return;}
+    document.getElementById('forn').textContent=v.forn||'Documento';
+    document.getElementById('sub').textContent=(v.cat?v.cat+' · ':'')+(v.data?fmtD(v.data):'');
+    if(v.importo){var e=document.getElementById('imp');e.textContent='€ '+fmt(v.importo);e.style.display='block';}
     var du=v.img||v.data||'';
     var isPdf=/pdf/i.test(v.imgtype||'')||/^data:application\/pdf/i.test(du);
-    var box=document.getElementById('doc');
-    if(!du){box.innerHTML='<div class="msg">Documento non disponibile.</div>';}
-    else if(isPdf){box.innerHTML='<iframe src="'+du+'#view=FitH"></iframe>';}
-    else{box.innerHTML='<img src="'+du+'" alt="bolla">';}
-    var act=document.getElementById('act');
-    if(du){act.innerHTML='<a href="'+du+'" target="_blank" rel="noopener">Apri a schermo intero</a>';}
-  }catch(e){document.getElementById('doc').innerHTML='<div class="msg">Errore nel caricare la bolla.</div>';}
+    if(!du){box.innerHTML='<div class="msg">Immagine non disponibile.</div>';return;}
+    if(isPdf){await renderPdf(du);}
+    else{box.innerHTML='<img src="'+du+'" alt="documento">';}
+  }catch(e){box.innerHTML='<div class="msg">Errore nel caricare il documento.</div>';}
 }
 load();
+window.addEventListener('resize',function(){clearTimeout(window._rz);window._rz=setTimeout(function(){var im=document.querySelector('#scroll canvas');if(im)load();},400);});
 </script></body></html>

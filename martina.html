@@ -144,6 +144,7 @@
   </div>
   <div class="tabs">
     <button id="tab_acq" class="on" onclick="setTab('acq')">Bolle/Fatture</button>
+    <button id="tab_ctrl" onclick="setTab('ctrl')">Controllo</button>
     <button id="tab_rie" onclick="setTab('rie')">Riepilogo</button>
     <button id="tab_res" onclick="setTab('res')">Resoconto <span id="resBadge" class="badge" style="display:none"></span></button>
     <button id="tab_pre" onclick="setTab('pre')">Presenze</button>
@@ -166,6 +167,11 @@
     </div>
     <div class="chips" id="chips"></div>
     <div id="list"><div class="loading">Carico gli acquisti&hellip;</div></div>
+  </div>
+
+  <div id="view_ctrl" style="display:none">
+    <div class="hint">Confronto automatico tra le <b>fatture</b> e le <b>bolle</b> dello stesso fornitore: verde se quadra, rosso se c&rsquo;&egrave; differenza, in attesa se la fattura non &egrave; ancora arrivata. Carica le fatture da <b>Bolle/Fatture &rarr; Fatture &rarr; + Carica fattura</b>.</div>
+    <iframe id="ctrlFrame" style="width:100%;height:78vh;border:1px solid var(--line);border-radius:12px;background:#fff" title="Fatture e Controllo"></iframe>
   </div>
 
   <div id="view_rie" style="display:none">
@@ -211,9 +217,9 @@
 
 <div id="lightbox" onclick="this.style.display='none'"><button id="lbclose" onclick="event.stopPropagation();document.getElementById('lightbox').style.display='none'">&times;</button><img id="lbimg" alt=""></div>
 
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 05/11 10:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 05/11 11:30</div>
 <script>
-var APP_VER='05/11 10:30';
+var APP_VER='05/11 11:30';
 var PW_MARTINA='martina2026';
 var PW_CAPO='Capo2026';
 var SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -280,10 +286,11 @@ async function loadAll(){
 
 /* ---- TABS ---- */
 function setTab(t){
-  ['acq','rie','res','pre'].forEach(function(x){
+  ['acq','ctrl','rie','res','pre'].forEach(function(x){
     document.getElementById('view_'+x).style.display=(x===t?'block':'none');
     document.getElementById('tab_'+x).className=(x===t?'on':'');
   });
+  if(t==='ctrl'){var fr=document.getElementById('ctrlFrame');if(fr&&!fr.src)fr.src='fatture.html?embed=1';}
   if(t==='rie')renderRie();
   if(t==='res'){renderRes();if(ROLE==='martina')markResSeen();}
   if(t==='pre')loadPresenze();
@@ -317,7 +324,7 @@ function renderList(){
     h+='<div class="card"><div class="arow">';
     if(a.img){
       if(a.imgtype==='pdf')h+='<div class="thumb pdf" onclick="openDoc('+jq(a.key)+')">\ud83d\udcc4</div>';
-      else h+='<img class="thumb" src="'+a.img+'" onclick="lightbox('+jq(a.key)+')">';
+      else h+='<img class="thumb" src="'+a.img+'" onclick="openDoc('+jq(a.key)+')">';
     }else{h+='<div class="thumb pdf">\ud83e\uddfe</div>';}
     h+='<div class="ainfo">';
     h+='<div class="forn">'+esc(a.forn||'(senza fornitore)')+'</div>';
@@ -342,7 +349,7 @@ function openDoc(key){
     o.innerHTML='<button id="dbclose" onclick="closeDoc()">&times;</button><iframe id="dbframe" title="Documento"></iframe>';
     document.body.appendChild(o);
   }
-  document.getElementById('dbframe').src=a.img;
+  document.getElementById('dbframe').src='bolla.html?embed=1&from=martina&id='+encodeURIComponent(key);
   o.style.display='flex';
 }
 
