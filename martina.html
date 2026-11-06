@@ -170,8 +170,27 @@
   </div>
 
   <div id="view_ctrl" style="display:none">
-    <div class="hint">Confronto automatico tra le <b>fatture</b> e le <b>bolle</b> dello stesso fornitore: verde se quadra, rosso se c&rsquo;&egrave; differenza, in attesa se la fattura non &egrave; ancora arrivata. Carica le fatture da <b>Bolle/Fatture &rarr; Fatture &rarr; + Carica fattura</b>.</div>
-    <iframe id="ctrlFrame" style="width:100%;height:78vh;border:1px solid var(--line);border-radius:12px;background:#fff" title="Fatture e Controllo"></iframe>
+    <div id="ctrlNudge"></div>
+    <div class="card">
+      <div class="card-h"><div class="t">🔎 Controllo prezzi settimanale<div class="sub">Controlla lo storico e segnala i prezzi aumentati sopra soglia, divisi per fornitore. Gira da solo, non serve altro.</div></div></div>
+      <button class="addbtn" id="ctrlRunBtn" style="width:100%" onclick="runControlloPrezzi()">▶ Esegui controllo prezzi</button>
+      <div id="ctrlPrezziRes" style="margin-top:10px"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="t">📊 Resoconti pronti<div class="sub">Calcolati all'istante, senza aspettare nessuno.</div></div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="chip" onclick="resProntoDo('spesa')">💶 Spesa del mese</button>
+        <button class="chip" onclick="resProntoDo('aumenti')">📈 Cosa è aumentato</button>
+        <button class="chip" onclick="resProntoDo('top')">🏆 Top prodotti per spesa</button>
+      </div>
+      <div id="resProntiRes" style="margin-top:10px"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="t">🗂️ Storico controlli<div class="sub">Ogni controllo resta qui con data ed esito, visibile anche a Luigi.</div></div></div>
+      <div id="ctrlStorico"><div class="muted" style="font-size:13px">Nessun controllo ancora.</div></div>
+    </div>
+    <div class="card-h" style="margin:14px 2px 6px"><div class="t">🧾 Fatture vs Bolle</div></div>
+    <iframe id="ctrlFrame" style="width:100%;height:70vh;border:1px solid var(--line);border-radius:12px;background:#fff" title="Fatture e Controllo"></iframe>
   </div>
 
   <div id="view_rie" style="display:none">
@@ -217,9 +236,9 @@
 
 <div id="lightbox" onclick="this.style.display='none'"><button id="lbclose" onclick="event.stopPropagation();document.getElementById('lightbox').style.display='none'">&times;</button><img id="lbimg" alt=""></div>
 
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 05/11 11:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 06/11 10:00</div>
 <script>
-var APP_VER='05/11 11:30';
+var APP_VER='06/11 10:00';
 var PW_MARTINA='martina2026';
 var PW_CAPO='Capo2026';
 var SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
@@ -290,7 +309,7 @@ function setTab(t){
     document.getElementById('view_'+x).style.display=(x===t?'block':'none');
     document.getElementById('tab_'+x).className=(x===t?'on':'');
   });
-  if(t==='ctrl'){var fr=document.getElementById('ctrlFrame');if(fr&&!fr.src)fr.src='fatture.html?embed=1';}
+  if(t==='ctrl'){var fr=document.getElementById('ctrlFrame');if(fr&&!fr.src)fr.src='fatture.html?embed=1';loadControlli().then(function(){renderCtrlNudge();renderCtrlStorico();});}
   if(t==='rie')renderRie();
   if(t==='res'){renderRes();if(ROLE==='martina')markResSeen();}
   if(t==='pre')loadPresenze();
@@ -523,6 +542,95 @@ async function markResSeen(){
   var ch=false;(META.resoconti||[]).forEach(function(r){if(r.risposta&&!r.seenM){r.seenM=true;ch=true;}});
   if(ch){try{await saveMeta();}catch(e){}}
   updateNotif();
+}
+
+/* ---- CONTROLLO PREZZI / RESOCONTI PRONTI / STORICO ---- */
+var CTRL={list:[]};        // storico controlli {ts,role,n,tot,byForn}
+var LISTINI=null;          // cache listini
+var ORTO_RE=/pomodor|datterin|cherry|ramat|insalat|iceberg|lattug|rucola|misticanz|zucchin|zucca|melanzan|peperon|friggitell|cipoll|carot|sedano|finocchi|porri|cavol|broccol|bimi|spinac|patate|topinambur|uva|fragol|\bmore\b|lampon|mirtill|pesche|melon|kiwi|aranc|limon|pompelm|frutto della passione|funghi|cardoncell|erengi|prezzemol|basilic|\berbe\b|banan|\bmele\b|\bpere\b|ananas|mango|cilieg|albicocch|susin|fichi|rapa|ravanell|asparag|fagiolin|cetriol|radicch/i;
+function isOrtoM(d){return ORTO_RE.test(d||'');}
+function daysAgo(iso){if(!iso)return 9999;var d=new Date(iso+'T00:00:00');return Math.floor((Date.now()-d.getTime())/86400000);}
+async function loadControlli(){try{var r=await sb('kitchen_meta?k=eq.marcontrolli&select=v');CTRL=(r&&r[0]&&r[0].v)||{list:[]};if(!CTRL.list)CTRL.list=[];}catch(e){CTRL={list:[]};}}
+async function loadListiniM(){
+  if(LISTINI)return LISTINI;
+  var ks=await sb('kitchen_meta?k=like.listino*&select=k');
+  var out=[];
+  for(var i=0;i<ks.length;i++){var v=(await sb('kitchen_meta?k=eq.'+encodeURIComponent(ks[i].k)+'&select=v'))[0].v;var forn=v.forn||ks[i].k.split('|')[1];var items=[];var it=v.items||{};
+    for(var c in it){var o=it[c],d=(o.d||'').trim();if(!d)continue;var h=(o.hist||[]).filter(function(x){return x&&x.p!=null;});if(h.length<2)continue;h.sort(function(a,b){return (a.at||'')<(b.at||'')?-1:1;});var last=h[h.length-1],prev=null;for(var j=h.length-2;j>=0;j--){if(h[j].p!==last.p){prev=h[j];break;}}if(!prev)continue;var chg=(last.p-prev.p)/prev.p*100;items.push({d:d,u:o.u||'',from:prev.p,to:last.p,at:last.at,src:last.src||null,chg:chg,orto:isOrtoM(d)});}
+    if(items.length)out.push({forn:forn,items:items});
+  }
+  LISTINI=out;return out;
+}
+async function runControlloPrezzi(){
+  var btn=document.getElementById('ctrlRunBtn');btn.textContent='Controllo in corso…';btn.disabled=true;
+  var box=document.getElementById('ctrlPrezziRes');
+  try{
+    var data=await loadListiniM();
+    var groups={},tot=0;
+    data.forEach(function(f){f.items.forEach(function(x){var soglia=x.orto?30:8;if(x.chg>=soglia){(groups[f.forn]=groups[f.forn]||[]).push(x);tot++;}});});
+    var fornOrd=Object.keys(groups).sort(function(a,b){return groups[b].length-groups[a].length;});
+    var h='';
+    if(!tot){h='<div style="background:#eef7f1;border:1px solid #bfe3cd;border-radius:10px;padding:11px 13px;font-weight:700;color:#1e7a46">✓ Nessun prezzo anomalo. Tutto regolare.</div>';}
+    else{
+      h='<div style="font-weight:800;color:#b23a3a;margin-bottom:6px">⚠️ '+tot+' prezzi da controllare</div>';
+      fornOrd.forEach(function(fn){var arr=groups[fn].sort(function(a,b){return b.chg-a.chg;});
+        h+='<div style="margin-top:8px;font-weight:800;color:var(--blu)">'+esc(fn)+'</div>';
+        arr.forEach(function(x){var recent=daysAgo(x.at)<=7;var lk=x.src?' <a href="bolla.html?id='+encodeURIComponent(x.src)+'" style="color:var(--blu);font-size:11px;font-weight:700">🔗 bolla</a>':'';
+          h+='<div style="display:flex;gap:8px;justify-content:space-between;padding:5px 0;border-top:1px solid #f0ece9;font-size:13px"><span>'+(recent?'🆕 ':'')+(x.orto?'🥬 ':'')+esc(x.d)+lk+'</span><span style="white-space:nowrap;font-weight:800">€'+eur(x.from).replace(' €','')+'→€'+eur(x.to).replace(' €','')+' <b style="color:#b23a3a">+'+x.chg.toFixed(0)+'%</b></span></div>';});
+      });
+      h+='<div class="hint" style="margin-top:8px">🆕 = aumento negli ultimi 7 giorni · 🥬 = ortofrutta (soglia +30%, oscilla con la stagione) · gli altri soglia +8%. Controlla che non sia un errore o una fine-offerta.</div>';
+    }
+    box.innerHTML=h;
+    // salva nello storico
+    var byForn={};fornOrd.forEach(function(fn){byForn[fn]=groups[fn].length;});
+    CTRL.list.push({ts:Date.now(),role:ROLE,n:tot,byForn:byForn});
+    if(CTRL.list.length>30)CTRL.list=CTRL.list.slice(-30);
+    try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'marcontrolli',v:CTRL})});}catch(e){}
+    renderCtrlStorico();renderCtrlNudge();
+  }catch(e){box.innerHTML='<div class="muted">Errore nel controllo. Controlla internet e riprova.</div>';}
+  btn.textContent='▶ Esegui di nuovo';btn.disabled=false;
+}
+function renderCtrlNudge(){
+  var el=document.getElementById('ctrlNudge');if(!el)return;
+  var last=CTRL.list.length?CTRL.list[CTRL.list.length-1]:null;
+  var gg=last?Math.floor((Date.now()-last.ts)/86400000):9999;
+  if(gg>=7){el.innerHTML='<div class="notif" style="background:#fdeceb;border-color:#e0a7a0;color:#9a2f22">⏳ Controllo prezzi da fare'+(last?' (ultimo '+gg+' giorni fa)':'')+'. Tocca «Esegui controllo prezzi».</div>';}
+  else{el.innerHTML='<div class="notif" style="background:#eef7f1;border-color:#bfe3cd;color:#1e7a46">✓ Controllo prezzi fatto '+gg+' giorn'+(gg===1?'o':'i')+' fa.</div>';}
+}
+function renderCtrlStorico(){
+  var el=document.getElementById('ctrlStorico');if(!el)return;
+  var arr=(CTRL.list||[]).slice().reverse();
+  if(!arr.length){el.innerHTML='<div class="muted" style="font-size:13px">Nessun controllo ancora.</div>';return;}
+  el.innerHTML=arr.slice(0,12).map(function(r){
+    var d=new Date(r.ts).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    var chi=(r.role==='capo'?'Luigi':'Martina');
+    var esito=r.n?('<b style="color:#b23a3a">'+r.n+' da controllare</b> — '+Object.keys(r.byForn||{}).map(function(f){return f+' ('+r.byForn[f]+')';}).join(', ')):'<b style="color:#1e7a46">tutto regolare</b>';
+    return '<div style="padding:7px 0;border-top:1px solid #f0ece9;font-size:13px"><span style="color:var(--muted)">'+d+' · '+chi+'</span><br>'+esito+'</div>';
+  }).join('');
+}
+function resProntoDo(kind){
+  var box=document.getElementById('resProntiRes');box.innerHTML='<div class="muted" style="font-size:13px">Calcolo…</div>';
+  if(kind==='spesa'){
+    var byM={};ACQ.forEach(function(a){var k=ym(a.data);if(!k)return;var im=parseFloat(a.importo);if(isNaN(im))im=0;if(!byM[k])byM[k]={tot:0,forn:{}};byM[k].tot+=im;var fn=a.forn||'(altro)';byM[k].forn[fn]=(byM[k].forn[fn]||0)+im;});
+    var keys=Object.keys(byM).sort().reverse();if(!keys.length){box.innerHTML='<div class="muted">Nessun dato.</div>';return;}
+    var k=keys[0],m=byM[k];var fk=Object.keys(m.forn).filter(function(x){return m.forn[x]>0;}).sort(function(a,b){return m.forn[b]-m.forn[a];});
+    var h='<div style="font-weight:800;color:var(--blu);margin-bottom:6px">'+ymLabel(k)+' — totale '+eur(m.tot)+'</div>';
+    fk.forEach(function(f){h+='<div class="fbar"><span class="fn">'+esc(f)+'</span><span class="fv">'+eur(m.forn[f])+'</span></div>';});
+    box.innerHTML=h;
+  } else if(kind==='aumenti'){
+    loadListiniM().then(function(data){
+      var rows=[];data.forEach(function(f){f.items.forEach(function(x){var soglia=x.orto?30:8;if(x.chg>=soglia)rows.push({forn:f.forn,x:x});});});
+      rows.sort(function(a,b){return b.x.chg-a.x.chg;});
+      if(!rows.length){box.innerHTML='<div style="color:#1e7a46;font-weight:700">✓ Niente di rilevante: nessun rincaro sopra soglia.</div>';return;}
+      box.innerHTML='<div style="font-weight:800;margin-bottom:6px">I rincari più grossi:</div>'+rows.slice(0,12).map(function(r){return '<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid #f0ece9;font-size:13px"><span>'+(r.x.orto?'🥬 ':'')+esc(r.x.d)+' <small style="color:var(--muted)">'+esc(r.forn)+'</small></span><span style="white-space:nowrap;font-weight:800;color:#b23a3a">+'+r.x.chg.toFixed(0)+'%</span></div>';}).join('');
+    });
+  } else if(kind==='top'){
+    sb('kitchen_meta?k=like.topspesa*&select=k,v').then(function(tr){
+      if(!tr||!tr.length){box.innerHTML='<div class="muted">Classifica non ancora disponibile.</div>';return;}
+      tr.sort(function(a,b){return a.k<b.k?1:-1;});var ts=tr[0].v;
+      box.innerHTML='<div style="font-weight:800;color:var(--blu);margin-bottom:6px">Top prodotti per spesa · '+esc(ts.mese||'')+'</div>'+(ts.items||[]).slice(0,12).map(function(x,i){return '<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid #f0ece9;font-size:13px"><span>'+(i+1)+'. '+esc(x.d)+'</span><span style="white-space:nowrap;font-weight:800">'+eur(x.eur)+'</span></div>';}).join('');
+    });
+  }
 }
 
 /* ---- PRESENZE MEZZA PENSIONE (compila Martina, Luigi le vede in sola lettura sulla dashboard) ---- */
