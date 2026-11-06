@@ -17,7 +17,7 @@ iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#f6f
 iframe.hide{visibility:hidden;z-index:-1}
 </style></head><body>
 <header>
-  <div class="top"><h1>📊 Spesa &amp; Controllo</h1><a class="home" href="index.html">⌂ Home</a></div>
+  <div class="top"><a href="javascript:void(0)" onclick="if(history.length>1){history.back()}else{location.href='index.html'}" style="color:#fff;font-size:26px;font-weight:800;text-decoration:none;line-height:1;margin-right:2px" aria-label="Indietro">‹</a><h1>📊 Spesa &amp; Controllo</h1><a class="home" href="index.html">⌂ Home</a></div>
   <div class="tabs">
     <button id="t_prezzi" class="on" onclick="show('prezzi')">📈 Andamento Prezzi</button>
     <button id="t_fatture" onclick="show('fatture')">🧾 Fatture e Controllo</button>
@@ -27,7 +27,10 @@ iframe.hide{visibility:hidden;z-index:-1}
   <iframe id="f_prezzi" src="andamento_prezzi.html?embed=1"></iframe>
   <iframe id="f_fatture" class="hide" data-src="fatture.html?embed=1"></iframe>
 </div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 06/11 10:30</div>
 <script>
+var APP_VER='06/11 10:30';
+(async function selfUpdate(){try{if(sessionStorage.getItem('upd_ctl'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_ctl','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 var LOADED={prezzi:true,fatture:false};
 function show(which){
   var other=which==='prezzi'?'fatture':'prezzi';

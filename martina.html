@@ -12,7 +12,10 @@
 <style>
   :root{--blu:#243b53;--blu2:#334e68;--gold:#c9a227;--cream:#f7f5f0;--ink:#26221c;--line:#e6e0d4;--muted:#8a8378;--ok:#1e7a46;--red:#b23a3a}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-  html,body{margin:0;padding:0}
+  html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden}
+  #app{overflow-x:hidden}
+  main,.card,.fbar{max-width:100%}
+  table{max-width:100%;table-layout:fixed}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--cream);color:var(--ink);line-height:1.45;padding-bottom:env(safe-area-inset-bottom)}
   #lock{position:fixed;inset:0;z-index:50;background:linear-gradient(160deg,var(--blu),#101c2b);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;color:#fff;text-align:center}
   #lock .mark{width:66px;height:66px;border-radius:16px;border:2px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:30px;margin-bottom:16px}
@@ -236,9 +239,9 @@
 
 <div id="lightbox" onclick="this.style.display='none'"><button id="lbclose" onclick="event.stopPropagation();document.getElementById('lightbox').style.display='none'">&times;</button><img id="lbimg" alt=""></div>
 
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 06/11 10:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none">v 06/11 10:30</div>
 <script>
-var APP_VER='06/11 10:00';
+var APP_VER='06/11 10:30';
 var PW_MARTINA='martina2026';
 var PW_CAPO='Capo2026';
 var SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
