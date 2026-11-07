@@ -37,7 +37,26 @@
  .b-da{background:var(--rosso)} .b-corso{background:var(--ambra)} .b-ok{background:var(--verde)}
  .att{display:inline-flex;align-items:center;gap:3px}
  .empty{text-align:center;color:var(--muted);padding:46px 16px;font-size:14px}
- #detail,#forn,#docs{display:none;position:fixed;inset:0;z-index:40;background:var(--cream);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+ #detail,#forn,#docs,#annui{display:none;position:fixed;inset:0;z-index:40;background:var(--cream);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+ .anrow{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin-bottom:10px;display:flex;gap:11px;align-items:flex-start;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+ .anrow.done{opacity:.62}
+ .anck{flex:none;width:30px;height:30px;border-radius:9px;border:2px solid var(--gold);background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:var(--verde);cursor:pointer;margin-top:1px}
+ .anrow.done .anck{background:var(--verde);border-color:var(--verde);color:#fff}
+ .anbody{flex:1;min-width:0}
+ .antt{font-size:15px;font-weight:800;color:var(--nero)}
+ .anrow.done .antt{text-decoration:line-through}
+ .andet{font-size:13px;color:#555;margin-top:2px;line-height:1.35;white-space:pre-wrap}
+ .anmeta{font-size:11px;color:var(--verde);font-weight:700;margin-top:4px}
+ .anacts{flex:none;display:flex;flex-direction:column;gap:6px}
+ .anacts button{border:none;background:#eee;color:#555;width:30px;height:30px;border-radius:8px;font-size:14px;cursor:pointer}
+ .anacts button.anx{background:#fff;color:var(--rosso);border:1.5px solid var(--rosso)}
+ .anadd{background:#fff;border:1.5px dashed var(--gold);border-radius:13px;padding:12px;margin-bottom:14px}
+ .anadd input{width:100%;border:1px solid #cfcfcf;border-radius:10px;padding:11px;font-size:15px;font-family:inherit;margin-bottom:8px;box-sizing:border-box}
+ .anadd button{width:100%;border:none;border-radius:10px;padding:11px;font-size:15px;font-weight:800;background:var(--gold);color:#1a1400;cursor:pointer}
+ .anintro{font-size:12.5px;color:var(--muted);margin-bottom:12px;line-height:1.4;text-align:center}
+ /* print lavori annuali (B/N) */
+ #anprint{display:none}
+ @media print{.an-pitem{break-inside:avoid}}
  .dwrap{max-width:760px;margin:0 auto;padding:14px 16px 60px}
  .dtop{position:sticky;top:0;background:var(--cream);padding:8px 0 10px;display:flex;align-items:center;gap:10px;z-index:5;border-bottom:1px solid var(--line);margin-bottom:14px}
  .dtop .back{border:none;background:none;color:var(--nero);font-size:16px;font-weight:800;cursor:pointer;padding:6px}
@@ -157,7 +176,7 @@ img{max-width:100%;height:auto}
 <div id="app" style="display:none">
  <header><div class="brand"><div class="mark">PR</div><div><small>Prinz Rudolf · Cucina</small><h1>Manutenzione</h1></div></div></header>
  <main>
-  <div class="bar"><input id="q" type="search" placeholder="Cerca macchinario, problema, ditta…" autocomplete="off"><button class="newbtn" id="newBtn">＋ Nuovo</button><button class="newbtn fornb" id="fornBtn">📇 Fornitori</button><button class="newbtn fornb" id="docBtn">📁 Documenti</button></div>
+  <div class="bar"><input id="q" type="search" placeholder="Cerca macchinario, problema, ditta…" autocomplete="off"><button class="newbtn" id="newBtn">＋ Nuovo</button><button class="newbtn fornb" id="fornBtn">📇 Fornitori</button><button class="newbtn fornb" id="docBtn">📁 Documenti</button><button class="newbtn" id="annuiBtn" style="background:var(--gold);color:#1a1400">📋 Lavori annuali</button></div>
   <div class="filters" id="filters"></div>
   <div id="status">Caricamento…</div>
   <div id="list"></div>
@@ -171,19 +190,23 @@ img{max-width:100%;height:auto}
  <div class="dtop"><button class="back" id="docBack">‹ Indietro</button><span class="ttl">📁 Bolle &amp; Fatture</span></div>
  <div id="docbody"></div>
 </div></div>
+<div id="annui"><div class="dwrap">
+ <div class="dtop"><button class="back" id="annuiBack">‹ Indietro</button><span class="ttl">📋 Lavori annuali</span><button class="savebtn" id="annuiPrint" style="margin-left:auto;background:var(--nero);color:#fff">🖨️ Stampa / PDF</button></div>
+ <div id="annuibody"></div>
+</div></div>
 <div id="forn"><div class="dwrap">
  <div class="dtop"><button class="back" id="fBack">‹ Indietro</button><span class="ttl">📇 Rubrica fornitori</span></div>
  <div id="fbody"></div>
 </div></div>
 <div id="viewer"><div class="vbar"><button class="vback" onclick="closeViewer()">‹ Indietro</button><span class="vt" id="vtitle"></span></div><div id="vbody"></div></div>
 <div id="toast"></div>
-<div id="verbadge">v 22/07 17:52</div>
+<div id="verbadge">v 07/11 21:30</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 const CHEF_CODE="Capo2026";
-const APP_VER='22/07 17:52';
+const APP_VER='07/11 21:30';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
@@ -282,8 +305,49 @@ function closeViewer(){el('viewer').classList.remove('on');el('vbody').innerHTML
 function viewDoc(ek){var k=decodeURIComponent(ek);var d=DOCS.find(function(x){return x.k===k;});if(!d)return;showViewer(d.v.mime,d.v.data,d.v.name||'');}
 async function delDoc(ek){var k=decodeURIComponent(ek);if(!confirm('Vuoi eliminare questo documento?\nL\'operazione non si può annullare.'))return;var c=prompt('Codice chef per eliminare:');if(c===null)return;if(c.trim().toLowerCase()!==CHEF_CODE.toLowerCase()){alert('Codice errato.');return;}
  try{await sb('kitchen_meta?k=eq.'+encodeURIComponent(k),{method:'DELETE',headers:{Prefer:'return=minimal'}});}catch(e){console.error(e);}openDocs();}
+/* ===== Lavori annuali ===== */
+var ANNUI=[];
+var ANNUI_SEED=[
+ {t:'Forni Vision (x2) — revisione',d:'Controllo guarnizioni, pulizia del filtro aria inferiore (spesso sporco) e verifica generale con il tecnico.'},
+ {t:'Cappa principale — tubo/condotto',d:'Pulizia del tubo accanto alla cappa principale: c\'è grasso visibile che quasi cola.'},
+ {t:'Forno Moretti (pizza) — camera e platea',d:'Pulizia a fondo della camera nella parte sotto (fuliggine e sporco accumulati): capire il metodo giusto per pulirla. Controllo dello stato della platea.'},
+ {t:'Forni Naboo (x2) — tagliando completo',d:'Controllo generale, aggiornamento, decalcificazione e controllo guarnizioni. Sistemare il sistema di lavaggio (i cavi si rompono e si corrodono): chiedere se esistono pastiglie al posto del detersivo liquido, visto che l\'acido corrode i cavi ogni ~6 mesi.'},
+ {t:'Tritacarne — revisione',d:'Usato spesso perde olio che finisce nel cibo: capire se è riparabile, altrimenti sostituirlo.'},
+ {t:'Macchine sottovuoto — manutenzione',d:'Controllo olio pompa, guarnizioni e barra di saldatura/chiusura sacchetti.'},
+ {t:'Lavastoviglie / lavabicchieri — manutenzione',d:'Decalcificazione, controllo dosatori (detersivo e brillantante), guarnizioni e bracci di lavaggio.'}
+];
+async function openAnnui(){el('annui').style.display='block';el('detail').style.display='none';el('forn').style.display='none';el('docs').style.display='none';window.scrollTo(0,0);el('annuibody').innerHTML='<div class="anintro">Caricamento…</div>';
+ try{var r=await sb('kitchen_meta?k=eq.manutannui&select=v');var v=r&&r[0]&&r[0].v;
+  if(v&&Array.isArray(v.items)&&v.items.length){ANNUI=v.items;}else{ANNUI=ANNUI_SEED.map(function(s,i){return {id:'a'+(Date.now()+i),t:s.t,d:s.d,done:false};});saveAnnui();}
+ }catch(e){ANNUI=ANNUI_SEED.map(function(s,i){return {id:'a'+(Date.now()+i),t:s.t,d:s.d,done:false};});}
+ renderAnnui();}
+async function saveAnnui(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'manutannui',v:{items:ANNUI,updatedAt:new Date().toISOString()}})});}catch(e){toast('⚠️ Non salvato, controlla internet');console.error(e);}}
+function renderAnnui(){var done=ANNUI.filter(function(x){return x.done;}).length;
+ var h='<div class="anintro">La tua lista dei lavori da far fare ogni anno. Spunta quando è fatto, aggiungi una voce quando ti viene in mente.<br><b>'+done+' / '+ANNUI.length+' fatti.</b></div>';
+ h+='<div class="anadd"><input id="an_new" placeholder="Aggiungi un lavoro (es. controllare il bollitore…)" enterkeyhint="done"><button onclick="addAnnui()">＋ Aggiungi alla lista</button></div>';
+ h+=ANNUI.map(function(x){return '<div class="anrow'+(x.done?' done':'')+'">'+
+   '<div class="anck" onclick="toggleAnnui(\''+x.id+'\')">'+(x.done?'✓':'')+'</div>'+
+   '<div class="anbody"><div class="antt">'+esc(x.t)+'</div>'+(x.d?'<div class="andet">'+esc(x.d)+'</div>':'')+(x.done&&x.doneAt?'<div class="anmeta">✓ Fatto il '+dShow(x.doneAt)+'</div>':'')+'</div>'+
+   '<div class="anacts"><button onclick="editAnnui(\''+x.id+'\')">✎</button><button class="anx" onclick="delAnnui(\''+x.id+'\')">×</button></div>'+
+   '</div>';}).join('');
+ if(!ANNUI.length)h+='<div class="empty">Lista vuota. Aggiungi la prima voce qui sopra.</div>';
+ el('annuibody').innerHTML=h;
+ var ni=el('an_new');if(ni)ni.addEventListener('keydown',function(e){if(e.key==='Enter')addAnnui();});}
+function addAnnui(){var i=el('an_new');var t=(i&&i.value||'').trim();if(!t){toast('Scrivi il lavoro');return;}ANNUI.push({id:'a'+Date.now(),t:t,d:'',done:false});saveAnnui();renderAnnui();toast('✓ Aggiunto');}
+function toggleAnnui(id){var x=ANNUI.find(function(y){return y.id===id;});if(!x)return;x.done=!x.done;x.doneAt=x.done?today():'';saveAnnui();renderAnnui();}
+function editAnnui(id){var x=ANNUI.find(function(y){return y.id===id;});if(!x)return;var t=prompt('Titolo del lavoro:',x.t);if(t===null)return;var d=prompt('Dettaglio (cosa controllare/fare):',x.d||'');if(d===null)return;x.t=t.trim();x.d=d.trim();saveAnnui();renderAnnui();}
+function delAnnui(id){var x=ANNUI.find(function(y){return y.id===id;});if(!confirm('Togliere "'+((x&&x.t)||'')+'" dalla lista?'))return;ANNUI=ANNUI.filter(function(y){return y.id!==id;});saveAnnui();renderAnnui();}
+function printAnnui(){var t2=dShow(today());
+ var rows=ANNUI.map(function(x){return '<div class="an-pitem" style="display:flex;gap:11px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #ccc">'+
+   '<div style="flex:none;width:20px;height:20px;border:2px solid #000;border-radius:4px;margin-top:2px"></div>'+
+   '<div style="flex:1"><div style="font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.3px">'+esc(x.t)+'</div>'+(x.d?'<div style="font-size:12.5px;color:#111;margin-top:3px;line-height:1.4">'+esc(x.d)+'</div>':'')+'</div></div>';}).join('');
+ var h='<div style="color:#000;font-family:-apple-system,Helvetica,Arial,sans-serif"><div style="border-bottom:2.5px solid #000;padding-bottom:9px;margin-bottom:14px"><div style="font-size:11px;letter-spacing:2px;font-weight:700">PRINZ RUDOLF · CUCINA</div><div style="font-size:21px;font-weight:800;margin-top:3px">LAVORI ANNUALI — CUCINA</div><div style="font-size:12px;color:#333;margin-top:4px">Stampato il '+t2+'</div></div>'+rows+'<div style="font-size:11px;color:#555;margin-top:16px">Spunta la casella quando il lavoro è completato.</div></div>';
+ el('a3').innerHTML=h;el('a3wrap').style.display='block';window.scrollTo(0,0);}
 el('newBtn').onclick=openNew;
 el('fornBtn').onclick=openForn;
+el('annuiBtn').onclick=openAnnui;
+el('annuiBack').onclick=function(){el('annui').style.display='none';render();};
+el('annuiPrint').onclick=printAnnui;
 el('dBack').onclick=function(){el('detail').style.display='none';CUR=null;};
 el('dSave').onclick=save;
 el('fBack').onclick=function(){el('forn').style.display='none';render();};el('docBtn').onclick=openDocs;el('docBack').onclick=function(){el('docs').style.display='none';};
