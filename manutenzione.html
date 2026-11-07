@@ -20,8 +20,9 @@
  .brand{display:flex;align-items:center;gap:11px}.brand .mark{width:36px;height:36px;border-radius:9px;border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gold);font-size:15px;flex:none}
  .brand h1{font-size:17px;margin:0;font-weight:800}.brand small{display:block;font-size:10px;opacity:.8;letter-spacing:1.4px;text-transform:uppercase;font-weight:700}
  main{max-width:820px;margin:0 auto;padding:14px}
- .bar{display:flex;gap:8px;margin-bottom:10px}
- .bar input{flex:1;border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-size:15px;min-width:0}
+ .bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+ .bar input{flex:1 1 100%;border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-size:15px;min-width:0}
+ .bar .newbtn{flex:1 1 auto}
  .newbtn{border:none;border-radius:11px;padding:11px 14px;font-size:15px;font-weight:800;background:var(--nero);color:#fff;cursor:pointer;white-space:nowrap}
  .fornb{background:var(--blu)}
  .filters{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}.filters::-webkit-scrollbar{display:none}
@@ -200,13 +201,13 @@ img{max-width:100%;height:auto}
 </div></div>
 <div id="viewer"><div class="vbar"><button class="vback" onclick="closeViewer()">‹ Indietro</button><span class="vt" id="vtitle"></span></div><div id="vbody"></div></div>
 <div id="toast"></div>
-<div id="verbadge">v 07/11 21:30</div>
+<div id="verbadge">v 07/11 23:55</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="Rachi020817";
 const CHEF_CODE="Capo2026";
-const APP_VER='07/11 21:30';
+const APP_VER='07/11 23:55';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
