@@ -189,7 +189,7 @@ const pw=document.getElementById('pw'),err=document.getElementById('err');
 function unlock(p,fromStore){if(p!==APP_PW){err.textContent='Password errata';pw.value='';return;}if(document.getElementById('remember').checked||fromStore){try{localStorage.setItem('pr_dpw','1')}catch(e){}}document.getElementById('lock').style.display='none';document.getElementById('app').style.display='block';document.getElementById('datePick').value=todayStr();loadAll();setInterval(()=>{var ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;if(document.getElementById('datePick').value===todayStr())loadAll(true)},180000);}
 document.getElementById('enter').onclick=()=>unlock(pw.value,false);
 pw.addEventListener('keydown',e=>{if(e.key==='Enter')unlock(pw.value,false)});
-const APP_VER='02/11 20:00';
+const APP_VER='08/11 00:45';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_dash'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_dash','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 (function(){try{if(localStorage.getItem('pr_av_dash')!=='28/06 13:00'){localStorage.removeItem('pr_dpw');localStorage.setItem('pr_av_dash','28/06 13:00');}}catch(_e){}let s=null;try{s=localStorage.getItem('pr_dpw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(()=>pw.focus(),300);})();
 function goToday(){document.getElementById('datePick').value=todayStr();loadAll();}
@@ -758,7 +758,7 @@ function apeChiuView(ck,day,resp){
   return '<div style="margin-bottom:8px"><div onclick="foldTP(\'ape\')" style="cursor:pointer;font-weight:700;padding:8px 2px;border-bottom:1px solid var(--border)">🌅 Apertura — resp. settimana <span class="muted">'+(aO?'▾':'▸')+'</span></div>'+(aO?shared('apertura',ck,day,resp):'')+'</div>'+'<div><div onclick="foldTP(\'chi\')" style="cursor:pointer;font-weight:700;padding:8px 2px;border-bottom:1px solid var(--border)">🌙 Chiusura — resp. settimana <span class="muted">'+(cO?'▾':'▸')+'</span></div>'+(cO?shared('chiusura',ck,day,resp):'')+'</div>';
 }
 
-function setTile(id){window.TILEVIEW=id;try{window.scrollTo(0,0);}catch(e){}rerenderDash();}
+function setTile(id){if(id==='acquisti'){try{location.href='martina.html#dir';}catch(e){}return;}if(id==='diario'){try{location.href='diario.html';}catch(e){}return;}window.TILEVIEW=id;try{window.scrollTo(0,0);}catch(e){}rerenderDash();}
 function recapRender(){
   var el=document.getElementById('recapDate'); if(!el)return;
   var day=el.value; window._recapDay=day;
@@ -819,6 +819,7 @@ function render(day,ck,ckw,ent,meta,presa){
     compiti: chefCard(ck,day),
     report: reportCard()+oreReportCard(),
     appunti: appuntiCard(),
+    mie: noteCard()+dimenCardDash()+appuntiCard(),
     rif: recModsCard()+cookNotesCard()+respCardH+presaCardH+menuCard()
   };
   var _T=window.TIMB||{};
@@ -839,16 +840,17 @@ function render(day,ck,ckw,ent,meta,presa){
     {id:'scheda',l:'Scheda servizio',e:'📝',b:'#F4C0D1',fg:'#4B1528',a:'#72243E',n:(scheda.length||'')},
     {id:'passaggi',l:'Passaggi',e:'🔄',b:'#F5C4B3',fg:'#4A1B0C',a:'#712B13',n:(allPass.length||'')},
     {id:'consegne',l:'Consegne e ordini',e:'📋',b:'#D3D1C7',fg:'#2C2C2A',a:'#444441',n:(nCons||'')},
-    {id:'osserv',l:'Osservazioni ai cuochi',e:'📣',b:'#F09595',fg:'#501313',a:'#791F1F',s:'richiami · conferma lettura',n:(nOss?('⏳ '+nOss):'')},
+    {id:'mie',l:'Cuochi & miei appunti',e:'📝',b:'#F09595',fg:'#501313',a:'#791F1F',s:'osservazioni · dimenticanze · note mie',n:(nOss?('⏳ '+nOss):'')},
     {id:'dimen',l:'Dimenticanze timbrature',e:'⏱️',b:'#F7C1C1',fg:'#501313',a:'#8a1f10',s:'chi salta entrate/uscite',n:''},
     {id:'acquisti',l:'Acquisti / Martina',e:'💶',b:'#F7D8A8',fg:'#4a2f02',a:'#7a4e06',s:'spesa fornitori · bolle',n:''},
+    {id:'diario',l:'Diario lavori',e:'🗒️',b:'#CDE7D6',fg:'#0d3d24',a:'#14663b',s:'report per Diego',n:''},
     {id:'compiti',l:'I miei compiti',e:'✅',b:'#FAC775',fg:'#412402',a:'#633806',n:''},
     {id:'report',l:'Report ore',e:'📊',b:'#B5D4F4',fg:'#042C53',a:'#0C447C',n:''},
     {id:'appunti',l:'I miei appunti',e:'📝',b:'#E2D4F4',fg:'#2C1553',a:'#3C3489',s:'sfoghi · solo tu',n:((window.DIARIO&&window.DIARIO.length)?(''+window.DIARIO.length):'')},
     {id:'rif',l:'Riferimento',e:'📚',b:'#D3D1C7',fg:'#2C2C2A',a:'#444441',n:''}
   ];
   if(typeof PENALI_ON!=='undefined' && !PENALI_ON){TILES=TILES.filter(function(t){return t.id!=='penali';});}
-  TILES=TILES.filter(function(t){return ['resoconto','passaggi','consegne','compiti','rif'].indexOf(t.id)<0;});
+  TILES=TILES.filter(function(t){return ['resoconto','passaggi','consegne','compiti','rif','presenze','dimen','appunti'].indexOf(t.id)<0;});
   var LBL={};TILES.forEach(function(t){LBL[t.id]=t.l;});
   if(window.TILEVIEW && VIEWS[window.TILEVIEW]!==undefined){
     document.getElementById('view').innerHTML='<button class="btn" style="width:100%;margin-bottom:12px;font-size:15px" onclick="setTile(null)">‹ Indietro ai quadrati</button><div style="font-size:18px;font-weight:700;margin:2px 0 10px">'+esc(LBL[window.TILEVIEW]||'')+'</div>'+VIEWS[window.TILEVIEW];
@@ -980,7 +982,7 @@ function copyWeek(){
 }
 
 </script>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 02/11 20:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 08/11 00:45</div>
 
 <script>
 (function(){function mount(){var main=document.querySelector('#app main')||document.querySelector('main');if(!main){return setTimeout(mount,400);}if(document.getElementById('devcard'))return;var card=document.createElement('div');card.className='card';card.id='devcard';card.innerHTML='<div class="card-h"><div class="t">\uD83D\uDD10 Dispositivi</div><div class="sub">approva / revoca</div></div><div class="card-b"><div class="muted" style="white-space:normal;margin-bottom:10px">Approva o revoca i telefoni e tablet che possono aprire le app.</div><button id="devbtn" style="width:100%;padding:11px;border:none;border-radius:10px;background:var(--ink);color:#fff;font-weight:700;font-size:14px">Apri pannello dispositivi</button><div id="devwrap" style="display:none;margin-top:10px"></div></div>';main.insertBefore(card,main.firstChild);var open=false;document.getElementById('devbtn').addEventListener('click',function(){var w=document.getElementById('devwrap');open=!open;if(open){if(!w.dataset.loaded){w.innerHTML='<iframe src="dispositivi.html" style="width:100%;height:520px;border:1px solid var(--line);border-radius:10px" loading="lazy"></iframe>';w.dataset.loaded='1';}w.style.display='block';this.textContent='Chiudi pannello';}else{w.style.display='none';this.textContent='Apri pannello dispositivi';}});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();})();
