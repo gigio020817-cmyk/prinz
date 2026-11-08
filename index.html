@@ -30,6 +30,9 @@ a.app small{display:block;font-size:12px;color:var(--muted);font-weight:500;marg
 .chefhdr{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);text-align:center;margin:4px 0 2px;cursor:pointer}
 .ghdr{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);opacity:.8;font-weight:700;margin:12px 4px 0}
 .ghdr:first-child{margin-top:0}
+.ghdr{cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
+.accar{color:var(--gold);font-weight:800;font-size:12px}
+.grp{display:flex;flex-direction:column;gap:12px}
 footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:center}
 </style>
 <script src="devicegate.js"></script>
@@ -69,9 +72,9 @@ footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:cen
 <a class="app" href="manutenzione.html"><span class="emoji">&#128736;&#65039;</span><span>Manutenzione Cucina<small>guasti, interventi, bolle e fatture</small></span><span class="arrow">&rsaquo;</span></a>
 </div>
 <footer>Prinz Rudolf &middot; Merano</footer>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 08/11 10:40</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 08/11 12:00</div>
 <script>
-var APP_VER='08/11 10:40';
+var APP_VER='08/11 12:00';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_index'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_index','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 var CHEF_CODE="Capo2026";
 var SALA_CODES=["martina2026","capo2026"];
@@ -97,6 +100,31 @@ if(SALA_CODES.indexOf(c.trim().toLowerCase())>-1){try{localStorage.setItem('pr_s
 });
 document.getElementById('chefhdr').addEventListener('click',hideChef);
 document.getElementById('salahdr').addEventListener('click',exitSala);
+/* ===== Sezioni a tendina ===== */
+function makeAccordion(grid){
+ if(!grid)return;
+ var kids=Array.prototype.slice.call(grid.children);
+ var curWrap=null;
+ kids.forEach(function(node){
+  if(node.classList.contains('ghdr')){
+   var car=document.createElement('span');car.className='accar';node.appendChild(car);
+   var wrap=document.createElement('div');wrap.className='grp';
+   grid.insertBefore(wrap,node.nextSibling);
+   curWrap=wrap;
+   (function(h,w){
+     var key='acc_'+((h.textContent||'').trim().replace(/[^a-zA-Z0-9]+/g,'_').slice(0,32));
+     var closed=false;try{closed=localStorage.getItem(key)==='0';}catch(e){}
+     function apply(){w.style.display=closed?'none':'flex';var c=h.querySelector('.accar');if(c)c.textContent=closed?'▸':'▾';}
+     apply();
+     h.addEventListener('click',function(){closed=!closed;try{localStorage.setItem(key,closed?'0':'1');}catch(e){}apply();});
+   })(node,wrap);
+  } else if(node.classList.contains('app') && curWrap){
+   curWrap.appendChild(node);
+  }
+ });
+}
+makeAccordion(document.getElementById('kitchen'));
+makeAccordion(document.getElementById('chefapps'));
 </script>
 </body>
 </html>
