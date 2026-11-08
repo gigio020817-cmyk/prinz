@@ -28,11 +28,18 @@ a.app .emoji{font-size:24px;width:30px;text-align:center;flex:none}
 a.app .arrow{margin-left:auto;color:var(--gold);font-weight:800}
 a.app small{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:2px}
 .chefhdr{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);text-align:center;margin:4px 0 2px;cursor:pointer}
-.ghdr{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);opacity:.8;font-weight:700;margin:12px 4px 0}
+.ghdr{font-size:15px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);opacity:1;font-weight:800;margin:16px 4px 2px}
 .ghdr:first-child{margin-top:0}
 .ghdr{cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
-.accar{color:var(--gold);font-weight:800;font-size:12px}
+.accar{color:var(--gold);font-weight:800;font-size:14px}
 .grp{display:flex;flex-direction:column;gap:12px}
+.editbtn{display:inline-block;border:1.5px solid var(--gold);color:var(--gold);background:transparent;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:800;cursor:pointer;margin:-14px 0 20px;user-select:none}
+.editbtn.on{background:var(--gold);color:#1a1400}
+.hidebadge{display:none;font-size:11px;font-weight:800;color:var(--gold);margin-left:auto;white-space:nowrap}
+a.app.editing{outline:2px dashed rgba(201,162,39,.6)}
+a.app.editing .arrow{display:none}
+a.app.editing .hidebadge{display:block}
+a.app.isHidden.editing{opacity:.5}
 footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:center}
 </style>
 <script src="devicegate.js"></script>
@@ -41,6 +48,7 @@ footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:cen
 <div class="mark" id="prmark">PR</div>
 <h1>Prinz Rudolf</h1>
 <div class="sub" id="prsub">App Cucina</div>
+<div class="editbtn" id="editbtn">✏️ Modifica home</div>
 <div class="grid" id="kitchen">
 <div class="ghdr">Men&ugrave; del giorno</div>
 <a class="app" href="mezzapensione.html"><span class="emoji">&#127869;&#65039;</span><span>Men&ugrave; Mezza Pensione<small>cosa esce stasera, 2 settimane</small></span><span class="arrow">&rsaquo;</span></a>
@@ -72,9 +80,9 @@ footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:cen
 <a class="app" href="manutenzione.html"><span class="emoji">&#128736;&#65039;</span><span>Manutenzione Cucina<small>guasti, interventi, bolle e fatture</small></span><span class="arrow">&rsaquo;</span></a>
 </div>
 <footer>Prinz Rudolf &middot; Merano</footer>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 08/11 12:00</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 08/11 12:35</div>
 <script>
-var APP_VER='08/11 12:00';
+var APP_VER='08/11 12:35';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_index'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_index','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 var CHEF_CODE="Capo2026";
 var SALA_CODES=["martina2026","capo2026"];
@@ -125,6 +133,34 @@ function makeAccordion(grid){
 }
 makeAccordion(document.getElementById('kitchen'));
 makeAccordion(document.getElementById('chefapps'));
+/* ===== Nascondi / mostra app ===== */
+var HIDDEN={};try{HIDDEN=JSON.parse(localStorage.getItem('pr_hidden')||'{}')||{};}catch(e){HIDDEN={};}
+var EDIT=false;
+function saveHidden(){try{localStorage.setItem('pr_hidden',JSON.stringify(HIDDEN));}catch(e){}}
+function applyHidden(){
+ Array.prototype.forEach.call(document.querySelectorAll('a.app'),function(a){
+  var href=a.getAttribute('href');var hid=!!HIDDEN[href];
+  a.classList.toggle('isHidden',hid);a.classList.toggle('editing',EDIT);
+  var b=a.querySelector('.hidebadge');if(!b){b=document.createElement('span');b.className='hidebadge';a.appendChild(b);}
+  b.textContent=hid?'🙈 nascosta · tocca per mostrare':'👁 tocca per nascondere';
+  a.style.display=EDIT?'flex':(hid?'none':'flex');
+ });
+}
+Array.prototype.forEach.call(document.querySelectorAll('a.app'),function(a){
+ a.addEventListener('click',function(ev){
+  if(EDIT){ev.preventDefault();var href=a.getAttribute('href');if(HIDDEN[href])delete HIDDEN[href];else HIDDEN[href]=1;saveHidden();applyHidden();}
+ });
+});
+var editbtn=document.getElementById('editbtn');
+editbtn.addEventListener('click',function(){
+ EDIT=!EDIT;editbtn.classList.toggle('on',EDIT);
+ editbtn.textContent=EDIT?'✓ Fatto':'✏️ Modifica home';
+ if(EDIT){ // apri tutte le sezioni per poterle gestire
+  Array.prototype.forEach.call(document.querySelectorAll('.grp'),function(w){w.style.display='flex';});
+ }
+ applyHidden();
+});
+applyHidden();
 </script>
 </body>
 </html>
