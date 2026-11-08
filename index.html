@@ -62,15 +62,16 @@ footer{margin-top:26px;font-size:11px;color:rgba(255,255,255,.45);text-align:cen
 <a class="app" href="ordini.html"><span class="emoji">&#128230;</span><span>Ordini Fornitori<small>ordini e WhatsApp</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="controllo.html"><span class="emoji">&#128202;</span><span>Spesa &amp; Controllo<small>andamento prezzi, fatture vs bolle, top spesa</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="magazzino.html"><span class="emoji">&#128452;&#65039;</span><span>Magazzino<small>giacenze, scorte e mappa scaffali</small></span><span class="arrow">&rsaquo;</span></a>
+<a class="app" href="temperature.html"><span class="emoji">&#127777;&#65039;</span><span>Temperature Frighi<small>registro HACCP, soglie e report</small></span><span class="arrow">&rsaquo;</span></a>
 <div class="ghdr">Direzione &amp; eventi</div>
 <a class="app" href="dashboard.html"><span class="emoji">&#128203;</span><span>Dashboard Chef<small>solo per lo chef</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="cene.html"><span class="emoji">&#129346;</span><span>Cene, Eventi &amp; Serate Gourmet<small>coperti, men&ugrave; e serate gourmet</small></span><span class="arrow">&rsaquo;</span></a>
 <a class="app" href="manutenzione.html"><span class="emoji">&#128736;&#65039;</span><span>Manutenzione Cucina<small>guasti, interventi, bolle e fatture</small></span><span class="arrow">&rsaquo;</span></a>
 </div>
 <footer>Prinz Rudolf &middot; Merano</footer>
-<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 05/11 11:30</div>
+<div id="verbadge" style="position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-family:-apple-system,sans-serif;pointer-events:none">v 08/11 10:40</div>
 <script>
-var APP_VER='05/11 11:30';
+var APP_VER='08/11 10:40';
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_index'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_index','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
 var CHEF_CODE="Capo2026";
 var SALA_CODES=["martina2026","capo2026"];

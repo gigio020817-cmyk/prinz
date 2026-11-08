@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="it"><head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Temperature"><meta name="theme-color" content="#111111"><meta name="robots" content="noindex, nofollow">
+<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+<title>Prinz Rudolf · Temperature</title>
+<style>
+ :root{--nero:#1c1c1c;--nero-d:#000;--cream:#faf8f2;--paper:#fff;--ink:#1a1a1a;--muted:#8a8378;--line:#ececec;--gold:#c9a227;--yellow:#f5c518;--wa:#25d366;--ok:#2e7d5b;--warn:#c0392b;--blu:#2b6cb0}
+ *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;padding:0;overflow-x:hidden;max-width:100%}
+ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--cream);color:var(--ink);line-height:1.4;padding-bottom:env(safe-area-inset-bottom)}
+ #lock{position:fixed;inset:0;z-index:50;background:linear-gradient(160deg,var(--nero),var(--nero-d));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;color:#fff;text-align:center}
+ #lock .mark{width:70px;height:70px;border-radius:18px;border:2px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;margin-bottom:18px}
+ #lock h1{font-size:22px;margin:0 0 4px}#lock p{opacity:.85;font-size:13px;margin:0 0 22px;letter-spacing:1px}#lock .box{width:100%;max-width:320px}
+ #lock input{width:100%;border:none;border-radius:13px;padding:15px;font-size:17px;text-align:center;color:var(--ink);margin-bottom:12px}
+ #lock button{width:100%;border:none;border-radius:13px;padding:15px;font-size:17px;font-weight:800;background:linear-gradient(135deg,var(--yellow),var(--gold));color:#1a1400;cursor:pointer}
+ #lock .err{color:#ffd2d2;font-size:13px;height:18px;margin-top:8px}#lock label{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;opacity:.9;margin-top:14px;cursor:pointer}#lock label input{width:auto;margin:0}
+ header{position:sticky;top:0;z-index:20;background:linear-gradient(160deg,var(--nero),var(--nero-d));color:#fff;padding:calc(env(safe-area-inset-top) + 14px) 16px 10px;box-shadow:0 2px 14px rgba(0,0,0,.2)}
+ .brand{display:flex;align-items:center;gap:11px}.brand .mark{width:34px;height:34px;border-radius:9px;border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gold);font-size:14px;flex:none}
+ .brand h1{font-size:16px;margin:0;font-weight:800}.brand small{display:block;font-size:10px;opacity:.8;letter-spacing:1.4px;text-transform:uppercase;font-weight:700}
+ .tabs{display:flex;gap:6px;margin-top:11px}
+ .tabs button{flex:1;border:none;border-radius:9px;padding:9px 6px;font-size:13.5px;font-weight:800;background:rgba(255,255,255,.14);color:#fff;cursor:pointer}
+ .tabs button.on{background:linear-gradient(135deg,var(--yellow),var(--gold));color:#1a1400}
+ main{max-width:820px;margin:0 auto;padding:14px}
+ #status{font-size:12px;color:var(--muted);margin-bottom:10px;text-align:center;font-weight:600}
+ .topbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+ .topbar input[type=date]{border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:14px}
+ .topbar .who{flex:1;min-width:120px;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:14px}
+ .u{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin-bottom:11px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+ .u.okrow{border-left:5px solid var(--ok)} .u.warnrow{border-left:5px solid var(--warn);background:#fff6f5} .u.pend{border-left:5px solid var(--gold)}
+ .uh{display:flex;align-items:center;gap:8px}
+ .un{font-size:15.5px;font-weight:800;flex:1;min-width:0}
+ .utg{font-size:11.5px;color:var(--muted);font-weight:700;white-space:nowrap}
+ .cur{font-size:13px;font-weight:800;margin-top:3px}
+ .cur.ok{color:var(--ok)} .cur.warn{color:var(--warn)}
+ .inrow{display:flex;gap:8px;margin-top:9px;align-items:center}
+ .inrow input{width:92px;border:1px solid #cfcfcf;border-radius:10px;padding:10px;font-size:16px;text-align:center}
+ .inrow .deg{font-size:15px;color:var(--muted);font-weight:800}
+ .inrow button{margin-left:auto;border:none;border-radius:10px;padding:10px 18px;font-size:14px;font-weight:800;background:var(--nero);color:#fff;cursor:pointer}
+ .nota{width:100%;margin-top:8px;border:1px solid var(--warn);border-radius:10px;padding:9px;font-size:14px;font-family:inherit;background:#fff}
+ .btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px}
+ .btnrow button{flex:1 1 auto;border:none;border-radius:11px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;color:#fff}
+ .b-wa{background:var(--wa)} .b-print{background:var(--nero)} .b-add{background:var(--blu)}
+ .hday{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:9px;display:flex;align-items:center;gap:10px;cursor:pointer}
+ .hday .hd{flex:1;font-weight:800;font-size:14.5px}
+ .pill{font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px;color:#fff}.pill.ok{background:var(--ok)}.pill.warn{background:var(--warn)}
+ .empty{text-align:center;color:var(--muted);padding:40px 16px;font-size:14px}
+ .mini{font-size:12px;color:var(--muted);margin:2px 0 10px}
+ .addunit{background:#fff;border:1.5px dashed var(--gold);border-radius:13px;padding:12px;margin-bottom:14px}
+ .addunit input,.addunit select{width:100%;border:1px solid #cfcfcf;border-radius:9px;padding:9px;font-size:14px;margin-bottom:7px;font-family:inherit}
+ .addunit .r3{display:flex;gap:7px}.addunit .r3 input{margin-bottom:0}
+ .addunit button{width:100%;border:none;border-radius:10px;padding:11px;font-size:15px;font-weight:800;background:var(--gold);color:#1a1400;cursor:pointer;margin-top:7px}
+ .urow{display:flex;align-items:center;gap:9px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+ .urow .ui{flex:1}.urow .un2{font-weight:800;font-size:14.5px}.urow .ut2{font-size:12px;color:var(--muted)}
+ .urow button{border:none;background:#eee;color:#555;width:34px;height:34px;border-radius:9px;font-size:15px;cursor:pointer}
+ .urow button.del{background:#fff;color:var(--warn);border:1.5px solid var(--warn)}
+ #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#15201a;color:#fff;padding:11px 16px;border-radius:12px;font-size:13.5px;font-weight:700;opacity:0;transition:opacity .2s;z-index:80;pointer-events:none}#toast.show{opacity:.97}
+ #verbadge{position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;pointer-events:none}
+ /* print */
+ #a4{display:none}
+ @media print{body>*:not(#a4){display:none!important}#a4{display:block!important;padding:0;color:#000}
+  @page{size:A4;margin:12mm}.pr-h{border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:12px}
+  .pr-t{font-size:20px;font-weight:800}.pr-s{font-size:12px;color:#333}
+  table.pr{width:100%;border-collapse:collapse;font-size:12px}table.pr th,table.pr td{border:1px solid #999;padding:4px 7px;text-align:left}table.pr th{background:#eee}
+  .pr-w{color:#000;font-weight:800}}
+</style><script src="devicegate.js"></script>
+</head>
+<body>
+<div id="lock"><div class="mark">PR</div><h1>Temperature</h1><p>PRINZ RUDOLF · REGISTRO FRIGHI</p>
+ <div class="box"><input id="pw" type="password" placeholder="Password" autocomplete="current-password" enterkeyhint="go"><button id="enter">Entra</button><div class="err" id="err"></div>
+ <label><input type="checkbox" id="remember" checked> Ricorda su questo dispositivo</label></div></div>
+<div id="app" style="display:none">
+ <header><div class="brand"><div class="mark">PR</div><div><small>Prinz Rudolf · Cucina</small><h1>Temperature frighi</h1></div></div>
+  <div class="tabs"><button id="tab-oggi" class="on" onclick="setTab('oggi')">🌡️ Registra</button><button id="tab-storico" onclick="setTab('storico')">📅 Storico</button><button id="tab-olio" onclick="setTab('olio')">🍟 Olio</button><button id="tab-frighi" onclick="setTab('frighi')">❄️ Frighi</button></div>
+ </header>
+ <main>
+  <div id="status">Caricamento…</div>
+  <div id="view"></div>
+ </main>
+</div>
+<div id="toast"></div>
+<div id="a4"></div>
+<div id="verbadge">v 08/11 11:00</div>
+<script>
+const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
+const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
+const APP_PW="lavoroprinz";
+const CHEF_CODE="Capo2026";
+const APP_VER='08/11 11:00';
+function el(id){return document.getElementById(id);}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
+function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
+async function sb(path,opt){opt=opt||{};var h=Object.assign({apikey:SB_KEY,'Content-Type':'application/json'},opt.headers||{});var r=await fetch(SB_URL+'/rest/v1/'+path,Object.assign({},opt,{headers:h}));if(!r.ok)throw new Error('HTTP '+r.status);var t=await r.text();return t?JSON.parse(t):[];}
+function pad(n){return ('0'+n).slice(-2);}
+function ymd(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function today(){return ymd(new Date());}
+function dLab(ds){var p=ds.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+var GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+function dWeek(ds){try{return GG[new Date(ds+'T12:00:00').getDay()];}catch(e){return '';}}
+function unlock(p,fs){var e=el('err');if(p!==APP_PW){e.textContent='Password errata';el('pw').value='';return;}if(el('remember').checked||fs){try{localStorage.setItem('temp_pw','1')}catch(_){}}el('lock').style.display='none';el('app').style.display='block';boot();}
+el('enter').onclick=function(){unlock(el('pw').value,false);};
+el('pw').addEventListener('keydown',function(e){if(e.key==='Enter')unlock(e.target.value,false);});
+(async function selfUpdate(){try{if(sessionStorage.getItem('upd_temp'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_temp','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
+(function(){try{if(localStorage.getItem('pr_av_temp')!==APP_VER){localStorage.removeItem('temp_pw');localStorage.setItem('pr_av_temp',APP_VER);}}catch(_e){}var s=null;try{s=localStorage.getItem('temp_pw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(function(){el('pw').focus();},300);})();
+
+var UNITS=[],TAB='oggi',CURDATE=today(),DAYLOG={readings:[]};
+var FRIG=[],OLIO=[];
+var FRIGSEED=[{id:'f1',nome:'Friggitrice 1',ogni:7},{id:'f2',nome:'Friggitrice 2',ogni:7},{id:'f3',nome:'Friggitrice bistro',ogni:7}];
+var SEED=[
+ {id:'u1',nome:'Cella carne / positiva',tipo:'Cella +3°C',min:0,max:4},
+ {id:'u2',nome:'Cella verdure',tipo:'Cella +3°C',min:0,max:4},
+ {id:'u3',nome:'Cella pesce',tipo:'Cella +3°C',min:0,max:3},
+ {id:'u4',nome:'Banco frigo Primi',tipo:'Banco +3°C',min:0,max:4},
+ {id:'u5',nome:'Banco frigo Secondi',tipo:'Banco +3°C',min:0,max:4},
+ {id:'u6',nome:'Banco frigo Antipasti',tipo:'Banco +3°C',min:0,max:4},
+ {id:'u7',nome:'Banco frigo Bistro',tipo:'Banco +3°C',min:0,max:4},
+ {id:'u8',nome:'Frigo pasticceria',tipo:'Frigo +3°C',min:0,max:4},
+ {id:'u9',nome:'Frigo pizzeria',tipo:'Frigo +3°C',min:0,max:4},
+ {id:'u10',nome:'Frigo colazioni / insalate',tipo:'Frigo +3°C',min:0,max:4},
+ {id:'u11',nome:'Congelatore grande',tipo:'Freezer −18°C',min:-25,max:-18},
+ {id:'u12',nome:'Abbattitore',tipo:'Abbattitore',min:-25,max:4}
+];
+function setTab(t){TAB=t;['oggi','storico','olio','frighi'].forEach(function(x){el('tab-'+x).classList.toggle('on',x===t);});render();window.scrollTo(0,0);}
+async function boot(){el('status').textContent='Caricamento dal cloud…';try{
+  var r=await sb('kitchen_meta?k=eq.tempunits&select=v');var v=r&&r[0]&&r[0].v;
+  if(v&&Array.isArray(v.items)&&v.items.length){UNITS=v.items;}else{UNITS=SEED.slice();saveUnits();}
+  try{var fr=await sb('kitchen_meta?k=eq.frigunits&select=v');var fv=fr&&fr[0]&&fr[0].v;if(fv&&Array.isArray(fv.items)&&fv.items.length){FRIG=fv.items;}else{FRIG=FRIGSEED.slice();saveFrig();}}catch(e){FRIG=FRIGSEED.slice();}
+  try{var ol=await sb('kitchen_meta?k=eq.oliolog&select=v');OLIO=(ol&&ol[0]&&ol[0].v&&Array.isArray(ol[0].v.items))?ol[0].v.items:[];}catch(e){OLIO=[];}
+  await loadDay(CURDATE);
+  el('status').textContent='✓ Collegato · '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  render();
+ }catch(e){el('status').textContent='⚠️ Problema di collegamento. Controlla internet e riapri.';console.error(e);}}
+async function saveUnits(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'tempunits',v:{items:UNITS}})});}catch(e){toast('⚠️ Non salvato');console.error(e);}}
+async function loadDay(d){try{var r=await sb('kitchen_meta?k=eq.'+encodeURIComponent('templog|'+d)+'&select=v');DAYLOG=(r&&r[0]&&r[0].v&&Array.isArray(r[0].v.readings))?r[0].v:{readings:[]};}catch(e){DAYLOG={readings:[]};}}
+async function saveDay(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'templog|'+CURDATE,v:DAYLOG})});}catch(e){toast('⚠️ Non salvato, controlla internet');console.error(e);}}
+function whoName(){try{return localStorage.getItem('temp_who')||'';}catch(e){return '';}}
+function inRange(u,t){return t>=u.min && t<=u.max;}
+function lastReading(uid){var L=DAYLOG.readings.filter(function(r){return r.u===uid;});return L.length?L[L.length-1]:null;}
+function render(){
+ if(TAB==='frighi')return renderFrighi();
+ if(TAB==='storico')return renderStorico();
+ if(TAB==='olio')return renderOlio();
+ renderOggi();
+}
+function renderOggi(){
+ var who=whoName();
+ var h='<div class="topbar"><input type="date" id="dpick" value="'+CURDATE+'" onchange="changeDate(this.value)"><input class="who" id="who" placeholder="Rilevato da (nome)" value="'+esc(who)+'" oninput="rememberWho(this.value)"></div>';
+ h+='<div class="mini">Segna la temperatura di ogni frigo. Se è fuori soglia diventa rossa e devi scrivere cosa hai fatto (azione correttiva).</div>';
+ var warnCnt=0,pendCnt=0;
+ h+=UNITS.map(function(u){var last=lastReading(u.id);var cls='pend',cur='';
+   if(last){var ok=inRange(u,last.t);cls=ok?'okrow':'warnrow';if(!ok)warnCnt++;cur='<div class="cur '+(ok?'ok':'warn')+'">'+(ok?'✓ ':'⚠️ ')+fmtT(last.t)+' · '+tloc(last.at)+(last.by?' · '+esc(last.by):'')+(last.nota?'<br>📝 '+esc(last.nota):'')+'</div>';}else{pendCnt++;}
+   return '<div class="u '+cls+'"><div class="uh"><div class="un">'+esc(u.nome)+'</div><div class="utg">'+esc(u.tipo)+' · '+u.min+'…'+u.max+'°</div></div>'+cur+
+    '<div class="inrow"><input id="t_'+u.id+'" type="number" step="0.1" inputmode="decimal" placeholder="°C"><span class="deg">°C</span><button onclick="logTemp(\''+u.id+'\')">'+(last?'Aggiorna':'Salva')+'</button></div>'+
+    '<div id="nota_'+u.id+'"></div></div>';
+ }).join('');
+ h+='<div class="btnrow"><button class="b-wa" onclick="waDay()">📲 Invia</button><button class="b-print" onclick="printDay()">🖨️ Stampa giorno</button></div>';
+ h+='<div class="mini">Oggi: '+(UNITS.length-pendCnt)+'/'+UNITS.length+' registrati'+(warnCnt?(' · <b style="color:#c0392b">'+warnCnt+' fuori soglia</b>'):'')+'</div>';
+ el('view').innerHTML=h;
+}
+function fmtT(t){return (Math.round(t*10)/10).toString().replace('.',',')+'°C';}
+function tloc(iso){try{return new Date(iso).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}catch(e){return '';}}
+function changeDate(d){CURDATE=d;loadDay(d).then(render);}
+function rememberWho(v){try{localStorage.setItem('temp_who',v);}catch(e){}}
+function logTemp(uid){var inp=el('t_'+uid);var raw=(inp.value||'').trim().replace(',','.');if(raw===''){toast('Scrivi la temperatura');return;}var t=parseFloat(raw);if(isNaN(t)){toast('Numero non valido');return;}
+ var u=UNITS.find(function(x){return x.id===uid;});var ok=inRange(u,t);
+ var by=(el('who')&&el('who').value||'').trim();
+ if(!ok){var nd=el('nota_'+uid);nd.innerHTML='<textarea class="nota" id="ntxt_'+uid+'" placeholder="FUORI SOGLIA: cosa hai fatto? (es. richiuso la porta, chiamato il tecnico, spostato la merce)"></textarea><div class="inrow"><button style="margin-left:0;background:#c0392b" onclick="confirmWarn(\''+uid+'\','+t+')">Salva con nota</button></div>';var ta=el('ntxt_'+uid);if(ta)ta.focus();return;}
+ commit(uid,t,by,'');
+}
+function confirmWarn(uid,t){var ta=el('ntxt_'+uid);var nota=(ta&&ta.value||'').trim();if(!nota){toast('Scrivi l\'azione correttiva');return;}var by=(el('who')&&el('who').value||'').trim();commit(uid,t,by,nota);}
+function commit(uid,t,by,nota){DAYLOG.readings=DAYLOG.readings||[];DAYLOG.readings.push({u:uid,t:t,by:by,at:new Date().toISOString(),nota:nota});saveDay();render();toast(inRange(UNITS.find(function(x){return x.id===uid;}),t)?'✓ Registrato':'⚠️ Registrato fuori soglia');}
+function renderStorico(){el('view').innerHTML='<div class="mini">Carico lo storico…</div>';
+ sb('kitchen_meta?k=like.templog|*&select=k,v').then(function(rows){
+  var days=(rows||[]).map(function(x){var d=x.k.slice(8);var rd=(x.v&&x.v.readings)||[];var warn=0;rd.forEach(function(r){var u=UNITS.find(function(y){return y.id===r.u;});if(u&&!inRange(u,r.t))warn++;});return {d:d,n:rd.length,warn:warn};}).filter(function(x){return x.n;});
+  days.sort(function(a,b){return a.d<b.d?1:-1;});
+  if(!days.length){el('view').innerHTML='<div class="empty">Ancora nessuna registrazione.</div>';return;}
+  var h='<div class="btnrow"><button class="b-print" onclick="printMonth()">🖨️ Report del mese</button><button class="b-wa" onclick="waMonth()">📲 Invia mese</button></div>';
+  h+=days.map(function(x){return '<div class="hday" onclick="openDay(\''+x.d+'\')"><div class="hd">'+dWeek(x.d)+' '+dLab(x.d)+'</div><span class="pill '+(x.warn?'warn':'ok')+'">'+(x.warn?(x.warn+' ⚠'):(x.n+' ok'))+'</span></div>';}).join('');
+  el('view').innerHTML=h;window._HIST=days;
+ }).catch(function(){el('view').innerHTML='<div class="empty">⚠️ Problema di collegamento.</div>';});
+}
+function openDay(d){CURDATE=d;setTab('oggi');el('status');loadDay(d).then(function(){setTab('oggi');var dp=el('dpick');if(dp)dp.value=d;});}
+function renderFrighi(){
+ var h='<div class="mini">Qui gestisci l\'elenco dei frighi/celle e le loro soglie. Modifica, aggiungi o togli secondo la tua cucina.</div>';
+ h+='<div class="addunit"><input id="nf_nome" placeholder="Nome (es. Cella carne)"><input id="nf_tipo" placeholder="Tipo (es. Cella +3°C)"><div class="r3"><input id="nf_min" type="number" step="0.1" placeholder="min °C"><input id="nf_max" type="number" step="0.1" placeholder="max °C"></div><button onclick="addUnit()">＋ Aggiungi frigo</button></div>';
+ h+=UNITS.map(function(u){return '<div class="urow"><div class="ui"><div class="un2">'+esc(u.nome)+'</div><div class="ut2">'+esc(u.tipo)+' · soglia '+u.min+'…'+u.max+'°C</div></div><button onclick="editUnit(\''+u.id+'\')">✎</button><button class="del" onclick="delUnit(\''+u.id+'\')">×</button></div>';}).join('');
+ el('view').innerHTML=h;
+}
+function addUnit(){var n=(el('nf_nome').value||'').trim();if(!n){toast('Scrivi il nome');return;}var tipo=(el('nf_tipo').value||'').trim()||'Frigo';var mn=parseFloat((el('nf_min').value||'0').replace(',','.'));var mx=parseFloat((el('nf_max').value||'4').replace(',','.'));if(isNaN(mn))mn=0;if(isNaN(mx))mx=4;UNITS.push({id:'u'+Date.now(),nome:n,tipo:tipo,min:mn,max:mx});saveUnits();renderFrighi();toast('✓ Aggiunto');}
+function editUnit(id){var u=UNITS.find(function(x){return x.id===id;});if(!u)return;var n=prompt('Nome:',u.nome);if(n===null)return;var tipo=prompt('Tipo:',u.tipo);if(tipo===null)return;var mn=prompt('Soglia minima °C:',u.min);if(mn===null)return;var mx=prompt('Soglia massima °C:',u.max);if(mx===null)return;u.nome=n.trim();u.tipo=tipo.trim();u.min=parseFloat((''+mn).replace(',','.'));u.max=parseFloat((''+mx).replace(',','.'));saveUnits();renderFrighi();}
+function delUnit(id){var u=UNITS.find(function(x){return x.id===id;});if(!confirm('Togliere "'+((u&&u.nome)||'')+'" dall\'elenco?'))return;var c=prompt('Codice chef per togliere un frigo:');if(c===null)return;if(c.trim().toLowerCase()!==CHEF_CODE.toLowerCase()){alert('Codice errato.');return;}UNITS=UNITS.filter(function(x){return x.id!==id;});saveUnits();renderFrighi();}
+/* ===== report / stampa / whatsapp ===== */
+function dayTextLines(d,log){var out=[];UNITS.forEach(function(u){var L=(log.readings||[]).filter(function(r){return r.u===u.id;});if(!L.length){out.push('• '+u.nome+': —');return;}var last=L[L.length-1];var ok=inRange(u,last.t);out.push('• '+u.nome+': '+fmtT(last.t)+(ok?' ok':' ⚠ FUORI SOGLIA')+(last.by?' ('+last.by+')':'')+(last.nota?' — '+last.nota:''));});return out;}
+function waDay(){var t='PRINZ RUDOLF — Temperature frighi\n'+dWeek(CURDATE)+' '+dLab(CURDATE)+'\n\n'+dayTextLines(CURDATE,DAYLOG).join('\n');if(navigator.share){navigator.share({title:'Temperature',text:t}).catch(function(){});}else{window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');}}
+function printDay(){var rows=UNITS.map(function(u){var L=(DAYLOG.readings||[]).filter(function(r){return r.u===u.id;});var last=L.length?L[L.length-1]:null;var ok=last?inRange(u,last.t):null;return '<tr><td>'+esc(u.nome)+'</td><td>'+esc(u.tipo)+'</td><td>'+u.min+'…'+u.max+'</td><td'+(ok===false?' class="pr-w"':'')+'>'+(last?fmtT(last.t)+(ok?' ✓':' ⚠'):'—')+'</td><td>'+(last&&last.by?esc(last.by):'')+'</td><td>'+(last&&last.nota?esc(last.nota):'')+'</td></tr>';}).join('');
+ el('a4').innerHTML='<div class="pr-h"><div class="pr-t">REGISTRO TEMPERATURE — PRINZ RUDOLF</div><div class="pr-s">'+dWeek(CURDATE)+' '+dLab(CURDATE)+'</div></div><table class="pr"><tr><th>Frigo / cella</th><th>Tipo</th><th>Soglia °C</th><th>Rilevata</th><th>Da</th><th>Azione correttiva</th></tr>'+rows+'</table><p style="font-size:11px;margin-top:14px">Firma responsabile: __________________________</p>';
+ window.print();}
+function printMonth(){var mon=CURDATE.slice(0,7);el('view').scrollIntoView;sb('kitchen_meta?k=like.templog|'+mon+'*&select=k,v').then(function(rows){
+  var days=(rows||[]).map(function(x){return {d:x.k.slice(8),rd:(x.v&&x.v.readings)||[]};}).filter(function(x){return x.rd.length;}).sort(function(a,b){return a.d<b.d?-1:1;});
+  var tr=days.map(function(x){var warn=[];UNITS.forEach(function(u){var L=x.rd.filter(function(r){return r.u===u.id;});if(L.length){var last=L[L.length-1];if(!inRange(u,last.t))warn.push(u.nome+' '+fmtT(last.t));}});return '<tr><td>'+dWeek(x.d)+' '+dLab(x.d)+'</td><td>'+x.rd.length+'</td><td'+(warn.length?' class="pr-w"':'')+'>'+(warn.length?esc(warn.join('; ')):'tutto ok')+'</td></tr>';}).join('');
+  el('a4').innerHTML='<div class="pr-h"><div class="pr-t">REGISTRO TEMPERATURE — RIEPILOGO MESE</div><div class="pr-s">Prinz Rudolf · '+mon.split('-').reverse().join('/')+'</div></div><table class="pr"><tr><th>Giorno</th><th>Rilevazioni</th><th>Fuori soglia / note</th></tr>'+tr+'</table><p style="font-size:11px;margin-top:14px">Firma responsabile: __________________________</p>';
+  window.print();
+ });}
+function waMonth(){var mon=CURDATE.slice(0,7);sb('kitchen_meta?k=like.templog|'+mon+'*&select=k,v').then(function(rows){
+  var days=(rows||[]).map(function(x){return {d:x.k.slice(8),rd:(x.v&&x.v.readings)||[]};}).filter(function(x){return x.rd.length;}).sort(function(a,b){return a.d<b.d?-1:1;});
+  var lines=days.map(function(x){var warn=[];UNITS.forEach(function(u){var L=x.rd.filter(function(r){return r.u===u.id;});if(L.length){var last=L[L.length-1];if(!inRange(u,last.t))warn.push(u.nome+' '+fmtT(last.t));}});return '• '+dLab(x.d)+': '+(warn.length?('⚠ '+warn.join('; ')):(x.rd.length+' ok'));});
+  var t='PRINZ RUDOLF — Temperature, riepilogo '+mon.split('-').reverse().join('/')+'\n\n'+lines.join('\n');
+  if(navigator.share){navigator.share({title:'Temperature mese',text:t}).catch(function(){});}else{window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');}
+ });}
+/* ===== Olio friggitrici ===== */
+async function saveFrig(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'frigunits',v:{items:FRIG}})});}catch(e){toast('⚠️ Non salvato');console.error(e);}}
+async function saveOlio(){try{await sb('kitchen_meta?on_conflict=k',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k:'oliolog',v:{items:OLIO}})});}catch(e){toast('⚠️ Non salvato, controlla internet');console.error(e);}}
+function daysSince(iso){try{var d=new Date(iso);var ms=Date.now()-d.getTime();return Math.floor(ms/86400000);}catch(e){return null;}}
+function lastOil(fid){var L=OLIO.filter(function(o){return o.f===fid;}).sort(function(a,b){return (a.at||'')<(b.at||'')?1:-1;});return L.length?L[0]:null;}
+function renderOlio(){
+ var h='<div class="mini">Quando cambi l\'olio di una friggitrice, tocca <b>✔ Cambiato oggi</b>: resta segnato chi e quando. Se passa troppo tempo la riga diventa rossa.</div>';
+ h+=FRIG.map(function(f){var last=lastOil(f.id);var cls='pend',cur='';
+   if(last){var d=daysSince(last.at);var over=d>(f.ogni||7);cls=over?'warnrow':'okrow';
+     cur='<div class="cur '+(over?'warn':'ok')+'">'+(over?'⚠️ DA CAMBIARE':'✓')+' · ultimo cambio '+dLab(last.at.slice(0,10))+' ('+d+' gg fa)'+(last.by?' · '+esc(last.by):'')+(last.note?'<br>📝 '+esc(last.note):'')+'</div>';
+   }else{cur='<div class="cur">Mai registrato un cambio.</div>';}
+   return '<div class="u '+cls+'"><div class="uh"><div class="un">'+esc(f.nome)+'</div><div class="utg">ogni '+(f.ogni||7)+' gg</div></div>'+cur+
+    '<div class="inrow"><button style="margin-left:0;background:var(--ok)" onclick="markOil(\''+f.id+'\')">✔ Cambiato oggi</button><button style="background:#888" onclick="markOilData(\''+f.id+'\')">📅 Altra data</button></div></div>';
+ }).join('');
+ h+='<div class="btnrow"><button class="b-wa" onclick="waOlio()">📲 Invia stato</button><button class="b-print" onclick="printOlio()">🖨️ Stampa registro</button></div>';
+ var recent=OLIO.slice().sort(function(a,b){return (a.at||'')<(b.at||'')?1:-1;}).slice(0,15);
+ if(recent.length){h+='<div class="mini" style="margin-top:6px"><b>Ultimi cambi registrati</b></div>';
+  h+=recent.map(function(o){var f=FRIG.find(function(x){return x.id===o.f;});return '<div class="urow"><div class="ui"><div class="un2">'+esc(f?f.nome:'?')+'</div><div class="ut2">'+dLab((o.at||'').slice(0,10))+(o.by?' · '+esc(o.by):'')+(o.note?' · '+esc(o.note):'')+'</div></div><button class="del" onclick="delOil(\''+o.id+'\')">×</button></div>';}).join('');}
+ h+='<div class="addunit" style="margin-top:14px"><input id="nf_fnome" placeholder="Nome friggitrice"><div class="r3"><input id="nf_fogni" type="number" placeholder="ogni quanti giorni (es. 7)"></div><button onclick="addFrig()">＋ Aggiungi friggitrice</button></div>';
+ el('view').innerHTML=h;
+}
+function markOil(fid){var by=whoName();if(!by){by=prompt('Chi ha cambiato l\'olio? (nome)')||'';if(by)rememberWho(by);}var note=prompt('Note (facoltativo: tipo olio, litri):');if(note===null)note='';OLIO.push({id:'o'+Date.now(),f:fid,at:new Date().toISOString(),by:by,note:(note||'').trim()});saveOlio();renderOlio();toast('✓ Segnato');}
+function markOilData(fid){var ds=prompt('Data del cambio (gg/mm/aaaa):');if(!ds)return;var p=ds.split(/[\/\-\.]/);if(p.length<3){toast('Data non valida');return;}var iso=(p[2].length===2?'20'+p[2]:p[2])+'-'+pad(+p[1])+'-'+pad(+p[0])+'T12:00:00.000Z';var by=whoName()||(prompt('Chi? (nome)')||'');if(by)rememberWho(by);var note=prompt('Note (facoltativo):')||'';OLIO.push({id:'o'+Date.now(),f:fid,at:iso,by:by,note:note.trim()});saveOlio();renderOlio();toast('✓ Segnato');}
+function delOil(id){if(!confirm('Eliminare questo cambio olio?'))return;OLIO=OLIO.filter(function(o){return o.id!==id;});saveOlio();renderOlio();}
+function addFrig(){var n=(el('nf_fnome').value||'').trim();if(!n){toast('Scrivi il nome');return;}var og=parseInt((el('nf_fogni').value||'7'),10);if(!og||og<1)og=7;FRIG.push({id:'f'+Date.now(),nome:n,ogni:og});saveFrig();renderOlio();toast('✓ Aggiunta');}
+function waOlio(){var t='PRINZ RUDOLF — Olio friggitrici\n(aggiornato '+dLab(today())+')\n\n'+FRIG.map(function(f){var last=lastOil(f.id);if(!last)return '• '+f.nome+': mai registrato';var d=daysSince(last.at);return '• '+f.nome+': ultimo cambio '+dLab(last.at.slice(0,10))+' ('+d+' gg fa)'+(d>(f.ogni||7)?' ⚠ DA CAMBIARE':'');}).join('\n');if(navigator.share){navigator.share({title:'Olio friggitrici',text:t}).catch(function(){});}else{window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');}}
+function printOlio(){var rows=FRIG.map(function(f){var last=lastOil(f.id);var d=last?daysSince(last.at):null;var over=last&&d>(f.ogni||7);return '<tr><td>'+esc(f.nome)+'</td><td>ogni '+(f.ogni||7)+' gg</td><td'+(over?' class="pr-w"':'')+'>'+(last?dLab(last.at.slice(0,10))+' ('+d+' gg)'+(over?' ⚠':''):'—')+'</td><td>'+(last&&last.by?esc(last.by):'')+'</td><td>'+(last&&last.note?esc(last.note):'')+'</td></tr>';}).join('');
+ var hist=OLIO.slice().sort(function(a,b){return (a.at||'')<(b.at||'')?1:-1;}).slice(0,30).map(function(o){var f=FRIG.find(function(x){return x.id===o.f;});return '<tr><td>'+dLab((o.at||'').slice(0,10))+'</td><td>'+esc(f?f.nome:'?')+'</td><td>'+(o.by?esc(o.by):'')+'</td><td>'+(o.note?esc(o.note):'')+'</td></tr>';}).join('');
+ el('a4').innerHTML='<div class="pr-h"><div class="pr-t">REGISTRO CAMBIO OLIO FRIGGITRICI — PRINZ RUDOLF</div><div class="pr-s">Stampato il '+dLab(today())+'</div></div><table class="pr"><tr><th>Friggitrice</th><th>Frequenza</th><th>Ultimo cambio</th><th>Da</th><th>Note</th></tr>'+rows+'</table><p style="font-size:12px;font-weight:800;margin:14px 0 4px">Storico cambi</p><table class="pr"><tr><th>Data</th><th>Friggitrice</th><th>Da</th><th>Note</th></tr>'+hist+'</table><p style="font-size:11px;margin-top:14px">Firma responsabile: __________________________</p>';
+ window.print();}
+</script>
+</body></html>
