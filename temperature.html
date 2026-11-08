@@ -81,13 +81,15 @@
 </div>
 <div id="toast"></div>
 <div id="a4"></div>
-<div id="verbadge">v 08/11 11:30</div>
+<div id="verbadge">v 08/11 13:00</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="lavoroprinz";
+const APP_PW_CHEF="Rachi020817";
 const CHEF_CODE="Capo2026";
-const APP_VER='08/11 11:30';
+var CHEF=false;
+const APP_VER='08/11 13:00';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
@@ -98,11 +100,11 @@ function today(){return ymd(new Date());}
 function dLab(ds){var p=ds.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
 var GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 function dWeek(ds){try{return GG[new Date(ds+'T12:00:00').getDay()];}catch(e){return '';}}
-function unlock(p,fs){var e=el('err');if(p!==APP_PW){e.textContent='Password errata';el('pw').value='';return;}if(el('remember').checked||fs){try{localStorage.setItem('temp_pw','1')}catch(_){}}el('lock').style.display='none';el('app').style.display='block';boot();}
+function unlock(p,fs,roleForce){var e=el('err');var role;if(roleForce){role=roleForce;}else if(p===APP_PW_CHEF){role='chef';}else if(p===APP_PW){role='cook';}else{e.textContent='Password errata';el('pw').value='';return;}CHEF=(role==='chef');if(((el('remember')&&el('remember').checked))||fs){try{localStorage.setItem('temp_pw','1');localStorage.setItem('temp_role',role);}catch(_){}}el('lock').style.display='none';el('app').style.display='block';var ft=el('tab-frighi');if(ft)ft.style.display=CHEF?'':'none';boot();}
 el('enter').onclick=function(){unlock(el('pw').value,false);};
 el('pw').addEventListener('keydown',function(e){if(e.key==='Enter')unlock(e.target.value,false);});
 (async function selfUpdate(){try{if(sessionStorage.getItem('upd_temp'))return;var r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});if(!r.ok)return;var t=await r.text();var m=t.match(/>v (\d\d\/\d\d \d\d:\d\d)</);var latest=m&&m[1];if(latest&&latest!==APP_VER){sessionStorage.setItem('upd_temp','1');location.replace(location.pathname+'?v='+Date.now());}}catch(e){}})();
-(function(){try{if(localStorage.getItem('pr_av_temp')!==APP_VER){localStorage.removeItem('temp_pw');localStorage.setItem('pr_av_temp',APP_VER);}}catch(_e){}var s=null;try{s=localStorage.getItem('temp_pw')}catch(e){}if(s)unlock(APP_PW,true);else setTimeout(function(){el('pw').focus();},300);})();
+(function(){try{if(localStorage.getItem('pr_av_temp')!==APP_VER){localStorage.removeItem('temp_pw');localStorage.setItem('pr_av_temp',APP_VER);}}catch(_e){}var s=null,role='cook';try{s=localStorage.getItem('temp_pw');role=localStorage.getItem('temp_role')||'cook';}catch(e){}if(s)unlock(null,true,role);else setTimeout(function(){el('pw').focus();},300);})();
 
 var UNITS=[],TAB='oggi',CURDATE=today(),DAYLOG={readings:[]};
 var FRIG=[],OLIO=[];
@@ -121,7 +123,7 @@ var SEED=[
  {id:'u11',nome:'Congelatore grande',tipo:'Freezer −18°C',min:-25,max:-18},
  {id:'u12',nome:'Abbattitore',tipo:'Abbattitore',min:-25,max:4}
 ];
-function setTab(t){TAB=t;['oggi','storico','olio','frighi'].forEach(function(x){el('tab-'+x).classList.toggle('on',x===t);});render();window.scrollTo(0,0);}
+function setTab(t){if(t==='frighi'&&!CHEF)t='oggi';TAB=t;['oggi','storico','olio','frighi'].forEach(function(x){el('tab-'+x).classList.toggle('on',x===t);});render();window.scrollTo(0,0);}
 async function boot(){el('status').textContent='Caricamento dal cloud…';try{
   var r=await sb('kitchen_meta?k=eq.tempunits&select=v');var v=r&&r[0]&&r[0].v;
   if(v&&Array.isArray(v.items)&&v.items.length){UNITS=v.items;}else{UNITS=SEED.slice();saveUnits();}
@@ -188,6 +190,7 @@ function renderStorico(){el('view').innerHTML='<div class="mini">Carico lo stori
 }
 function openDay(d){CURDATE=d;setTab('oggi');el('status');loadDay(d).then(function(){setTab('oggi');var dp=el('dpick');if(dp)dp.value=d;});}
 function renderFrighi(){
+ if(!CHEF){el('view').innerHTML='<div class="mini">Elenco frighi (solo lettura). Solo lo chef può modificarlo.</div>'+UNITS.map(function(u){return '<div class="urow"><div class="ui"><div class="un2">'+esc(u.nome)+'</div><div class="ut2">'+esc(u.tipo)+' · soglia '+u.min+'…'+u.max+'°C</div></div></div>';}).join('');return;}
  var h='<div class="mini">Qui gestisci l\'elenco dei frighi/celle e le loro soglie. Modifica, aggiungi o togli secondo la tua cucina.</div>';
  h+='<div class="addunit"><input id="nf_nome" placeholder="Nome (es. Cella carne)"><input id="nf_tipo" placeholder="Tipo (es. Cella +3°C)"><div class="r3"><input id="nf_min" type="number" step="0.1" placeholder="min °C"><input id="nf_max" type="number" step="0.1" placeholder="max °C"></div><button onclick="addUnit()">＋ Aggiungi frigo</button></div>';
  h+=UNITS.map(function(u){return '<div class="urow"><div class="ui"><div class="un2">'+esc(u.nome)+'</div><div class="ut2">'+esc(u.tipo)+' · soglia '+u.min+'…'+u.max+'°C</div></div><button onclick="editUnit(\''+u.id+'\')">✎</button><button class="del" onclick="delUnit(\''+u.id+'\')">×</button></div>';}).join('');
@@ -231,8 +234,8 @@ function renderOlio(){
  h+='<div class="btnrow"><button class="b-wa" onclick="waOlio()">📲 Invia stato</button><button class="b-print" onclick="printOlio()">🖨️ Stampa registro</button></div>';
  var recent=OLIO.slice().sort(function(a,b){return (a.at||'')<(b.at||'')?1:-1;}).slice(0,15);
  if(recent.length){h+='<div class="mini" style="margin-top:6px"><b>Ultimi cambi registrati</b></div>';
-  h+=recent.map(function(o){var f=FRIG.find(function(x){return x.id===o.f;});return '<div class="urow"><div class="ui"><div class="un2">'+esc(f?f.nome:'?')+'</div><div class="ut2">'+dLab((o.at||'').slice(0,10))+(o.by?' · '+esc(o.by):'')+(o.note?' · '+esc(o.note):'')+'</div></div><button class="del" onclick="delOil(\''+o.id+'\')">×</button></div>';}).join('');}
- h+='<div class="addunit" style="margin-top:14px"><input id="nf_fnome" placeholder="Nome friggitrice"><div class="r3"><input id="nf_fogni" type="number" placeholder="ogni quanti giorni (es. 7)"></div><button onclick="addFrig()">＋ Aggiungi friggitrice</button></div>';
+  h+=recent.map(function(o){var f=FRIG.find(function(x){return x.id===o.f;});return '<div class="urow"><div class="ui"><div class="un2">'+esc(f?f.nome:'?')+'</div><div class="ut2">'+dLab((o.at||'').slice(0,10))+(o.by?' · '+esc(o.by):'')+(o.note?' · '+esc(o.note):'')+'</div></div>'+(CHEF?'<button class="del" onclick="delOil(\''+o.id+'\')">×</button>':'')+'</div>';}).join('');}
+ if(CHEF)h+='<div class="addunit" style="margin-top:14px"><input id="nf_fnome" placeholder="Nome friggitrice"><div class="r3"><input id="nf_fogni" type="number" placeholder="ogni quanti giorni (es. 7)"></div><button onclick="addFrig()">＋ Aggiungi friggitrice</button></div>';
  el('view').innerHTML=h;
 }
 function markOil(fid){var by=whoName();if(!by){by=prompt('Chi ha cambiato l\'olio? (nome)')||'';if(by)rememberWho(by);}var note=prompt('Note (facoltativo: tipo olio, litri):');if(note===null)note='';OLIO.push({id:'o'+Date.now(),f:fid,at:new Date().toISOString(),by:by,note:(note||'').trim()});saveOlio();renderOlio();toast('✓ Segnato');}
