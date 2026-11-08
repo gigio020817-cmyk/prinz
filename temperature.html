@@ -81,13 +81,13 @@
 </div>
 <div id="toast"></div>
 <div id="a4"></div>
-<div id="verbadge">v 08/11 11:00</div>
+<div id="verbadge">v 08/11 11:30</div>
 <script>
 const SB_URL="https://hxjxbpifboufolhwawkc.supabase.co";
 const SB_KEY="sb_publishable_Fxh5-b2a7Qtt-Pumw0MrMg_Hpjd2m7Y";
 const APP_PW="lavoroprinz";
 const CHEF_CODE="Capo2026";
-const APP_VER='08/11 11:00';
+const APP_VER='08/11 11:30';
 function el(id){return document.getElementById(id);}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function toast(t){var e=el('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},1700);}
@@ -146,12 +146,13 @@ function render(){
 function renderOggi(){
  var who=whoName();
  var h='<div class="topbar"><input type="date" id="dpick" value="'+CURDATE+'" onchange="changeDate(this.value)"><input class="who" id="who" placeholder="Rilevato da (nome)" value="'+esc(who)+'" oninput="rememberWho(this.value)"></div>';
- h+='<div class="mini">Segna la temperatura di ogni frigo. Se è fuori soglia diventa rossa e devi scrivere cosa hai fatto (azione correttiva).</div>';
+ h+='<div class="mini">I gradi sono già compilati. Tocca <b>✔ Conferma tutti</b> per registrarli tutti, oppure correggi un valore se un frigo è diverso.</div>';
+ h+='<div class="btnrow"><button class="b-add" style="background:var(--ok)" onclick="confirmAll()">✔ Conferma tutti a posto</button></div>';
  var warnCnt=0,pendCnt=0;
  h+=UNITS.map(function(u){var last=lastReading(u.id);var cls='pend',cur='';
    if(last){var ok=inRange(u,last.t);cls=ok?'okrow':'warnrow';if(!ok)warnCnt++;cur='<div class="cur '+(ok?'ok':'warn')+'">'+(ok?'✓ ':'⚠️ ')+fmtT(last.t)+' · '+tloc(last.at)+(last.by?' · '+esc(last.by):'')+(last.nota?'<br>📝 '+esc(last.nota):'')+'</div>';}else{pendCnt++;}
    return '<div class="u '+cls+'"><div class="uh"><div class="un">'+esc(u.nome)+'</div><div class="utg">'+esc(u.tipo)+' · '+u.min+'…'+u.max+'°</div></div>'+cur+
-    '<div class="inrow"><input id="t_'+u.id+'" type="number" step="0.1" inputmode="decimal" placeholder="°C"><span class="deg">°C</span><button onclick="logTemp(\''+u.id+'\')">'+(last?'Aggiorna':'Salva')+'</button></div>'+
+    '<div class="inrow"><input id="t_'+u.id+'" type="number" step="0.1" inputmode="decimal" placeholder="°C" value="'+((!last&&typeof u.rif==='number')?u.rif:'')+'"><span class="deg">°C</span><button onclick="logTemp(\''+u.id+'\')">'+(last?'Aggiorna':'Salva')+'</button></div>'+
     '<div id="nota_'+u.id+'"></div></div>';
  }).join('');
  h+='<div class="btnrow"><button class="b-wa" onclick="waDay()">📲 Invia</button><button class="b-print" onclick="printDay()">🖨️ Stampa giorno</button></div>';
@@ -169,6 +170,11 @@ function logTemp(uid){var inp=el('t_'+uid);var raw=(inp.value||'').trim().replac
  commit(uid,t,by,'');
 }
 function confirmWarn(uid,t){var ta=el('ntxt_'+uid);var nota=(ta&&ta.value||'').trim();if(!nota){toast('Scrivi l\'azione correttiva');return;}var by=(el('who')&&el('who').value||'').trim();commit(uid,t,by,nota);}
+function confirmAll(){var by=(el('who')&&el('who').value||'').trim();if(!by){by=prompt('Chi registra? (nome)')||'';if(by){rememberWho(by);}}
+ var n=0,warn=0;DAYLOG.readings=DAYLOG.readings||[];
+ UNITS.forEach(function(u){if(lastReading(u.id))return;var inp=el('t_'+u.id);var raw=(inp&&inp.value||'').trim().replace(',','.');var t=raw!==''?parseFloat(raw):(typeof u.rif==='number'?u.rif:null);if(t===null||isNaN(t))return;if(!inRange(u,t))warn++;DAYLOG.readings.push({u:u.id,t:t,by:by,at:new Date().toISOString(),nota:''});n++;});
+ if(!n){toast('Già tutti registrati oggi');return;}
+ saveDay();render();toast('✓ Confermati '+n+' frighi'+(warn?(' · ⚠ '+warn+' fuori soglia da controllare'):''));}
 function commit(uid,t,by,nota){DAYLOG.readings=DAYLOG.readings||[];DAYLOG.readings.push({u:uid,t:t,by:by,at:new Date().toISOString(),nota:nota});saveDay();render();toast(inRange(UNITS.find(function(x){return x.id===uid;}),t)?'✓ Registrato':'⚠️ Registrato fuori soglia');}
 function renderStorico(){el('view').innerHTML='<div class="mini">Carico lo storico…</div>';
  sb('kitchen_meta?k=like.templog|*&select=k,v').then(function(rows){
